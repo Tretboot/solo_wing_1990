@@ -1,8 +1,27 @@
 // ===== SOLO WING 1990 — SPRITE SYSTEM =====
 // Procedural pixel art. Later: replace with PNG files in sprites/.
 SW.Sprites = {
-  enemy: null, playerShip: null, carrier: null, cockpitFrame: null,
-  init() { this.createEnemy(); this.createPlayerShip(); this.createCarrier(); this.createCockpitFrame(); this.createShipVariants(); },
+  enemy: null, playerShip: null, playerShipTop: null, carrier: null, cockpitFrame: null,
+  init() { this.createEnemy(); this.createPlayerShip(); this.createPlayerShipTop(); this.createCarrier(); this.createCockpitFrame(); this.createShipVariants(); },
+
+  // Top-Down-Player: von oben, Nase nach oben (Ansicht 'VOGEL')
+  createPlayerShipTop() {
+    const c = document.createElement('canvas'); c.width = 16; c.height = 16;
+    const s = c.getContext('2d');
+    s.fillStyle = '#557788';
+    s.fillRect(7, 1, 2, 12);                          // Rumpf (Nase oben)
+    s.fillStyle = '#6699aa';
+    s.fillRect(5, 3, 6, 4);                           // Bug
+    s.fillStyle = '#557788';
+    s.fillRect(2, 7, 5, 3); s.fillRect(9, 7, 5, 3);   // Flügel (gepfeilt)
+    s.fillStyle = '#334455';
+    s.fillRect(2, 10, 3, 2); s.fillRect(11, 10, 3, 2);// Flügelspitzen
+    s.fillStyle = '#00ccff';
+    s.fillRect(7, 2, 1, 3);                           // Cockpit-Strich
+    s.fillStyle = '#ff6600';
+    s.fillRect(5, 13, 2, 2); s.fillRect(9, 13, 2, 2); // Twin-Engines
+    this.playerShipTop = c;
+  },
 
   // ===== SCHIFFS-VARIANTEN (Phase 3) =====
   // Prozedural gezeichnet (NoThink Code lieferte leere Matrizen → selbst gebaut).

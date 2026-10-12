@@ -116,7 +116,7 @@ SW.Enemies = {
   render(ctx) {
     const sorted=SW.Engine.zSort(this.list.filter(e=>e.alive));
     for (const e of sorted) {
-      const p=SW.Engine.project(e.x,e.y,e.z); if(!p) continue;
+      const p=SW.Engine.screenPos(e.x,e.y,e.z); if(!p) continue;
       if (p.sx<-20||p.sx>SW.W+20||p.sy<-20||p.sy>SW.H+20) continue;
       const spr=SW.Sprites.shipVariants[e.shipId]||SW.Sprites.enemy; SW.Sprites.draw(ctx,spr,p.sx,p.sy,p.scale);
     }
@@ -136,9 +136,9 @@ SW.Projectiles = {
   },
   render(ctx) {
     for (const p of this.list) {
-      const proj=SW.Engine.project(p.x,p.y,p.z); if(!proj) continue;
+      const proj=SW.Engine.screenPos(p.x,p.y,p.z); if(!proj) continue;
       if (proj.sx<0||proj.sx>SW.W||proj.sy<0||proj.sy>SW.H) continue;
-      const proj2=SW.Engine.project(p.x-p.dx*3,p.y-p.dy*3,p.z-p.dz*3);
+      const proj2=SW.Engine.screenPos(p.x-p.dx*3,p.y-p.dy*3,p.z-p.dz*3);
       if (proj2) {
         ctx.strokeStyle=p.friendly?'#ff0000':'#00ff00';
         ctx.lineWidth=Math.min(3,Math.max(1,proj.scale*0.5));
@@ -159,7 +159,7 @@ SW.Explosions = {
   update(){for(let i=this.list.length-1;i>=0;i--){this.list[i].frame++;if(this.list[i].frame>SW.EXPLOSION_FRAMES)this.list.splice(i,1);}},
   render(ctx) {
     for (const ex of this.list) {
-      const p=SW.Engine.project(ex.x,ex.y,ex.z); if(!p) continue;
+      const p=SW.Engine.screenPos(ex.x,ex.y,ex.z); if(!p) continue;
       const t=ex.frame/SW.EXPLOSION_FRAMES, radius=t*15*p.scale;
       ctx.globalAlpha=1-t;
       ctx.fillStyle=t<0.3?'#ffff00':t<0.6?'#ff6600':'#ff0000';
