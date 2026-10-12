@@ -99,6 +99,18 @@
   Smoke-Check war erst mit `torren` geschrieben (1 roter Test, Rechtschreibung).
 - **Smoke-Test:** 92/92 OK (4 neue Checks: 12. Raum, Tutorial, Türen, NPCs).
 
+### Theme-Umschalter: Terminal / Corporate (2026-10-12)
+- **Fancy-Design wiederbelebt:** `site/style-fancy.css` — Corporate Design v0.6.9
+  (Sternenkorps-Blau #00aaff, Signal-Orange #ffaa00, Navy-Flächen, Sans-Serif-
+  Headlines, Hover-Glows) als komplettes Overlay über dem grünen Terminal-Look.
+  Die Farbwelt des 2026-10-10-kaputten Stubs ist damit zum ersten Mal intakt im Repo.
+- **Umschalter:** `site/theme.js` — Button unten rechts ("◐ TERMINAL" / "◐ CORPORATE"),
+  Auswahl im localStorage (`sw1990_theme`), FOUC-frei (Ladung im <head> direkt nach
+  dem style.css-Link), funktioniert auf allen 15 Seiten inkl. manual/ (relativer Pfad).
+- **Befund:** `agent_benchmarks.html` hat doch einen style.css-Link (neben den
+  Inline-Styles) — bekommt das Theme wie alle anderen.
+- **Smoke-Test:** 97/97 OK (5 neue Checks: Dateien, Klammern, localStorage-Key, Einbindung).
+
 ## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
 
 ### Neue Features

@@ -303,5 +303,14 @@ check('Tube: Takeoff -> COCKPIT (' + tubeFrames + ' Frames)', SW.Game.state === 
 check('Tube: Fokal wiederhergestellt', SW.Engine.view.focal === SW.FOCAL);
 check('Tube: Carrier danach unsichtbar', SW.Carrier.visible === false);
 
+// --- 15. Theme-System (Terminal/Corporate, Website) ---
+check('style-fancy.css existiert', fs.existsSync(path.join(root, 'site', 'style-fancy.css')));
+const fancyCss = fs.readFileSync(path.join(root, 'site', 'style-fancy.css'), 'utf8');
+const fOb = (fancyCss.match(/{/g) || []).length, fCl = (fancyCss.match(/}/g) || []).length;
+check('style-fancy.css Klammern (' + fOb + '/' + fCl + ')', fOb === fCl && fOb >= 60);
+check('theme.js existiert (localStorage-Key sw1990_theme)', fs.existsSync(path.join(root, 'site', 'theme.js')) && fs.readFileSync(path.join(root, 'site', 'theme.js'), 'utf8').includes('sw1990_theme'));
+check('index.html: theme.js eingebunden', fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('theme.js'));
+check('manual/index.html: ../theme.js eingebunden', fs.readFileSync(path.join(root, 'site', 'manual', 'index.html'), 'utf8').includes('../theme.js'));
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');
 process.exit(failures === 0 ? 0 : 1);

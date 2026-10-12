@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SOLO WING 1990 — Projektseite</title>
 <link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <nav>
@@ -43,7 +44,7 @@
 <div class="card">
 <h3>Version 0.6.9-rc — "Musik, Optik, Katalog & Website" (dev: Wiederherstellung abgeschlossen)</h3>
 <p>Ingame-Handbuch [H] (6 Kapitel, progressiv), externes HTML-Handbuch, Website im neuen Corporate Design, Game↔Website-Bridge, Switch-Prep. Darunter: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. <b>Release Candidate.</b></p>
-<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Schreib-Block 2b drin: m4-Kältekammer-Klimax, alle 11 NPCs (Sieg + Tod). Launch-Tube-Cinematic (Startsequenz) + Kamera-System: Taste [V] wechselt zwischen Cockpit, Verfolgung und Top-Down. Website-Style wiederhergestellt (style.css lag in einer Zeile — der Anzug sitzt wieder). Smoke-Test 84/84 grün. Der Träger fliegt. Die Kältekammer atmet. Zweimal pro Minute.</p>
+<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Schreib-Block 2b drin: m4-Kältekammer-Klimax, alle 11 NPCs (Sieg + Tod). Launch-Tube-Cinematic (Startsequenz) + Kamera-System: Taste [V] wechselt zwischen Cockpit, Verfolgung und Top-Down. Neuer Schulraum "ZWEIG" (12. Raum: Git-Tutorial). Website: Style wiederhergestellt + Theme-Umschalter (unten rechts: Terminal/Corporate). Smoke-Test 97/97 grün. Der Träger fliegt. Die Kältekammer atmet. Zweimal pro Minute.</p>
 <p><span class="tag new">NEU</span> <span class="tag arch">RC</span></p>
 <p><a href="../index.html">→ Spiel starten (index.html)</a></p>
 </div>
@@ -175,6 +176,19 @@
 </div>
 
 <h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Zwei Anzüge für ein Schiff (Theme-Umschalter)</div>
+<div class="body">
+<p><b>Status:</b> Die Website hat jetzt zwei Outfits: das grüne Terminal-Look („wie Früher") und das Corporate Design v0.6.9 (blau-orange), das seit 2026-10-10 nur als kaputter Stub in der History existierte. Umschalter unten rechts, bleibt gespeichert. Smoke-Test 97/97.</p>
+<p><b>Blocker:</b> Keine. Beide Anzüge sitzen. Das Schiff ist der Konstante im Stilwechsel.</p>
+<p><b>Was wurde gebaut:</b> <code>style-fancy.css</code> als komplettes Overlay über dem grünen Look (gleiche Klassen, neue Farbwelt: Sternenkorps-Blau, Signal-Orange, Navy-Flächen, Hover-Glows) plus <code>theme.js</code> — Button „◐ TERMINAL / ◐ CORPORATE", localStorage, FOUC-frei, auf allen 15 Seiten inklusive Handbuch.</p>
+<p><b>Was lief gut:</b> Die Farbwelt aus der README-Vision ist zum ersten Mal intakt im Repository. „Corporate Design v0.6.9" steht in den Patchnotes — jetzt stimmt auch die Kleidung dazu.</p>
+<p><b>Was lief nicht:</b> Der erste CSS-Edit war 6184 Zeichen groß und wurde abgelehnt (Empfehlung: 6000). In zwei Teile zerlegt, lief alles. Die Grenze ist empfindlich.</p>
+<p><b>Besonders erwähnenswert:</b> Der Umschalter kennt kein Formular. Die Entscheidung ist final, bis sie final nicht ist.</p>
+<p><b>Nächster Schritt:</b> Playtest (Top-Down + Tube + beide Themes). Danach Schreib-Block 3 (Quest-Dialoge).</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2026-10-12</div>
 <div class="title">Captain's Log: v0.6.9-dev — Der Schulraum "ZWEIG" ist eröffnet (Git-Tutorial)</div>
