@@ -41,8 +41,9 @@
 
 <h2>AKTUELLER STATUS</h2>
 <div class="card">
-<h3>Version 0.6.5-rc — "Cheatmenü, Wandkarte, Transfer, Hangar"</h3>
-<p>7 neue NPCs (Archiv, Löffel, Stille, Mutters, Spiegel, Rohr, Nadel). Klickbare Wandkarte (Fullscreen-Karte mit Schiff-Umriss). Cheatmenü [1]/[2] im Menü. Transfer-Zwischenszene nach der Akademie (Träger-Ankunft + Begrüßung). Landung → Hangar (Bolt kommentiert, je nach Schaden) → Debriefing. Rollen (Q/E), Nav-Karte (N), Info-Panel ([I]), MIT-Lizenz. <b>Release Candidate.</b></p>
+<h3>Version 0.6.9-rc — "Musik, Optik, Katalog & Website" (dev: Wiederherstellung abgeschlossen)</h3>
+<p>Ingame-Handbuch [H] (6 Kapitel, progressiv), externes HTML-Handbuch, Website im neuen Corporate Design, Game↔Website-Bridge, Switch-Prep. Darunter: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. <b>Release Candidate.</b></p>
+<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Smoke-Test 62/62 grün. Der Träger fliegt. Die Crew meckert leiser.</p>
 <p><span class="tag new">NEU</span> <span class="tag arch">RC</span></p>
 <p><a href="../index.html">→ Spiel starten (index.html)</a></p>
 </div>
@@ -102,6 +103,38 @@
 
 <h2>PATCH NOTES</h2>
 <div class="card">
+<h3>v0.6.9-rc — Handbuch & Website (2026-10-10) + Wiederherstellung (2026-10-12)</h3>
+<ul>
+<li>Ingame-Handbuch [H]: 6 Kapitel, progressiv freigeschaltet, NPCs zitieren (js/manual.js)</li>
+<li>Externes Handbuch (site/manual/), Website im Sternenkorps-CD, Game↔Website-Bridge, Switch-Prep</li>
+<li><b>Wiederherstellung:</b> ui.js war eine einzige Kommentar-Zeile (SW.UI/SW.Comm still undefined) → Neu aus v0.6.5-rc + v0.6.6-Features. npc.js strukturell repariert (drawFace rekonstruiert, SW.NPC.resolve()). Smoke-Test 62/62 grün. Details: <a href="../PATCHNOTES.md">PATCHNOTES.md</a></li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.8-dev — Quests, Trigger & Schiffszeitung</h3>
+<ul>
+<li>Flug-Trigger (mission_complete, kill, first_kill, shield_low, room, player_down) → Quest-Event-Log</li>
+<li>Quest-Ketten (Main m1→m4, Alien, Audit, Crew), Missions-Quests, Quest-Gates (voraussetzung-Flags)</li>
+<li>Schiffszeitung-Engine (js/newspaper.js): 5 Artikel-Typen, gewichtete Generierung nach Missionen/Events/Gossip</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.7-dev — Smart Dialogues</h3>
+<ul>
+<li>Dialogue-Engine (js/dialogue.js): Context, Ereignis-Log, req-Gates, gewichtete Auswahl, Cooldown, Subplot-Stufen</li>
+<li>Schreib-Block 1: Base-Dialoge (11 NPCs, ~110 Zeilen). Schreib-Block 2a: Mission-Reaktiv m1–m3 (Sieg UND Tod)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.6-dev — Sprung & Dialog</h3>
+<ul>
+<li>JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story mit TTS, LEER = skip), World.systemId nach Mission</li>
+<li>Briefing-Szene mit echten Gesichtern (Commander + Sechs/Neun/Zwo), Dialog-Paging + Scrollbar</li>
+<li>NPC-Overhaul: 11 Charaktere, prozedurale Gesichter, TTS-Stimmen, eine drawFace-API (js/npc.js)</li>
+<li>Cockpit-Video: 280×160px, NPC-Porträt + Sprechblase + TTS-Indikator (SW.Comm.render)</li>
+</ul>
+</div>
+<div class="card">
 <h3>v0.6.2 — Akademie, Quests, KLO, Piraten</h3>
 <ul>
 <li>AKADEMIE-State: Spiel startet im Tutorial (Sim-Flug, Steuerung in der Story erklärt)</li>
@@ -142,6 +175,32 @@
 </div>
 
 <h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Der Kommentar, der ein System war</div>
+<div class="body">
+<p><b>Status:</b> Der Träger fliegt. Smoke-Test 62/62. v0.6.9-rc ist draußen, die Version meldet sich jetzt mit der richtigen Nummer.</p>
+<p><b>Blocker:</b> Keine. Der Träger ist repariert. Der Aufzug ist immer noch in Arbeit.</p>
+<p><b>Was geschah:</b> Eine Shell-Operation hatte <code>js/ui.js</code> in eine einzige Zeile zerlegt. Weil Zeile 1 mit <code>//</code> beginnt, war das gesamte File ein einziger Kommentar — <code>SW.UI</code> und <code>SW.Comm</code> existierten still nicht. Das Dorf ging weiter. Nur das Cockpit war leer. <code>js/npc.js</code> hatte fünf Beschädigungen, darunter den kompletten <code>drawFace</code>-Körper. Die Gesichter waren weg. Die Gesichter sind wieder da.</p>
+<p><b>Was lief gut:</b> Der Smoke-Test hat den stillen Ausfall erwischt. 62 Checks, einer rot — und wir wussten, wo.</p>
+<p><b>Was lief nicht:</b> Das Dateisystem lügt. Das Logbuch nicht. (Recovery aus <code>release/v0.6.5-rc</code> + v0.6.6-Features nach Konzept nachgebaut.)</p>
+<p><b>Besonders erwähnenswert:</b> Der Piloten-Commit „Ich hab keine Ahnung was ich hier warum committe" wurde als historisches Dokument eingestuft und löste die Planung des v0.6.10 Humor-Overhauls aus. Git ist jetzt Fach: Die README hat einen Abschnitt dafür. Nach der Convention steht Zeile 1 für was + warum, Zeile 2 darf deadpan sein. Formular 14-C (Selbstanzeige) ist abgelegt. Auf wen der Fehler geht, sagt das Logbuch nicht.</p>
+<p><b>Nächster Schritt:</b> Schreib-Block 2b — m4, Kältekammer, alle 11 NPCs reagieren (Sieg und Tod). Das Dorf hat eine Meinung.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-10</div>
+<div class="title">Captain's Log: v0.6.6 → v0.6.9-rc — Sprung, Gesichter, Handbuch</div>
+<div class="body">
+<p><b>Status:</b> v0.6.9-rc draußen. Ingame-Handbuch [H], externes HTML-Handbuch, Website im Sternenkorps-Standard, Game↔Website-Bridge, Switch-Prep.</p>
+<p><b>Blocker:</b> Musik fehlt noch. Der Träger summt. Die Kantine hat kein Koffein.</p>
+<p><b>Was wurde gebaut:</b> JUMP-Cinematic (6 Phasen, Sterne auf der Z-Achse, Story mit TTS), Briefing-Szene mit echten Gesichtern (Commander + Sechs/Neun/Zwo), NPC-Overhaul (11 Charaktere, prozedurale Gesichter, eine <code>drawFace</code>-API), Cockpit-Video 280×160, Dialog-Paging + Scrollbar, Smart-Dialogue-Engine (req-Gates, Cooldown, Subplot-Stufen), Quest-Trigger + Schiffszeitung-Engine (5 Artikel-Typen).</p>
+<p><b>Was lief gut:</b> Eine Rendering-API für alle Szenen. Dialoge datengetrieben. Wer schreibt, der bleibt.</p>
+<p><b>Was lief nicht:</b> Siehe nächster Eintrag. Das Dateisystem.</p>
+<p><b>Besonders erwähnenswert:</b> „State of the art. Von 1986."</p>
+<p><b>Nächster Schritt:</b> Schreib-Blöcke (2b–4), Zeitungs-Artikel, dann Musik: eine Melodie, sieben Instrumentierungen.</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2025-01-23</div>
 <div class="title">Der Ethikrat (A/B-Test) + Rap-Pirat + Intro fertig</div>
