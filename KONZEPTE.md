@@ -70,12 +70,20 @@
 - [ ] **Raum-Integration:** NPC-Klick → Smart-Dialogue (statt linearer Zeilen).
       Sprechblasen + NPC-Porträt (schon da: `SW.NPC.drawFace` / `renderCockpitVideo`).
 
-### v0.6.8 — "Quests, Trigger & Missionsbaum"
-- [ ] **Quest-Datenbank:** 5 → 50+ Quests (Main, Alien-Subplot, Audit-Subplot,
+### v0.6.8 — "Quests, Trigger & Missionsbaum" + Schiffszeitung
+- [x] **Quest-Datenbank:** 5 → 50+ Quests (Main, Alien-Subplot, Audit-Subplot,
       Crew-Persönlichkeits-Arcs, wiederholbare Side-Quests, Hidden).
-- [ ] **Quest-Ketten:** Main (m1→m4), Alien (4 Stufen), Audit (3 Stufen), Crew (pro NPC).
-- [ ] **Flug-Trigger:** `SW.Quests.flight(event)` — onKill, onMissionComplete,
+- [x] **Quest-Ketten:** Main (m1→m4), Alien (4 Stufen), Audit (3 Stufen), Crew (pro NPC).
+- [x] **Flug-Trigger:** `SW.Quests.flight(event)` — onKill, onMissionComplete,
       onShieldLow, onRoomEnter → Quests spawnen/fortschreiten/abschließen.
+- [x] **Schiffszeitung-Engine** (`js/newspaper.js`): Tägliche Berichte von der Front,
+      generiert dynamisch Inhalte basierend auf Missionen, Events, NPC-Interaktionen.
+- [x] **Artikel-Typen:** Missionserfolge, Special Events, NPC-Gossip, Subplot-Hints, Front-Berichte.
+- [ ] **Schreib-Block 3: Zeitungs-Artikel** (40+ Vorlagen: Gossip, Specials, Subplots).
+- [ ] **Zeitungs-Raum** (`js/states/newspaper_room.js`): Leseecke, Pinnwand, Monitor.
+- [ ] **Neue NPCs:** Redakteur, Leser-Gruppe (3), Archivar.
+- [ ] **TTS-Vorlesung:** Artikel werden vorgelesen bei Raum-Betreten.
+- [ ] **NPC-Reaktionen:** NPCs diskutieren aktuelle Artikel im Raum.
 - [ ] **Missions-Spawner:** Quests können Missionen spawnen (Ziel-System, Wellen,
       `onMissionSpawn`-Hook) statt nur zu belohnen.
 - [ ] **Missionsbaum:** Briefing-Tafel zeigt m1→m2→m3→m4 mit gesperrt/frei
@@ -87,7 +95,111 @@
 - [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb).
       Auto-Berechnung von cols/rows (z.B. 6×2 ab 11 Räumen).
 
-### v0.6.9 — "Musik, Optik & Katalog"
+## Schiffszeitung-System (v0.6.8)
+
+### Übersicht
+Die **Schiffszeitung** generiert tägliche Berichte von der Front: Missionsergebnisse,
+NPC-Gossip, Spieler-Erfolge, Subplot-Hints. Jeder Raum-Besuch nach einer Mission
+kann eine neue Ausgabe triggeren.
+
+### Architektur
+```
+js/newspaper.js          # Engine: Generierung, Rendering, Interaktion
+data/newspaper.js        # ZUKUNFT: Artikel-Templates, NPC-Profile
+```
+
+### API
+
+**SW.Newspaper.generate(date, events, playerActions, npcStates, subplotStages)**
+- Generiert eine neue Ausgabe basierend auf:
+  - `events`: Letzte Missionsergebnisse (mission_result)
+  - `playerActions`: Besondere Ereignisse (first_kill, rekord, etc.)
+  - `npcStates`: Interaktions-Zähler pro NPC (für Gossip-Themen)
+  - `subplotStages`: Aktuelle Stufen (alien: 0-3, audit: 0-2, optimierer: 0-1)
+
+**SW.Newspaper.render(ctx, x, y, width, height)**
+- Rendert die aktuelle Ausgabe als Zeitungs-UI
+- Kopfzeile: "SCHIFFSZEITUNG — AUSGABE {datum}"
+- Artikel-Liste: Farb-codierte Typen (Mission=Grün, Special=Orange, Gossip=Grau, Subplot=Lila)
+- Fußzeile: "[LEERTASTE: NÄCHSTE SEITE]"
+
+**SW.Newspaper.readAloud()**
+- TTS-Vorlesung aller Artikel (für Bar-Raum oder Leseecke)
+
+**SW.Newspaper.handleClick(x, y)**
+- Prüft Klick auf Artikel → Detailansicht oder NPC-Reaktion
+
+### Artikel-Typen
+1. **Missionserfolge** (weight: 3.0)
+   - Sieg/Tod nach m1–m4
+   - Vorlagen: "PILOT {name} KEHRT ZURÜCK: {mission} abgeschlossen."
+
+2. **Special Events** (weight: 4.0)
+   - First Kill, Rekord-Missionen, besondere Aktionen
+   - Vorlagen: "ERSTMALS: {player} eliminiert {count} Piraten in einem Einsatz."
+
+3. **NPC-Gossip** (weight: 1.5, 40% Chance)
+   - Basierend auf NPC-Interaktionen
+   - Vorlagen: "ROHR murmelt wieder. Diesmal über {topic}."
+
+4. **Subplot-Hints** (weight: 2.5, 60% Chance bei Stage > 0)
+   - alien: Kältekammer-Geheimnis (Stufe 1-3)
+   - audit: Sektor 7-Stempel (Stufe 1-2)
+   - optimierer: Geheime Gruppe (Stufe 1)
+
+5. **Front-Berichte** (weight: 1.0, Füller)
+   - Allgemeine Lageberichte
+   - Vorlagen: "FRONTLAGE: Stabil. Piraten zurückgedrängt."
+
+### Integration
+- **Nach Mission:** `SW.Quests.onMissionComplete()` → `SW.Newspaper.generate()`
+- **Raum-Betreten:** `SW.States.NewspaperRoom` → zeigt aktuelle Ausgabe
+- **NPC-Reaktion:** Klick auf Artikel → NPC diskutiert Inhalt (Smart Dialogue)
+
+### Beispiel-Ausgabe
+```
+SCHIFFSZEITUNG — AUSGABE TAG_001
+Generiert: 14:32:15
+
+────────────────────────────────────
+ERFOLG IM SEKTOR 7: Spieler hat Piraten neutralisiert.
+────────────────────────────────────
+KÄLTEKAMMER 7: Temperatur anomal. Fragen bleiben.
+────────────────────────────────────
+ROHR murmelt wieder. Diesmal über Kassetten-Tapes.
+────────────────────────────────────
+FRONTLAGE: Stabil. Piraten zurückgedrängt.
+```
+
+### NPC-Overhaul (v0.6.6)
+
+### 11 Charaktere (`js/npc.js`)
+| NPC | Stimme | Alter | Haar | Uniform | Persönlichkeit |
+|-----|--------|-------|------|---------|----------------|
+| Commander | Tief, ruhig | 50+ | Kurz, grau | Dunkelblau, Gold | Stoisch, autoritär |
+| Sechs | Weiblich, sarkastisch | 30+ | Messy, blonde | Blau | Spöttisch, witzig |
+| Neun | Weiblich, ängstlich | 25+ | Pony, braun | Blau | Nervös, fürsorglich |
+| Zwo | Weiblich, professionell | 35+ | Dutt, schwarz | Blau | Präzise, effizient |
+| Vier | Männlich, optimistisch | 28+ | Kurz, braun | Blau | Aufgeregt, freundlich |
+| Barkeep | Synthetisch | N/A | N/A | Grau | Maschinell, neutral |
+| Bolt | Männlich, rau | 45+ | Kurz, grau | Grau | Grauhaft, technisch |
+| Pflaster | Männlich, sorge | 40+ | Kurz, grau | Grün | Besorgt, fürsorglich |
+| Diskettens | Männlich, technisch | 50+ | Kurz, grau | Grau | Technisch, abstrakt |
+| Klo | Männlich, weise | 60+ | Kahl, grau | Grau | Weisheit, ruhig |
+| System | Synthetisch | N/A | N/A | Grau | Neutral, sachlich |
+
+### Rendering
+- **Gesicht:** Canvas-Primitives (Ellipse, QuadraticCurve, Arc)
+- **Frisuren:** 8 Varianten (short-military, messy-blonde, short-brown, ponytail, crop, bun, balding, short-grey)
+- **Uniformen:** Farbcodiert (Blau, Grün, Grau)
+- **Pose:** Leichter Bob (Sinus-Wave), Blickrichtung je nach Raum
+
+### Cockpit-Video
+- **Größe:** 280×160px
+- **Position:** Unten rechts im Cockpit
+- **Inhalt:** NPC-Porträt + Sprechblase + TTS-Typing-Indikator
+- **Trigger:** Jede Funk-Nachricht (`SW.Comm`) zeigt 2s das Gesicht des Sprechers
+
 - [ ] **Eine Melodie** (4-Akkord-Drone-Loop, prozedural WebAudio) + pro Raum andere
       Instrumentierung (gleiche Grundmelodie, anderes Kleid):
       | Raum | Klang |
