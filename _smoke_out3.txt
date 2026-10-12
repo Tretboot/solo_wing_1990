@@ -25,18 +25,18 @@
   OK   cheatEnabled-Flag = true
   OK   cheatEnabled=false -> kein Cheat-Block
   OK   startMission -> SHIP
-  FAIL Takeoff -> COCKPIT
+  OK   Takeoff -> COCKPIT
   OK   Nav-Karte rendert
   OK   Q rollt negativ
   OK   Roll federt zurueck zu 0
-  FAIL Cockpit mit Roll rendert
-  FAIL Landing -> HANGAR
-  FAIL _hangarLines gefuellt (0 Zeilen)
-  FAIL Hangar rendert
-  FAIL Hangar -> DEBRIEFING (Taste)
-  FAIL Sieg-Flag fuer Debriefing
-  FAIL Debriefing rendert
-  FAIL Debriefing -> SHIP (Taste)
+  OK   Cockpit mit Roll rendert
+  OK   Landing -> HANGAR
+  OK   _hangarLines gefuellt (2 Zeilen)
+  OK   Hangar rendert
+  OK   Hangar -> DEBRIEFING (Taste)
+  OK   Sieg-Flag fuer Debriefing
+  OK   Debriefing rendert
+  OK   Debriefing -> SHIP (Taste)
   OK   Schadensdialog (niedrig) erwahnt Schildwerte
   OK   Sim-Flug startet im COCKPIT
 [TTS] skip: unsupported
@@ -101,4 +101,4 @@
   OK   Tube: Fokal wiederhergestellt
   OK   Tube: Carrier danach unsichtbar
 
-9 TESTS FEHLGESCHLAGEN
+ALLE TESTS OK
