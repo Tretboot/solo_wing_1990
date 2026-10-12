@@ -225,8 +225,19 @@ FRONTLAGE: Stabil. Piraten zurückgedrängt.
 - [ ] **3 Enden** (Sieg / Tod / Geheim)
 - [ ] **Fax-Drucker UI** (Quest-Feedback), **Aktenschrank** (5 Akten → Flag),
       **Optimierer-Erscheinen** (nach m4, Bar)
-- [ ] **Externes Handbuch** (HTML, 12 Kapitel)
+- [ ] **Handbuch-Erweiterung:** 6 → 12 Kapitel (Universum, Fortgeschritten, Geheimnisse)
 - [ ] **RC-Paket v0.70-rc** + Doku-Pass
+
+### v0.6.9 — "Musik, Optik, Katalog & Website" (AKTUELL)
+- [x] **Ingame Handbuch [H]:** 6 Kapitel, progressiv freigeschaltet
+- [x] **Externes Handbuch:** site/manual/ mit Corporate Design
+- [x] **Website-Überarbeitung:** Sternenkorps-Standard, Handbuch-Links
+- [x] **Game ↔ Website Bridge:** Bidirektionale Navigation
+- [x] **Switch-Prep:** CSS Media Queries, UI-Scaling
+- [ ] Musik-System: 7 Instrumentierungen pro Raum
+- [ ] Sprite-Pass: Schiffe, Planeten, Sternenbasis
+- [ ] Schiffskatalog: 12. Raum, X-Wing-Style
+- [ ] JUMP-Polish: Quell-System schrumpft, Ziel wächst
 
 ### v0.75 → v0.80 — "Freies Universum" (das große Um- und Auf)
 
