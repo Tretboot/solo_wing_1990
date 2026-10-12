@@ -1,10 +1,20 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.6.6-dev (2026-10-12). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + Freies Universum).
+> Stand: v0.6.9-dev (2026-10-12). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
 
 ---
 
-## v0.6.6 — "Sprung & Dialog" (fast fertig)
+## WIEDERHERSTELLUNG (2026-10-12, nach Unterbrechung)
+> Der Spieler hatte eine Shell-Operation geflogen, die `js/ui.js` in eine
+> einzige Kommentar-Zeile zerlegt und `js/npc.js` an 5 Stellen beschädigt
+> hatte. Alles wiederhergestellt, Smoke-Test grün. Details: PATCHNOTES.md.
+- [x] ui.js wiederhergestellt (Basis 0.6.5-rc + Cockpit-Video + BriefingBoard v2)
+- [x] npc.js repariert (Method-Enden, side-part-case, drawFace + resolve())
+- [x] Smoke-Test synchronisiert (26 Skripte = index.html) → ALLE TESTS OK
+- [x] Audio/TTS-Lazy-Init (Browser-Policy, kein Vorab-Init)
+- [x] Doku-Pass (PATCHNOTES v0.6.7/0.6.8/0.6.9) + Version-Banner 0.6.9-dev
+
+## v0.6.6 — "Sprung & Dialog" (fertig)
 - [x] JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story-Zeilen mit TTS, LEER=skip)
 - [x] Briefing-Szene (Commander + 3 Piloten mit echten NPC-Gesichtern)
 - [x] Dialog-Paging + Scrollbar (lange Dialoge nicht abgeschnitten)
@@ -13,8 +23,8 @@
 - [x] Cockpit-Video (280×160px, NPC-Porträt + Sprechblase, `SW.Comm`-Integration)
 - [x] KONZEPTE.md → KONZEPTE.md umbenannt (Tippfehler)
 - [x] Workflow-Optimierung (NPC in eigener Datei, datengetriebene Dialoge, eine drawFace-API)
-- [ ] Doku-Update (KONZEPTE.md ✅, PATCHNOTES.md, TODO.md ✅) — diese Session
-- [ ] Smoke-Test: Briefing → JUMP → Cockpit → Funk (Video) → Landung
+- [x] Doku-Update (KONZEPTE.md ✅, PATCHNOTES.md ✅, TODO.md ✅) — 2026-10-12
+- [x] Smoke-Test: Briefing → JUMP → Cockpit → Funk (Video) → Landung (62/62, 2026-10-12)
 
 ## v0.6.7 — "Smart Dialogues" (das Dorf reagiert)
 > Engine ist klein, Aufwand = Schreiben. Schreib-Blöcke: 2–3 Wochen eingeplant.
@@ -64,14 +74,17 @@
 - [ ] **Beobachtungsdeck: Planet + System-Name** (seit v0.6.4 offen)
 - [ ] **JUMP-Polish** (Quell-System schrumpft, Ziel wächst)
 
-## v0.6.9 — "Musik, Optik & Katalog"
-- [ ] **Eine Melodie, 7 Instrumentierungen** (Bar=Jazz, Maschinenraum=Hall, Büro=offiziell,
-      Kapelle=spärlich, Kantine=rund, Flugdeck=militärisch, KLO=Stille)
-- [ ] **Musik-Wechsel Takeoff → Cockpit** + JUMP-Musik (Spannung, hoch)
-- [ ] **Sprite-Pass** (Schiffe aufhübschen, Planeten-Renderer, Sternenbasis SEKTOR 7)
-- [ ] **Raum: SCHIFFSKATALOG** (X-Wing-Stil, Modelle + Infos, 12. Raum)
-- [ ] **Beobachtungsdeck: Planet + System-Name** (seit v0.6.4 offen)
-- [ ] **JUMP-Polish** (Quell-System schrumpft, Ziel wächst)
+## v0.6.10 — "Humor-Overhaul" (geplant, Konzept: KONZEPTE.md → "v0.6.10")
+> Auslöser (2026-10-12): Piloten-Commit „Ich hab keine Ahnung was ich hier
+> warum committe". Der 1990-Deadpan-Ton ist schon überall — jetzt wird er
+> systematisch gepflegt. Lässt sich parallel zum Schreiben anderer Blöcke laufen.
+- [ ] **Dialog-Pass:** 1990-Deadpan über Raum-Dialoge, Funksprüche, Zeitungs-Artikel
+      (Regel: Humor ist Situation, nie Kommentar — niemand erklärt den Witz)
+- [ ] **Doku-Humor:** Patch Notes, Handbuch, Website im Sternenkorps-Ton
+      (Formulare, Stempel, „Formular 12-B erforderlich")
+- [ ] **Git-Commit-Convention:** Zeile 1 sachlich, Zeile 2 darf Deadpan sein
+      (Doku in README.md → GIT)
+- [ ] **Ton-Regeln finalisieren** (KONZEPTE.md → „v0.6.10", TON-REGEL-Block)
 
 ## v0.70 — "Enden & Papierkram"
 - [ ] **3 Enden** (Sieg / Tod / Geheim)

@@ -95,6 +95,35 @@
 - [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb).
       Auto-Berechnung von cols/rows (z.B. 6×2 ab 11 Räumen).
 
+### v0.6.10 — "Humor-Overhaul" (Konzept, 2026-10)
+
+> Auslöser: Der Piloten-Commit „Ich hab keine Ahnung was ich hier warum committe"
+> (2026-10-12). Zufalls-Humor im Prozess, der so gut zum Spiel-Ton passte, dass
+> daraus ein bewusster Pflege-Block wurde (TODO.md → v0.6.10).
+
+**Was:** Humor ist in SOLO WING 1990 kein Extra, sondern der Ton
+(TIMELINE.md: „1990-Deadpan"). Der Overhaul ist ein **Bestandsschutz-Pass**,
+keine Neuerfindung — wir pflegen den Ton an allen Schichten:
+
+1. **Spiel-Dialoge** (Räume, Funk, Zeitung, Briefing): Deadpan-Pass.
+   Regel: **Humor ist Situation, nie Kommentar.** Niemand erklärt den Witz,
+   niemand findet ihn selbst lustig. Die Crew ist müde, unterbesetzt und
+   stempelt — das IST der Witz.
+2. **Doku & Website:** Patch Notes, Handbuch, Website im Sternenkorps-Ton
+   (Formulare, Stempel, Betriebsbekanntmachungen).
+3. **Prozess (Git):** Commit-Messages: Zeile 1 sachlich (was + warum),
+   Zeile 2 darf Deadpan sein. Convention: README.md → GIT.
+
+**Was NICHT:**
+- Kein Fourth-Wall-Break (die Crew weiß nicht, dass wir sie schreiben).
+- Keine modernen Memes, kein Internet-Slang. 1990 hat keinen Internet-Slang.
+- Kein Humor auf Kosten der Crew. Sie sind keine Clowns, sie sind überarbeitet.
+- Kein Witz pro Satz. Deadpan funktioniert durch Dichte der Ernsthaftigkeit,
+  nicht durch Häufigkeit der Punchlines.
+
+**TON-REGEL:**
+> „State of the art. Von 1986." — Der Witz liegt im Ernst.
+
 ## Schiffszeitung-System (v0.6.8)
 
 ### Übersicht

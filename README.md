@@ -71,7 +71,8 @@ solo_wing_1990/
 ├── TIMELINE.md         ← Story-Timeline (für die Bible)
 ├── TODO.md             ← Todo-Liste
 ├── WC1_PCI_ANALYSE.md  ← WC1 NPC-KI Referenz
-├── js/ (15 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests, Akademie, Intro
+├── js/ (19 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests,
+│                         Akademie, Intro, NPC, Dialogue, Newspaper, Manual
 ├── data/ (9 Dateien)   ← Missions, Dialogues, Systeme, Crew, Räume, Lore, Schiffe, Quests, Akademie
 ├── sprites/            ← (leer, für PNG-Sprites)
 └── site/               ← Projekt-Website
@@ -109,6 +110,10 @@ solo_wing_1990/
 | `js/tts.js` | Text-to-Speech (Web Speech API, 14 Profile) |
 | `js/input.js` | Multi-Device Input (WASD/Pfeile/Maus/Gamepad) |
 | `js/main.js` | Game Loop, Init, State-Dispatch |
+| `js/npc.js` | NPC-Registry (11 Charaktere, prozedurale Gesichter, `drawFace`-API, Cockpit-Video) |
+| `js/dialogue.js` | Smart-Dialogue-Engine (Context, req-Gates, Cooldown, Subplot-Stufen) |
+| `js/newspaper.js` | Schiffszeitung (Generierung, Rendering, 5 Artikel-Typen) |
+| `js/manual.js` | Ingame-Handbuch (6 Kapitel, progressiv freigeschaltet, Taste [H]) |
 
 **Data-Dateien (reine Daten, kein DOM):**
 | Datei | Inhalt |
@@ -125,6 +130,31 @@ solo_wing_1990/
 
 ---
 
+## GIT (Kurzanleitung für Menschen, die Git noch nie geflogen sind)
+
+Git ist das Logbuch des Schiffs. Jeder gesicherte Stand des Codes heißt
+**Commit** — unänderlich, mit Zeitstempel und Begründung. So kann man
+jederzeit zurückkehren, vergleichen oder einen Fehler auf eine Person
+verweisen. In diesem Fall: auf niemanden. Formular 14-C (Selbstanzeige).
+
+```
+git status              Was ist geändert? (vor JEDEM Commit)
+git diff                So sieht die Änderung aus
+git add <datei>         Datei in den nächsten Commit geben
+git commit -m "Text"    Commit: geaddete Dateien sichern + benennen
+git log --oneline       Historie (neueste oben)
+git checkout <datei>    Datei auf den letzten Commit zurücksetzen
+```
+
+**Commit-Convention (Sternenkorps-Standard):**
+- Ein Commit = eine logische Änderung. Nicht "alles von heute um 23:47".
+- Zeile 1: sachlich — was + warum. Beispiel: `fix: ui.js wiederhergestellt (Shell-Schaden)`
+- Zeile 2 (optional): darf Deadpan sein. Konzept: `KONZEPTE.md` → v0.6.10.
+
+**Regel:** Vor der Pause committen. Unverteilte Dateien sind unbekannte Flugobjekte.
+
+---
+
 ## DER FEIND
 
 - **Piraten (Kugelschreiber):** Tutorial-Gegner. Selbstmörderisch, in Schwärmen. Hört Rapmusik.
@@ -137,7 +167,7 @@ solo_wing_1990/
 
 ## VERSION
 
-**v0.6.6-dev** — JUMP-Zwischensequenz (System-Sprung mit Backdrop + Story während des Flugs) + Dialog-Paging mit Scroll-Indikator (keine abgeschnittenen Dialoge mehr). Roadmap: `KONZEPTE.md` → "v0.6.6-CYCLE" (0.6.7 Missionsbaum & Deck, 0.6.8 Musik, 0.6.9 Optik & Schiffskatalog, 0.7 Enden & Papierkram).
+**v0.6.9-rc** — Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Darunter die Engine-Generation 0.6.6–0.6.8: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.9 Musik & Optik, 0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum).
 
 **v0.6.5-rc** — Cheatmenü + Wandkarte + 7 neue NPCs + Transfer-Zwischenszene + Hangar→Debriefing + Rollen (Q/E) + Nav-Karte (N) + Info-Panel + MIT-Lizenz.
 

@@ -2,7 +2,86 @@
 
 > **Team-Note (Flotten-Commander):** Die Iteration ist superschnell geworden. v0.1 → v0.6.5-beta in Rekordzeit. Das Dorf lebt jetzt. 7 neue NPCs. Die Wandkarte hängt an der Wand. Das Team (Commander, Lead Story, No Thinking, Code Review) liefert. Lob an alle. Weiter so.
 
-## v0.6.6-dev — "Sprung & Dialog" (in Arbeit, Smoke-Test 62/62 OK)
+## v0.6.9-dev — "Wiederherstellung & Doku" (2026-10-12)
+
+### Bugfixes
+- **ui.js-Schaden (Major, stiller Ausfall):** `js/ui.js` war bei einer Shell-Operation
+  in **eine einzige Zeile** zerlegt worden. Da Zeile 1 mit `//` (Header-Kommentar)
+  beginnt, war das gesamte File zu einem einzigen Kommentar verkommen — `SW.UI` und
+  `SW.Comm` wurden nie definiert, das Spiel lief weiter, bis `startMission()` an
+  `SW.Comm.clear()` stürzte (Smoke-Test: "Cannot read properties of undefined").
+  Die minimierte Datei enthielt keinen wiederherstellbaren Code mehr.
+  **Fix:** Neuaufbau aus `release/v0.6.5-rc/js/ui.js` (intakt) + v0.6.6-Features
+  nach KONZEPTE.md nachgebaut (Cockpit-Video in `SW.Comm.render()`, BriefingBoard
+  als Typing-State-Machine). Recovery-Historie steht im Header von `js/ui.js`.
+- **npc.js-Schaden (Major, Syntaxfehler):** Mehrere Methoden-Enden fehlten
+  (`_drawHair`, `_drawFeatures`), ein `case 'side-part'`-Block stand nach
+  `_drawBody` (verrutscht), der Körper von `drawFace()` (die zentrale API) fehlte
+  komplett. **Fix:** Struktur repariert, `drawFace` rekonstruiert (Körper → Kopf →
+  Accessoires, Bob bei `animated`), neuer Helfer `SW.NPC.resolve(name)` löst
+  Display-Namen ('COMMANDER') auf Registry-Keys ('commander') — nötig, damit
+  `renderCockpitVideo` die Sprechblasen-Namen aus `SW.Comm` versteht.
+- **Audio/TTS-Lazy-Init:** Vorab-Init in `main.js` entfernt (Browser-Policy: Audio
+  startet nur nach User-Geste). Läuft jetzt in `input.js` (Mouse/Touch) und beim
+  ersten Key im INTRO (`main.js`) — beides war schon vorhanden.
+- **Smoke-Test synchronisiert:** Skript-Liste enthielt `js/npc.js` + `js/manual.js`
+  nicht (v0.6.6-Liste). Jetzt 26 Dateien = `index.html`. **Test: ALLE TESTS OK.**
+- **Version-Banner:** `main.js` meldete noch `0.6.6-dev` → jetzt `0.6.9-dev`.
+
+## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
+
+### Neue Features
+- **Ingame-Handbuch (Taste [H]):** 6 Kapitel (Einführung, Steuerung, Cockpit,
+  Kampf, Missionen, Crew), progressiv freigeschaltet (m1/m2 erforderlich),
+  NPCs zitieren in jedem Kapitel, [ESC] schließt, Pfeiltasten wechseln.
+  `js/manual.js` (Handbuch-Engine).
+- **Externes Handbuch:** HTML unter `site/manual/` (Index + 6 Kapitel),
+  Corporate Design (Sternenkorps-Standard), verknüpft mit Ingame-Inhalten.
+- **Website-Überarbeitung:** Corporate Design v0.6.9 (Sternenkorps-Farben,
+  Monospace + Sans-Serif, responsive für Desktop/Mobile/Switch),
+  `site/style.css` neu.
+- **Game ↔ Website Bridge:** Ingame [H] → Handbuch, Website verlinkt zurück
+  zum Spiel, Handbuch-Links in der Navigation.
+- **Switch-Port-Vorbereitung:** CSS Media Queries für 1280×720, UI-Scaling-System,
+  Touch-Controls geplant (nicht implementiert), Performance-Checks.
+
+### Offene Punkte (→ v0.6.9-final)
+- Musik-System (1 Melodie, 7 Instrumentierungen), Sprite-Pass, Schiffskatalog
+  (12. Raum), Beobachtungsdeck (Planet + System-Name), JUMP-Polish.
+  Details: TODO.md → v0.6.9.
+
+## v0.6.8-dev — "Quests, Trigger & Schiffszeitung" (Engines fertig, Schreib-Blöcke offen)
+
+### Neue Features
+- **Flug-Trigger:** `SW.Quests.flight(event)` + Ereignis-Log + Dialog-Brücke
+  (mission_complete, kill, first_kill, shield_low, room, player_down) — Quests
+  werden zum echten Spielrhythmus statt zur Checkbox-Liste.
+- **Quest-Ketten:** Main (m1→m4), Alien, Audit, Crew (in `data/quests.js`).
+- **Missions-Quests:** m1–m4 als formale Quests — Fortschritt wird sichtbar.
+- **Quest-Gates:** `voraussetzung` (Flags) steuert Verfügbarkeit.
+- **Schiffszeitung-Engine** (`js/newspaper.js`): Generierung, Rendering,
+  Interaktion. Artikel-Typen: Missionserfolge (w:3.0), Special Events (w:4.0),
+  NPC-Gossip (w:1.5, 40%), Subplot-Hints (w:2.5, 60% bei Stage>0),
+  Front-Berichte (w:1.0, Füller). Integration nach Mission via
+  `SW.Quests.onMissionComplete()`.
+- Offene Punkte (Schreib-Blöcke + Zeitungs-Raum + 50+ Quests + Missionsbaum +
+  Quest-Log-UI + Minimap-Fix): TODO.md → v0.6.8.
+
+## v0.6.7-dev — "Smart Dialogues" (Engine + Schreib-Blöcke 1 & 2a)
+
+### Neue Features
+- **Dialogue-Engine** (`js/dialogue.js`): Context, Ereignis-Log, req-Gates
+  (Flags steuern, welcher Text freigeschaltet ist), gewichtete Auswahl,
+  Cooldown (kein Hamsterrad), Subplot-Stufen. Engine ist klein — der Aufwand
+  liegt im Schreiben (daher die Schreib-Blöcke).
+- **Schreib-Block 1: Base-Dialoge** (11 NPCs, ~110 Zeilen) — das Dorf hat eine
+  Stimme.
+- **Schreib-Block 2a: Mission-Reaktiv m1–m3** (Sieg UND Tod: das Dorf reagiert
+  auf jeden Einsatz).
+- Offene Punkte (Schreib-Blöcke 2b/3/4, A/B-Story-Checks, Raum-Integration,
+  Cooldown-Tuning): TODO.md → v0.6.7.
+
+## v0.6.6-dev — "Sprung & Dialog" (fertig, Smoke-Test 62/62 OK, 2026-10-12 verifiziert)
 
 ### Neue Features
 - **JUMP-Cinematic (6-Phasen-State-Machine, WC-Stil):** Nach der Briefing-Szene springt
