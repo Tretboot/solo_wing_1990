@@ -268,7 +268,9 @@ SW.Dialogues.smart = {
       { id:'cmd_m1t', text:'Sektor 7. Abbruch. Das Formular dafür habe ich nicht. Improvisieren Sie.', req:'m1_tod' },
       { id:'cmd_m2s', text:'Der Frachter ist angekommen. Die Torte habe ich nicht gesehen. Das Formular auch nicht.', req:'m2_sieg' },
       { id:'cmd_m3s', text:'Die Siedler sind zu Hause. KEIN FEUER war korrekt. Das notiere ich. Ohne Kommentar.', req:'m3_sieg' },
-      { id:'cmd_m4s', text:'Kältekammer. Gesichert. Formular 99-Z liegt bereit. Unterschrift: später.', req:'m4_sieg' }
+      { id:'cmd_m4s', text:'Kältekammer. Gesichert. Formular 99-Z liegt bereit. Unterschrift: später.', req:'m4_sieg' },
+      { id:'cmd_m4s2', text:'Sie waren in der Kältekammer. Sie sagen, es atmet. Das Formular hat dafür ein Feld: „Temperatur stabil.“', req:'m4_sieg' },
+      { id:'cmd_m4t', text:'Kältekammer. Abbruch. Das Formular dafür gibt es nicht. Es atmet weiter. Wir auch.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'cmd_e1', text:'Erster Abschuss. Angemerktes Notat. Das ist kein Lob. Das ist Buchhaltung.' } ],
@@ -293,7 +295,9 @@ SW.Dialogues.smart = {
       { id:'s6_m1t', text:'Abgang. Kapelle B. Die Kopfhörer aus der Spinde bringe ich mit. Die hat er nie bezahlt.', req:'m1_tod' },
       { id:'s6_m2s', text:'Die Torte ist angekommen. Wir teilen. Das Formular für den Rest gibt es nicht. Improvisieren.', req:'m2_sieg' },
       { id:'s6_m3s', text:'Zivilisten. Lebend. Ohne Schuss. Das Formular war korrekt. Ich bin schockiert. Sarkastisch.', req:'m3_sieg' },
-      { id:'s6_m4s', text:'Die Piraten haben Rap gespielt. Wir haben überlebt. In dieser Reihenfolge.', req:'m4_sieg' }
+      { id:'s6_m4s', text:'Die Piraten haben Rap gespielt. Wir haben überlebt. In dieser Reihenfolge.', req:'m4_sieg' },
+      { id:'s6_m4s2', text:'Du warst drin. Du bist draußen. Ich schenk dir nichts ein. Ich schenk dir etwas ein.', req:'m4_sieg' },
+      { id:'s6_m4t', text:'Kältekammer 7 atmet zweimal pro Minute. Ich habe gezählt. Das dritte Mal war für dich.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'s6_e1', text:'Erster Abschuss. Kein Rap. Kein Applaus. Nur ein Formular weniger. Stark.' } ],
@@ -323,7 +327,9 @@ SW.Dialogues.smart = {
       { id:'s9_m1t', text:'Ist es ... ist es furchtbar für ihn? Ich frage wegen des Formulars.', req:'m1_tod' },
       { id:'s9_m2s', text:'Der Frachter wartet nicht. Er wartet. Das ist... das ist beruhigend.', req:'m2_sieg' },
       { id:'s9_m3s', text:'Kein Feuer. Kein einziges. Ich habe gezählt. Es waren null.', req:'m3_sieg' },
-      { id:'s9_m4s', text:'Die Musik war laut. Ich habe gezählt. Es waren 99 Schläge. Dann war Schluss.', req:'m4_sieg' }
+      { id:'s9_m4s', text:'Die Musik war laut. Ich habe gezählt. Es waren 99 Schläge. Dann war Schluss.', req:'m4_sieg' },
+      { id:'s9_m4s2', text:'Zweimal pro Minute. Das ist kein Formularfehler. Ich habe nachgezählt. Ich glaube, es atmet. Ich frage wegen des Formulars.', req:'m4_sieg' },
+      { id:'s9_m4t', text:'Die Kältekammer atmet weiter. Das ist beruhigend. Oder furchtbar. Ich weiß nicht, welches Formular das ist.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'s9_e1', text:'Ich habe abgeschossen. Ich atme durch. Formular 12-C sagt, das darf ich.' } ],
@@ -350,7 +356,9 @@ SW.Dialogues.smart = {
       { id:'s2_m1s', text:'Drei Wellen. Keine Verspätung. Das Formular ist ausgefüllt. Ich bin zufrieden.', req:'m1_sieg' },
       { id:'s2_m2s', text:'Geleitschutz. Erledigt. Der Frachter fliegt auf Windows 95. Der Schieße-Modus kam nie hoch.', req:'m2_sieg' },
       { id:'s2_m3s', text:'Siedler eskortiert. Keine Schüsse. Die Priorität bleibt oben. Wie immer.', req:'m3_sieg' },
-      { id:'s2_m4s', text:'Kältekammer 7. Priorität oben. Ich wiederhole: oben. Über der Fracht. Über allem.', req:'m4_sieg' }
+      { id:'s2_m4s', text:'Kältekammer 7. Priorität oben. Ich wiederhole: oben. Über der Fracht. Über allem.', req:'m4_sieg' },
+      { id:'s2_m4s2', text:'Kältekammer gesichert. Fracht intakt. Der Frachter fliegt noch auf Windows 95. Der Schieße-Modus kam wieder nicht hoch.', req:'m4_sieg' },
+      { id:'s2_m4t', text:'Abbruch. Die Kältekammer bleibt versiegelt. Priorität oben. Ich wiederhole: oben. Alles andere ist unten.', req:'m4_tod' }
     ],
     events: {
       shield_low: [ { id:'s2_e1', text:'Schild unter dreißig. Formular 44-D: Drücken Sie die Daumen. Ich drücke sie.' } ]
@@ -376,7 +384,9 @@ SW.Dialogues.smart = {
       { id:'s4_m1s', text:'Es hat geklappt! Ich war mir sicher! Das Formular stimmt mit dem Universum überein!', req:'m1_sieg' },
       { id:'s4_m2s', text:'Die Torte! Die Torte hat überlebt! Doppelte Bedingung erfüllt!', req:'m2_sieg' },
       { id:'s4_m3s', text:'Sie sind zu Hause! Die Siedler! Mit Formular und allem!', req:'m3_sieg' },
-      { id:'s4_m4s', text:'Rap! Piraten rappen! Ich hätte nie gedacht, dass der Raum Musik machen kann!', req:'m4_sieg' }
+      { id:'s4_m4s', text:'Rap! Piraten rappen! Ich hätte nie gedacht, dass der Raum Musik machen kann!', req:'m4_sieg' },
+      { id:'s4_m4s2', text:'Es atmet! Zweimal pro Minute! Das ist ein sehr ruhiger Atem! Ich bin mir sicher, das ist das Ruhigste auf dem Schiff!', req:'m4_sieg' },
+      { id:'s4_m4t', text:'Ich habe meinen Notfallplan ausprobiert. Ich habe gelacht. Es hat nicht geholfen. Aber das Formular stimmt. Das Formular stimmt immer.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'s4_e1', text:'Ich war mir sicher! Das Universum ist vorbereitet! Auch dafür!' } ],
@@ -393,6 +403,10 @@ SW.Dialogues.smart = {
       { id:'bar_b6', text:'*Klicken* Ich bediene in der Reihenfolge der Aktennummer.' },
       { id:'bar_b7', text:'*Klicken* Stille ist ein Getränk. Es kostet nichts. Es wird nie fertig.' },
       { id:'bar_b8', text:'*Klicken* Wiederholte Bestellung nicht erforderlich. Aber erlaubt.' }
+    ],
+    mission: [
+      { id:'bar_m4s', text:'*Klicken* Einsatz: Kältekammer. Ergebnis: versiegelt. Temperatur: stabil. Empfehlung: Fenster.', req:'m4_sieg' },
+      { id:'bar_m4t', text:'*Klicken* Einsatz abgebrochen. Kältekammer: stabil. Bestätigung. Bestätigung. Bestätigung.', req:'m4_tod' }
     ],
     events: {
       heard_rap: [ { id:'bar_e1', text:'*Klicken* Rhythmus erkannt. Quelle: Kugelschreiber. Empfehlung: Fenster.' } ],
@@ -412,7 +426,9 @@ SW.Dialogues.smart = {
     ],
     mission: [
       { id:'bol_m1s', text:'Sie haben das Schiff zerkratzt. Ich sag\'s euch: JEDEN KRATZER hab ich gesehen. Rechnung folgt.', req:'m1_sieg' },
-      { id:'bol_m2s', text:'Der Frachter ist ganz. Das Schiff auch. Fast. Fast ist mein Wort. Ich behalte es.', req:'m2_sieg' }
+      { id:'bol_m2s', text:'Der Frachter ist ganz. Das Schiff auch. Fast. Fast ist mein Wort. Ich behalte es.', req:'m2_sieg' },
+      { id:'bol_m4s', text:'Der Frachter hat Kälte bekommen. Die Rohre summen in einer Tonart. Ich sag\'s euch: DAS ist kein Motor. Rechnung folgt.', req:'m4_sieg' },
+      { id:'bol_m4t', text:'Das Schiff ist zurück. Ohne Sie. Der Plan bleibt. Die Dichtung auch. Die Rechnung auch.', req:'m4_tod' }
     ],
     events: {
       shield_low: [ { id:'bol_e1', text:'Noch ein Schild. Ich wette auf das Filterproblem. Es ist immer das Filterproblem.' } ],
@@ -436,7 +452,9 @@ SW.Dialogues.smart = {
     mission: [
       { id:'pf_m1s', text:'Keine Blutung. Keine Schramme. Nur der Schweiß. Den hab ich auch gepflastert.', req:'m1_sieg' },
       { id:'pf_m1t', text:'Setz dich. Du zitterst. Das ist okay. Ich zähle mit.', req:'m1_tod' },
-      { id:'pf_m4s', text:'Die Kältekammer. Du warst da. Du riechst nicht nach Kälte. Das ist gut.', req:'m4_sieg' }
+      { id:'pf_m4s', text:'Die Kältekammer. Du warst da. Du riechst nicht nach Kälte. Das ist gut.', req:'m4_sieg' },
+      { id:'pf_m4s2', text:'Deine Hände waren blau. Ich habe gezählt, bis sie rosa waren. Neunundneunzig. Das war die richtige Zahl.', req:'m4_sieg' },
+      { id:'pf_m4t', text:'Ich zähle weiter. Auch heute. Das Formular hat ein Feld: „Bemerkung.“ Ich schreibe: weiter.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'pf_e1', text:'Du hast etwas getroffen. Deine Hände zittern. Das ist nicht Schwäche. Das ist neu.' } ],
@@ -456,6 +474,10 @@ SW.Dialogues.smart = {
       { id:'dis_b6', text:'Formular 83-B habe ich nicht ausgefüllt. Ich habe das Formular gelehrt.' },
       { id:'dis_b7', text:'Zwei Disketten. Ein Gebet. Es reicht. Ich wiederhole: Es reicht.' },
       { id:'dis_b8', text:'Sie fliegen auf Windows 95. Ich fliege auf zwei Disketten. Die Frage ist nur, wer neu startet.' }
+    ],
+    mission: [
+      { id:'dis_m4s', text:'Kältekammer. Zwei pro Minute. Auf Diskette B. Diskette A bleibt leer. Für die Antwort, die noch fehlt.', req:'m4_sieg' },
+      { id:'dis_m4t', text:'Diskette B ist voll. Diskette A bleibt leer. Die kalte Cola ist noch in der Faust. Es ist nicht vorbei.', req:'m4_tod' }
     ],
     events: {
       shield_low: [ { id:'dis_e1', text:'Schildwerte fallen. Wie ein Kassetten-Tape: erst leiser, dann weg. Dann ist es weg.' } ],
@@ -480,7 +502,9 @@ SW.Dialogues.smart = {
       { id:'klo_m1s', text:'Du bist wieder da. Ich wische trotzdem weiter. Aber das Wischen ist leichter.', req:'m1_sieg' },
       { id:'klo_m1t', text:'Abgang 07:30. Ich habe die Kerze länger gemacht. Wasser. Immer Wasser.', req:'m1_tod' },
       { id:'klo_m2s', text:'Eine Torte mehr im Dorf. Das Schiff wird süßer. Und kleiner. Und näher am Ziel.', req:'m2_sieg' },
-      { id:'klo_m3s', text:'Die Siedler sind zu Hause. In der Kapelle brennt eine Kerze weniger. Das ist gut.', req:'m3_sieg' }
+      { id:'klo_m3s', text:'Die Siedler sind zu Hause. In der Kapelle brennt eine Kerze weniger. Das ist gut.', req:'m3_sieg' },
+      { id:'klo_m4s', text:'Die Kältekammer stinkt nicht. Das ist das neue Problem. Es stinkt NICHT. Ich wische trotzdem.', req:'m4_sieg' },
+      { id:'klo_m4t', text:'Abgang. Ich habe die Kältekammer gewischt. Sie ist sauber. Das ist nichts. Aber es ist heute das Einzige.', req:'m4_tod' }
     ],
     events: {
       player_down: [ { id:'klo_e1', text:'Wasser. Immer Wasser. Ich habe einen Platz frei gelassen. Den brauche ich jetzt.' } ],
@@ -497,6 +521,10 @@ SW.Dialogues.smart = {
       { id:'sys_b2', text:'SYSTEM: Wiederholung nicht erforderlich.' },
       { id:'sys_b3', text:'SYSTEM: Kaffeeversorgung nicht verfügbar.' },
       { id:'sys_b4', text:'SYSTEM: Bestätigung.' }
+    ],
+    mission: [
+      { id:'sys_m4s', text:'SYSTEM: Kältekammer 7. Versiegelt. Temperatur: stabil. Atmung: 2/min. Quelle: unbekannt.', req:'m4_sieg' },
+      { id:'sys_m4t', text:'SYSTEM: Einsatz abgebrochen. Kältekammer 7: stabil. Atmung: 2/min. Quelle: unbekannt. Personal: minus eins.', req:'m4_tod' }
     ],
     events: {
       first_kill: [ { id:'sys_e1', text:'SYSTEM: Kontakt neutralisiert. Bewertung: 4/10. Formular ausgefüllt.' } ],

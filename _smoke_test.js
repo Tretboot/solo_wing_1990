@@ -2,8 +2,8 @@
 // Lädt alle Skripte in index.html-Reihenfolge in einer Node-VM (DOM-Stubs)
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
 // COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → SHIP.
-// Skript-Liste AMT 26 Dateien = index.html (2026-10-12 synchronisiert:
-// js/npc.js + js/manual.js ergänzt).
+// Skript-Liste AMT 28 Dateien = index.html (2026-10-12 synchronisiert:
+// js/npc.js + js/manual.js + js/dialogue.js + js/newspaper.js ergänzt).
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -62,8 +62,9 @@ const scripts = [
   'data/crew.js', 'data/rooms.js', 'data/lore.js', 'data/ships.js',
   'data/quests.js', 'data/akademie.js',
   'js/audio.js', 'js/tts.js', 'js/npc.js', 'js/input.js', 'js/engine.js', 'js/sprites.js',
-  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js',
-  'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js', 'js/manual.js', 'js/main.js'
+  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js', 'js/dialogue.js',
+  'js/newspaper.js', 'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js',
+  'js/manual.js', 'js/main.js'
 ];
 console.log('Lade ' + scripts.length + ' Skripte ...');
 for (const s of scripts) {
@@ -239,6 +240,37 @@ SW.Ship.advanceDialogue();
 check('Dialog: scrollt auf Seite 2', SW.Ship.dialoguePage === 1);
 SW.Ship.advanceDialogue();
 check('Dialog: nach letzter Seite endet Dialog', SW.Ship.dialogueActive === false);
+
+// --- 13. Smart Dialogues: m4 Kältekammer-Klimax (Schreib-Block 2b) ---
+check('SmartDialogues existiert (js/dialogue.js geladen)', !!SW.SmartDialogues);
+check('Newspaper existiert (js/newspaper.js geladen)', !!SW.Newspaper);
+if (SW.SmartDialogues) {
+  const npcKeys = ['commander','sechs','neun','zwo','vier','barkeep','bolt','pflaster','diskettens','klo','system'];
+  let m4s = 0, m4t = 0;
+  for (const k of npcKeys) {
+    const m = ((SW.Dialogues.smart || {})[k] || {}).mission || [];
+    if (m.some(l => l.req === 'm4_sieg')) m4s++;
+    if (m.some(l => l.req === 'm4_tod')) m4t++;
+  }
+  check('m4_sieg-Zeile bei allen 11 NPCs', m4s === 11);
+  check('m4_tod-Zeile bei allen 11 NPCs', m4t === 11);
+  // A/B-Gates + noteMission (die Brücke, die states.js aufruft)
+  if (SW.World) {
+    SW.World.missionResults = {};
+    check('A/B-Gate: m4_sieg ZU ohne Ergebnis', SW.SmartDialogues.checkReq('m4_sieg') === false);
+    check('A/B-Gate: m4_tod ZU ohne Ergebnis', SW.SmartDialogues.checkReq('m4_tod') === false);
+    SW.SmartDialogues.noteMission('m4', 'sieg');
+    check('noteMission(m4,sieg) -> m4_sieg OFFEN', SW.SmartDialogues.checkReq('m4_sieg') === true);
+    check('noteMission(m4,sieg) -> m4 in missionProgress', (SW.World.missionProgress || []).indexOf('m4') !== -1);
+    check('noteMission -> Event mission_sieg', SW.SmartDialogues.hasEvent('mission_sieg'));
+    SW.SmartDialogues.noteMission('m4', 'tod');
+    check('noteMission(m4,tod) -> m4_tod OFFEN', SW.SmartDialogues.checkReq('m4_tod') === true);
+  }
+  check('states.js: Sieg-Brücke vorhanden', fs.readFileSync(path.join(root, 'js/states.js'), 'utf8').indexOf("noteMission(this.mission.id, 'sieg')") !== -1);
+  check('states.js: Tod-Brücke vorhanden', fs.readFileSync(path.join(root, 'js/states.js'), 'utf8').indexOf("noteMission(this.mission.id, 'tod')") !== -1);
+}
+check('index.html: js/dialogue.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/dialogue.js'));
+check('index.html: js/newspaper.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/newspaper.js'));
 
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');
 process.exit(failures === 0 ? 0 : 1);

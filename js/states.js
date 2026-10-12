@@ -30,6 +30,7 @@ SW.Game = {
         // SIM-MODUS: Akademie-Prüfung bestanden
         if (this._simMode) { SW.Akademie.bestanden(); return; }
         if(SW.World) { SW.World.missionResult='sieg'; SW.World.systemId = this.missionSystemId(); }
+        if (SW.SmartDialogues && this.mission) SW.SmartDialogues.noteMission(this.mission.id, 'sieg');
         SW.Comm.add("COMMANDER: Sie kommen zurück. Beförderung zum Gefreiten. Per Fax.");
         if (SW.Quests) SW.Quests.tick({typ:'mission', ergebnis:'sieg'});
         setTimeout(()=>{ if(SW.Player.alive) this.setState('LANDING'); },2000);
@@ -47,6 +48,7 @@ SW.Game = {
           SW.World.systemId = this.missionSystemId();
           SW.World.nachrufe.push({name:'Flug Drei',text:'Gefallen im Dienst. ' + this.score + ' Punkte. ' + SW.World._nachrufText('Flug Drei')});
         }
+        if (SW.SmartDialogues && this.mission) SW.SmartDialogues.noteMission(this.mission.id, 'tod');
         if (SW.Quests) SW.Quests.tick({typ:'mission', ergebnis:'tod'});
         this.setState('DEBRIEFING');
       }
