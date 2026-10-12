@@ -71,6 +71,19 @@
   Mini-HUD (Schild, Score, Radar, [V]-Anzeige) für chase/topdown.
 - **Smoke-Test:** 84/84 OK (12 neue Checks: View-Cycling, Top-Down-Aim, Tube-Durchlauf).
 
+### Website-Style wiederhergestellt (2026-10-12)
+- **Befund:** `site/style.css` (605 B) und `site/manual/index.html` waren
+  Backtick-`n`-zerlegt (1 Zeile, `n statt \n) — die Seite lief komplett
+  ohne CSS. Ursache: Shell-/Agent-Schaden, identisch zum ui.js-Fall.
+- **Fix:** `style.css` bytegenau aus `release/v0.6.5-rc/site/style.css`
+  wiederhergestellt (grünes Terminal-Look, „wie Früher") + neuer Block
+  „Externes Handbuch" (`.manual-nav`, `.chapter-num`, `.manual-content`,
+  `.manual-quote`). `site/manual/index.html` aus dem intakten Inhalt
+  neu geschrieben (38 Zeilen, Tag-Balance geprüft).
+- **Benchmarks:** `agent_benchmarks.html` hat eigene Inline-Styles — kein
+  Handlungsbedarf. Verifikation: `_csscheck.js` (0 Backtick-`n`-Hits in
+  site/, CSS-Klammern 65/65, HTML-Balance OK).
+
 ## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
 
 ### Neue Features

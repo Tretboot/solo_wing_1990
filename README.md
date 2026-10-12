@@ -167,6 +167,17 @@ Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
   aus dem Verwirrspiel sind aus dem Index entfernt (`9be090c`); die History
   bleibt, weil Katzenarbeit Arbeit ist.
 
+- **2026-10-12 — „Die Website ohne Anzug":** `site/style.css` und
+  `site/manual/index.html` waren in eine einzige Zeile zerlegt, in der
+  `n` statt Zeilenumbrüchen stand (selbe Handschrift wie der
+  ui.js-/npc.js-Schaden). Symptom: die Seite renderte komplett ohne
+  Style, ohne dass ein einziger Link fehlerhaft war. Fix: `style.css`
+  bytegenau aus `release/v0.6.5-rc/` wiederhergestellt (grünes
+  Terminal-Look „wie Früher") + Regeln für den neuen manual/-Ordner
+  ergänzt; `manual/index.html` aus dem intakten Inhalt umgeschrieben.
+  Scan-Skript: `_csscheck.js` (Backtick-`n`-Detection über die ganze
+  site/-Bäume).
+
 ---
 
 ## DER FEIND
