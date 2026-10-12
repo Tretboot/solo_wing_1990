@@ -153,6 +153,20 @@ git checkout <datei>    Datei auf den letzten Commit zurücksetzen
 
 **Regel:** Vor der Pause committen. Unverteilte Dateien sind unbekannte Flugobjekte.
 
+**Unfall-Protokoll (Katze über der Tastatur):**
+Wenn der Terminal-Fokus springt, Chat-Text im Terminal landet, die Shell
+sich verspricht oder die Katze wieder über die Tastatur läuft: hier eintragen.
+Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
+
+- **2026-10-12 — „Der parallele Comitter":** Chat-Text landete im Terminal
+  (Fokus-Sprung), die Shell spuckte zweimal „i" bzw. „man " vor `git` aus.
+  Git lehnte die leeren Commits beide Male sauber ab (danke, `git status`
+  vorher). Nebenprodukt: eine Handvoll Commits mit Namen wie `tet`, `test`,
+  `ok`, `Sehr Fließig`, `Ich weiß nicht warum ich das kommentieren soll` —
+  identifiziert als Katzenüberfall, nicht als zweiter Agent. Die Temp-Dateien
+  aus dem Verwirrspiel sind aus dem Index entfernt (`9be090c`); die History
+  bleibt, weil Katzenarbeit Arbeit ist.
+
 ---
 
 ## DER FEIND
