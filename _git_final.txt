@@ -1,0 +1,18 @@
+﻿2fd39e5 site: Captain's Log v0.6.6-0.6.9 + Wiederherstellung, Status & Patch Notes aktuell
+0054aee docs: Patch Notes v0.6.7ÔÇô0.6.9, Git-Anleitung, Humor-Overhaul-Plan (v0.6.10)
+e6a95c2 fix: ui.js + npc.js wiederhergestellt (Shell-Schaden), Smoke-Test synchronisiert
+04db1e6 fix: Audio + TTS erst bei User-Interaction initialisieren (Browser-Policy)
+bce772d Ich hab keine Ahnung was ich hier warum committe
+c90da87 Update KONZEPTE.md mit v0.6.9-Status
+ M PATCHNOTES.md
+ M TODO.md
+A  _scripttags.js
+M  _smoke_test.js
+M  data/dialogues.js
+M  index.html
+M  js/states.js
+ M site/index.html
+?? _findlog.js
+?? _git_final.txt
+?? _msg2b.txt
+?? _msg2b_docs.txt

@@ -1,0 +1,2 @@
+docs: Schreib-Block 2b als erledigt markiert; v0.6.8-Checkboxen korrigiert (Flug-Trigger/Quest-Ketten im Code nicht vorhanden); PATCHNOTES "Integration & Befunde"; Captain's Log-Eintrag
+Doku lügt nicht mehr. Das Formular bestätigt.

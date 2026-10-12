@@ -43,7 +43,7 @@
 <div class="card">
 <h3>Version 0.6.9-rc — "Musik, Optik, Katalog & Website" (dev: Wiederherstellung abgeschlossen)</h3>
 <p>Ingame-Handbuch [H] (6 Kapitel, progressiv), externes HTML-Handbuch, Website im neuen Corporate Design, Game↔Website-Bridge, Switch-Prep. Darunter: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. <b>Release Candidate.</b></p>
-<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Smoke-Test 62/62 grün. Der Träger fliegt. Die Crew meckert leiser.</p>
+<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Schreib-Block 2b drin: m4-Kältekammer-Klimax, alle 11 NPCs (Sieg + Tod), Dialog- und Zeitung-Engine endlich eingebunden. Smoke-Test 72/72 grün. Der Träger fliegt. Die Kältekammer atmet. Zweimal pro Minute.</p>
 <p><span class="tag new">NEU</span> <span class="tag arch">RC</span></p>
 <p><a href="../index.html">→ Spiel starten (index.html)</a></p>
 </div>
@@ -175,6 +175,19 @@
 </div>
 
 <h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Die Kältekammer atmet (Schreib-Block 2b)</div>
+<div class="body">
+<p><b>Status:</b> Schreib-Block 2b erledigt. m4, der Kältekammer-Klimax: alle 11 NPCs haben jetzt eine Meinung — Sieg und Tod. 22 neue Zeilen, alle hinter req-Gates. Smoke-Test 72/72.</p>
+<p><b>Blocker:</b> Keine. Das Dorf ist laut, aber es weiß noch nicht, wann es reden darf — die Raum-Integration fehlt. Die Engine läuft. Der Text steht in der Schublade.</p>
+<p><b>Was geschah:</b> Der Wiring-Check hat drei Befunde gebracht: <code>js/dialogue.js</code> und <code>js/newspaper.js</code> existierten, waren aber nie in <code>index.html</code> eingebunden — jetzt sind sie drin. <code>noteMission()</code> war definiert und von niemandem aufgerufen — <code>states.js</code> schaltet Sieg/Tod jetzt mit der Dialog-Engine. Und: „erledigt" in der TODO-Liste (v0.6.8 Flug-Trigger, Quest-Ketten) hieß „gewünscht". Die Checkboxen sind korrigiert.</p>
+<p><b>Was lief gut:</b> Der Smoke-Test hat 10 neue Checks, alle grün. Die Engine lädt, die Gates gehen zu, die Events landen. Die Kältekammer stinkt nicht. Das ist das neue Problem.</p>
+<p><b>Was lief nicht:</b> Doku lügt gern, wenn sie vorauseilt. Jetzt lügt sie nicht mehr. Das Formular bestätigt.</p>
+<p><b>Besonders erwähnenswert:</b> SYSTEM: Kältekammer 7. Versiegelt. Temperatur: stabil. Atmung: 2/min. Quelle: unbekannt. Personal: minus eins. (Testzeile. Das Personal wurde wieder aufgefüllt. Wahrscheinlich.)</p>
+<p><b>Nächster Schritt:</b> Schreib-Block 3 (Quest-Dialoge), dann Raum-Integration — das Dorf lernt, wann es reden darf. Danach die Zeitung: 40+ Artikel.</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2026-10-12</div>
 <div class="title">Captain's Log: v0.6.9-dev — Der Kommentar, der ein System war</div>

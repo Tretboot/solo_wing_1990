@@ -10,9 +10,19 @@
 > hatte. Alles wiederhergestellt, Smoke-Test grün. Details: PATCHNOTES.md.
 - [x] ui.js wiederhergestellt (Basis 0.6.5-rc + Cockpit-Video + BriefingBoard v2)
 - [x] npc.js repariert (Method-Enden, side-part-case, drawFace + resolve())
-- [x] Smoke-Test synchronisiert (26 Skripte = index.html) → ALLE TESTS OK
+- [x] Smoke-Test synchronisiert (28 Skripte = index.html, +dialogue.js +newspaper.js) → ALLE TESTS OK
 - [x] Audio/TTS-Lazy-Init (Browser-Policy, kein Vorab-Init)
 - [x] Doku-Pass (PATCHNOTES v0.6.7/0.6.8/0.6.9) + Version-Banner 0.6.9-dev
+
+## NÄCHSTE OFFENE PAKETE (in Reihenfolge, Stand 2026-10-12)
+1. **v0.6.7 Schreib-Block 3** — Quest-Dialoge (Auftrag, Erfolg, Fehlschlag)
+2. **v0.6.7 Schreib-Block 4** — Subplots ausbauen (Audit 2 Stufen, Optimierer, mehr NPCs)
+3. **v0.6.7 A/B-Story-Checks** — Verzweigungs-Validierung, Spoiler-Gates testen
+4. **v0.6.7 Raum-Integration** — ui.js ruft `SW.SmartDialogues.get()` auf (NPC-Klick →
+   Porträt + Sprechblase). Engine, Bridge (states.js) und alle Texte (Blöcke 1/2a/2b) stehen.
+5. **v0.6.7 Cooldown-Tuning** im Playtest
+6. **v0.6.8** — Flug-Trigger `SW.Quests.flight()` (⚠ Code fehlt, s. unten), Zeitungs-Artikel
+   (40+), Zeitungs-Raum, 50+ Quests, Missionsbaum, Quest-Log-UI
 
 ## v0.6.6 — "Sprung & Dialog" (fertig)
 - [x] JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story-Zeilen mit TTS, LEER=skip)
@@ -32,7 +42,7 @@
       gewichtete Auswahl, Cooldown, Subplot-Stufen
 - [x] **Schreib-Block 1: Base-Dialoge** (11 NPCs, ~110 Zeilen)
 - [x] **Schreib-Block 2a: Mission-Reaktiv m1–m3** (Sieg/Tod, Hauptbesetzung)
-- [ ] **Schreib-Block 2b: Mission-Reaktiv m4** (Kältekammer-Klimax, alle 11 NPCs)
+- [x] **Schreib-Block 2b: Mission-Reaktiv m4** (Kältekammer-Klimax, alle 11 NPCs, Sieg + Tod — 22 Zeilen, `req`-Gates `m4_sieg`/`m4_tod`, 2026-10-12)
 - [ ] **Schreib-Block 3: Quest-Dialoge** (Auftrag, Erfolg, Fehlschlag)
 - [ ] **Schreib-Block 4: Subplots ausbauen** (Audit 2 Stufen, Optimierer, mehr NPCs)
 - [ ] **A/B-Story-Checks** (Verzweigungs-Validierung, Spoiler-Gates testen)
@@ -40,11 +50,15 @@
 - [ ] Cooldown-Tuning im Playtest (kein Hamsterrad von 3 Sätzen)
 
 ## v0.6.8 — "Quests, Trigger & Missionsbaum" + Schiffszeitung
-- [x] **Flug-Trigger:** `SW.Quests.flight(event)` + Ereignis-Log + Dialog-Brücke
+- [ ] **Flug-Trigger:** `SW.Quests.flight(event)` + Ereignis-Log + Dialog-Brücke
       (mission_complete, kill, first_kill, shield_low, room, player_down)
-- [x] **Quest-Ketten:** Main (m1→m4), Alien, Audit, Crew (in `data/quests.js`)
-- [x] **Missions-Quests:** m1–m4 als formale Quests (Fortschritt wird sichtbar)
-- [x] **Quest-Gates:** `voraussetzung` (Flags) steuert Verfügbarkeit
+- [ ] **Quest-Ketten:** Main (m1→m4), Alien, Audit, Crew (in `data/quests.js`)
+- [ ] **Missions-Quests:** m1–m4 als formale Quests (Fortschritt wird sichtbar)
+- [ ] **Quest-Gates:** `voraussetzung` (Flags) steuert Verfügbarkeit
+      > ⚠ Stand 2026-10-12: Die vier Punkte oben standen als [x], existieren aber
+      > nicht im Code — `js/quests.js` ist das alte tick-System, `data/quests.js`
+      > hat 5 Einzel-Quests (ohne Ketten, ohne `voraussetzung`). Checkboxen korrigiert.
+      > Details: PATCHNOTES.md → v0.6.9-dev → „Integration & Befunde".
 - [x] **Schiffszeitung-Engine** (`js/newspaper.js`): Templates, Generierung, Rendering
 - [x] **Artikel-Typen:** Missionserfolge, Special Events, NPC-Gossip, Subplot-Hints, Front-Berichte
 - [ ] **Schreib-Block 3: Zeitungs-Artikel** (40+ Vorlagen: Gossip, Specials, Subplots)

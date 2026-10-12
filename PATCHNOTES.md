@@ -28,6 +28,34 @@
   nicht (v0.6.6-Liste). Jetzt 26 Dateien = `index.html`. **Test: ALLE TESTS OK.**
 - **Version-Banner:** `main.js` meldete noch `0.6.6-dev` → jetzt `0.6.9-dev`.
 
+### Schreib-Block 2b: m4 Kältekammer-Klimax (2026-10-12)
+- **Mission-Reaktiv m4 (Sieg UND Tod) für alle 11 NPCs** (`data/dialogues.js → smart`):
+  Commander, Sechs, Neun, Zwo, Vier, Barkeep, Bolt, Pflaster, Diskettens, Klo, System —
+  je 1–2 Sieg- und 1 Tod-Zeile (22 neue), alle mit `req`-Gate (`'m4_sieg'`/`'m4_tod'`).
+  Wissen auf Subplot-Stufe 1 gehalten (atmet, 2/min, versiegelt, Formular 99-Z) —
+  Stage-2/3-Wissen bleibt in den Subplot-Pools (A/B-Regel: Spoiler bleiben zu).
+
+### Integration & Befunde (Wiring-Check, 2026-10-12)
+- **Dialog-Brücke fehlte, ist jetzt da:** `SW.SmartDialogues.noteMission()` war definiert,
+  aber von nirgendwo aufgerufen — `states.js` schrieb nur `World.missionResult`
+  (Einzel-Feld), die req-Gates prüfen aber `World.missionResults[missionId]`.
+  Folge: alle Mission-Reaktiv-Zeilen (Blöcke 2a + 2b) waren tote Daten.
+  **Fix:** `states.js → triggerVictory()/triggerDeath()` ruft jetzt
+  `noteMission(this.mission.id, 'sieg'|'tod')` auf (Guard: nur bei aktiver Mission,
+  Sim-Modus bleibt unberührt).
+- **Engine-Dateien waren nie eingebunden:** `js/dialogue.js` und `js/newspaper.js`
+  existierten vollständig, standen aber nicht in `index.html`. Jetzt eingebunden
+  (28 Skripte, Smoke-Test synchronisiert). Die Engines bleiben inert, bis
+  `ui.js` (Raum-Integration, offen) `SmartDialogues.get()` bzw. `Newspaper.render()`
+  aufruft.
+- **Befund v0.6.8 (Checkboxen korrigiert):** `SW.Quests.flight()`, Quest-Ketten,
+  Missions-Quests und Quest-Gates standen in TODO als erledigt, existieren aber nicht
+  im Code (`js/quests.js` = altes tick-System, `data/quests.js` = 5 Einzel-Quests).
+  TODO.md korrigiert. Die Schiffszeitung-Engine (`js/newspaper.js`) existiert dagegen —
+  ist jetzt eingebunden und wartet auf Zeitungs-Raum + Artikel-Schreib-Block.
+- **Smoke-Test:** 72/72 OK (10 neue Checks: m4-Abdeckung 11×Sieg/11×Tod, A/B-Gates,
+  noteMission, Bridges, Script-Tags).
+
 ## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
 
 ### Neue Features
@@ -78,8 +106,8 @@
   Stimme.
 - **Schreib-Block 2a: Mission-Reaktiv m1–m3** (Sieg UND Tod: das Dorf reagiert
   auf jeden Einsatz).
-- Offene Punkte (Schreib-Blöcke 2b/3/4, A/B-Story-Checks, Raum-Integration,
-  Cooldown-Tuning): TODO.md → v0.6.7.
+- Offene Punkte (Schreib-Blöcke 3/4, A/B-Story-Checks, Raum-Integration,
+  Cooldown-Tuning): TODO.md → v0.6.7. (2b erledigt 2026-10-12, s. v0.6.9-dev oben.)
 
 ## v0.6.6-dev — "Sprung & Dialog" (fertig, Smoke-Test 62/62 OK, 2026-10-12 verifiziert)
 

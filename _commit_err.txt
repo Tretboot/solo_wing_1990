@@ -1,0 +1,17 @@
+﻿On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   PATCHNOTES.md
+	modified:   TODO.md
+	modified:   site/index.html
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	_commit_err.txt
+	_findlog.js
+	_git_final.txt
+	_msg2b.txt
+	_msg2b_docs.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")

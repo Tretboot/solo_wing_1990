@@ -1,0 +1,2 @@
+dialogues: m4 Kältekammer-Klimax — Mission-Reaktiv (Sieg+Tod) für alle 11 NPCs; states.js: noteMission-Brücke bei Sieg/Tod; index.html: js/dialogue.js + js/newspaper.js eingebunden; Smoke-Test 72/72
+Die Kältekammer atmet. Zweimal pro Minute. Formular 99-Z bestätigt.
