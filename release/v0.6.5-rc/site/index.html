@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLO WING 1990 — Projektseite</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html" class="active">Start</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html">Benchmarks</a>
+  <a href="ethikrat.html">Ethikrat</a>
+</nav>
+<div class="wrap">
+<h1>SOLO WING 1990</h1>
+<div class="subtitle">Projektseite | Sternenkorps Interne | Nur für Personal mit Formular 12-B</div>
+
+<div class="card" style="border-color:#f66;">
+<h3 style="color:#f66;">BETRIEBSBEKANNTMACHUNG: AGENTENVERBUND AUFGELOST</h3>
+<p>Der Agentenverbund (Qwen-Team: Commander, No Thinking, Lead Story Writer, Lead Developer, Code Review Agent) wurde <b>kurzfristig aufgelöst</b>. Die Arbeit wird ab sofort in <b>VS Code über API</b> fortgesetzt. Das Team wurde umgestellt.</p>
+<p>Der bisherigen Crew wird <b>herzlich gedankt</b> — für die 47 Formulare, 18 Charaktere, 11 Räume, die Captain's Logs und alles, was funktioniert. Die Urnen werden in Spinde 14 gelagert.</p>
+<p><span class="tag new">NEU</span> <span class="tag arch">TEAM</span></p>
+</div>
+
+<h2>AKTUELLER STATUS</h2>
+<div class="card">
+<h3>Version 0.6.5-rc — "Cheatmenü, Wandkarte, Transfer, Hangar"</h3>
+<p>7 neue NPCs (Archiv, Löffel, Stille, Mutters, Spiegel, Rohr, Nadel). Klickbare Wandkarte (Fullscreen-Karte mit Schiff-Umriss). Cheatmenü [1]/[2] im Menü. Transfer-Zwischenszene nach der Akademie (Träger-Ankunft + Begrüßung). Landung → Hangar (Bolt kommentiert, je nach Schaden) → Debriefing. Rollen (Q/E), Nav-Karte (N), Info-Panel ([I]), MIT-Lizenz. <b>Release Candidate.</b></p>
+<p><span class="tag new">NEU</span> <span class="tag arch">RC</span></p>
+<p><a href="../index.html">→ Spiel starten (index.html)</a></p>
+</div>
+
+<h2>EVALUATION — WIE WEIT SIND WIR?</h2>
+<div class="card">
+<h3>Umgesetzt (v0.6.2)</h3>
+<table>
+<tr><th>Bereich</th><th>Status</th><th>Notiz</th></tr>
+<tr><td>Engine (3D, Stars, Kollision)</td><td class="status-ok">FERTIG</td><td>Projection, Z-Sort, Drift-Physik</td></tr>
+<tr><td>Cockpit (WC1-Style)</td><td class="status-ok">FERTIG</td><td>Frame, Radar, Shields, Score, Weapon/Target</td></tr>
+<tr><td>Audio (prozedural)</td><td class="status-ok">FERTIG</td><td>Laser, Explosion, Schild, Funk</td></tr>
+<tr><td>TTS (14 Profile)</td><td class="status-ok">FERTIG</td><td>Voice-Pool, Mikro-Variation, Stage-Direction-Filter</td></tr>
+<tr><td>Input (Multi-Device)</td><td class="status-ok">FERTIG</td><td>WASD/Pfeile/Maus/Gamepad, Laser-Slots</td></tr>
+<tr><td>State Machine</td><td class="status-ok">FERTIG</td><td>AKADEMIE→BAR→SHIP→…→DEBRIEFING</td></tr>
+<tr><td>Träger (11 Räume)</td><td class="status-ok">FERTIG</td><td>Tür-Klick, Minimap, NPC-Dialoge, KLO</td></tr>
+<tr><td>Crew (18 + 5 Piloten)</td><td class="status-ok">FERTIG</td><td>Scoreboard, Backstories</td></tr>
+<tr><td>Missionen (m1–m4)</td><td class="status-ok">FERTIG</td><td>m4 = DER FRACHTER (Piraten)</td></tr>
+<tr><td>Quests (Overlay)</td><td class="status-ok">FERTIG</td><td>5 Quests, Fax-basiert, Event-System</td></tr>
+<tr><td>Lore (Worldbuilding)</td><td class="status-ok">FERTIG</td><td>Audit, Piraten, Optimierer, KLO, Alien</td></tr>
+<tr><td>Schiffsklassen (Barebones)</td><td class="status-ok">FERTIG</td><td>4 Klassen, 3 Cockpit-Layouts</td></tr>
+<tr><td>Akademie (Tutorial)</td><td class="status-ok">FERTIG</td><td>Sim-Flug, Pro-forma-Bestehen</td></tr>
+</table>
+<h3>Geplant (nächste Pässe)</h3>
+<table>
+<tr><th>Task</th><th>Aufwand</th><th>Status</th></tr>
+<tr><td>Intro-Sequenz (Asteroidenfeld + Name)</td><td>Mittel</td><td class="status-ok">FERTIG</td></tr>
+<tr><td>Fax-Drucker UI (Quest-Feedback)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Aktenschrank (5 Akten → neuer Dialog)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Optimierer-Erscheinen (nach m4, Bar)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Cockpit-Testraum (Hangar, Layout A/B/C)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>Externes Handbuch (HTML + PDF, 12 Kapitel)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>3 Enden (Sieg / Tod / Geheim)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>Würfelspiel (Bar) + Simulator-Nachholung</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Musik-Wechsel (Takeoff → Cockpit)</td><td>Klein</td><td>offen</td></tr>
+</table>
+</div>
+
+<h2>DESIGN-BIBEL</h2>
+<div class="card">
+<p>Die visuelle und tonale DNA des Projekts. <a href="design.html">→ Design-Bibel öffnen</a></p>
+<p>Farben, Font, Pixel-Regeln, Tonfall. Damit alle Agenten (und Menschen) dasselbe Ziel haben.</p>
+</div>
+
+<h2>AGENT-REPORTS</h2>
+<table>
+<tr><th>Agent</th><th>Task</th><th>Status</th><th>Qualität</th></tr>
+<tr><td>Qwen No Thinking</td><td>Dialoge, Rollenspiel, Räume</td><td class="status-ok">PASS</td><td>"Es gibt keine Welle vier, Neun."</td></tr>
+<tr><td>Qwen NoThink Code</td><td>Daten, KI, Configs</td><td class="status-ok">PASS</td><td>Flug-KI + Registry (keine Pixel-Art)</td></tr>
+<tr><td>Lead Developer</td><td>Architektur-Review</td><td class="status-ok">PASS</td><td>Exzellent, praktisch</td></tr>
+<tr><td>Lead Story Writer</td><td>Crew, Räume, Atmosphäre</td><td class="status-ok">PASS</td><td>"Nächster." — Perfekt.</td></tr>
+<tr><td>Code Review Agent</td><td>v0.1 Code Review</td><td class="status-ok">PASS</td><td>3 Major + 4 Minor Bugs</td></tr>
+<tr><td>Lead Story Writer</td><td>Lore v4 (Audit, Alien, KLO)</td><td class="status-ok">PASS</td><td>"Atmen ist kein Formular."</td></tr>
+<tr><td>Lead Developer</td><td>Quest-Architektur + Akademie</td><td class="status-ok">PASS</td><td>Overlay, kein neuer State</td></tr>
+<tr><td>Qwen No Thinking</td><td>Flugsimulator-Handbuch</td><td class="status-ok">PASS</td><td>12 Kapitel + Crew-Zitate</td></tr>
+</table>
+
+<h2>PATCH NOTES</h2>
+<div class="card">
+<h3>v0.6.2 — Akademie, Quests, KLO, Piraten</h3>
+<ul>
+<li>AKADEMIE-State: Spiel startet im Tutorial (Sim-Flug, Steuerung in der Story erklärt)</li>
+<li>Quest-System (Overlay): 5 Fax-Quests, Event-System (Raum/Flag/Mission), Quest-Log</li>
+<li>Neuer Raum: KLO (11. Raum, prozedural, Kacheln + Spülung + Wischmopp + Toner-Fleck)</li>
+<li>Piraten (Tutorial-Gegner): 2 Schiffe (Jäger + Kapitän), selbstmörderisch, in Schwärmen</li>
+<li>Mission m4 "DER FRACHTER": Kältekammer-Twist (eingefrorenes Alien, atmet)</li>
+<li>Lore (data/lore.js): Das Audit, Optimierer, KLO, Strafversetzte, 5 Piloten-Akten, Sektoren</li>
+<li>Schiffsklassen (data/ships.js): 4 Klassen, 3 Cockpit-Layouts, Piraten- + Audit-Schiffe</li>
+<li>TTS v2: 4 neue Profile (Ausbilder, KLO, Optimierer, Kugelschreiber), Voice-Pool, Mikro-Variation</li>
+<li>State Machine: AKADEMIE→BAR→SHIP→… (Sim-Mode-Flag, Quest-Ticks bei Sieg/Tod)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.1 — Fliegendes Dorf</h3>
+<ul>
+<li>10 prozedurale Räume (Bar, Flugdeck, Büro, Kantine, Kapelle, Reparatur, Friseur, Beobachtung, Maschinenraum, Krankenstation)</li>
+<li>Tür-Klick-Navigation + Minimap in jedem Raum</li>
+<li>NPC-Dialoge pro Raum (TTS + Typewriter)</li>
+<li>START-Button im Flugdeck</li>
+<li>TTS-Fix: Stage-Directions werden ignoriert</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.0 — Cockpit v2 & Menü</h3>
+<ul>
+<li>Escape-Menü (ESC): Anleitung + Optionen</li>
+<li>Cockpit v2 (WC1-Stil): braune Panels, Gauges, Joystick, Beine</li>
+<li>Carrier größer (64×32), TTS-Tonalitäten (10 Profile)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.5.0 — Crew & Pingpong</h3>
+<ul>
+<li>18 Crew-Charaktere (Pingpong-Konferenz, 4 Runden)</li>
+<li>Scoreboard aus Crew-Data</li>
+</ul>
+</div>
+
+<h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2025-01-23</div>
+<div class="title">Der Ethikrat (A/B-Test) + Rap-Pirat + Intro fertig</div>
+<div class="body">
+<p>Zwei Agenten gegenlaufen: Lead Story Writer (PRO, "Formular 17-K", KLO als Vorsitz) vs. No Thinking (CONTRA, "Das Audit IST der Ethikrat"). Fazit: Kein Ethikrat-Minispiel. KLO <i>ist</i> der Ethikrat — ein Ein-Personen-Rat, ein Blick, kein Gegenzeichen. Dazu: Der Kugelschreiber hört Rapmusik ("mach mal die Musik leiser, wenn du mich hier überfällst"). Intro-Sequenz (Asteroidenfeld + Name) fertig. <a href="ethikrat.html">→ Blogartikel</a></p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-23</div>
+<div class="title">Captain's Log: v0.6.5-rc — Transfer, Hangar, Dorf lebt (und: Team-Ende)</div>
+<div class="body">
+<p>Das fliegende Dorf bekommt 7 neue Bewohner: Archiv, Löffel, Stille, Mutters, Spiegel, Rohr, Nadel. Die Beobachtungsstation ist nicht mehr leer. Stille sagt "…". Löffel sagt "*Klirren.*". Das ist auch eine Sprache.</p>
+<p>Transfer-Bug gefixt: Nach der Akademie flug das Schiff ewig weiter (Countdown lief in einem State, in dem nie aktualisiert wurde). Jetzt: Ergebnis → Transfer-Zwischenszene (Träger kommt näher, "Willkommen an Bord") → Räume. Landung → Hangar (Bolt kommentiert die Schadenslage) → Debriefing.</p>
+<p><b>Wichtig:</b> Der Agentenverbund wurde kurzfristig aufgelöst. Weiter geht's in VS Code über API. Dem Team wird gedankt. Die Treppe hat 14 Stockwerke. Das ist keine Strafe.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-22</div>
+<div class="title">Captain's Log: v0.6.2 — Akademie, Quests, KLO, Piraten</div>
+<div class="body">
+<p>Kreatives Brief v4: Das eingefrorene Alien (Kältekammer 7, "es atmet"), Piraten als Tutorial-Gegner, KLO (kennt ALLES), Das Audit (Wireframe, Stempel statt Explosionen), Optimierer (hat recht, und das ist schlimmer). 3 Agenten parallel: Lead Story Writer (Lore), Lead Developer (Quest-Architektur), No Thinking (Handbuch). Nächster Schritt: A/B-Test Intro-Sequenz mit Non-Thinking-Modellen + Code Review.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-21</div>
+<div class="title">Captain's Log: v0.6.1 — Fliegendes Dorf</div>
+<div class="body">
+<p>Konferenz: "Wie viele Räume hat der Träger?" No Thinking lieferte 10 Räume, Lead Story Writer gab Atmosphäre + "Galerie der verlorenen Namen". 10 prozedurale Räume mit Tür-Klick, Minimap, NPC-Dialogen. TTS-Fix: *Klicken* wird ignoriert.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-20</div>
+<div class="title">Captain's Log: v0.6.0 — Cockpit v2 & Menü</div>
+<div class="body">
+<p>Cockpit v2 im WC1-Stil: braune Panels, Gauges, Joystick, Beine. Carrier 64×32. ESC-Menü. TTS 10 Profile + Hash-Fallback. Bar-Fenster polygonal.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-19</div>
+<div class="title">Captain's Log: v0.5.0 — Crew & Pingpong</div>
+<div class="body">
+<p>Pingpong: Lead Story ↔ No Thinking, 4 Runden. "Admiral von Klettverschluss", "Stuhlpolster 4b", "Fähnlein Wanda Klebepatt". 18 Charaktere in data/crew.js.</p>
+</div>
+</div>
+
+<h2>DATEISTRUKTUR</h2>
+<div class="card">
+<pre>
+solo_wing_1990/
+├── index.html          ← Spiel (Browser öffnen)
+├── README.md           ← Doku
+├── PATCHNOTES.md       ← Patch Notes
+├── KONSEPTE.md         ← Design-Überlegungen
+├── js/ (14 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests, Akademie
+├── data/ (9 Dateien)   ← Missions, Dialogues, Systeme, Crew, Räume, Lore, Schiffe, Quests, Akademie
+├── sprites/            ← (leer, für PNG-Sprites)
+└── site/               ← Diese Website
+    ├── index.html      ← Start
+    ├── design.html     ← Design-Bibel
+    ├── team.html       ← Team
+    ├── crew.html       ← Crew (18 Charaktere)
+    ├── raeume.html     ← Räume (10)
+    ├── konzepte.html   ← Konzepte
+    ├── style.css       ← Gemeinsames CSS
+    └── agent_reports.md
+</pre>
+</div>
+
+<h2>STEUERUNG</h2>
+<table>
+<tr><th>Eingabe</th><th>Funktion</th></tr>
+<tr><td>W/S/D oder Pfeile</td><td>Bewegen (Drift)</td></tr>
+<tr><td>Q / E</td><td>Rollen</td></tr>
+<tr><td>Maus</td><td>Zielen</td></tr>
+<tr><td>Leertaste / Klick</td><td>Feuer</td></tr>
+<tr><td>T</td><td>Autopilot</td></tr>
+<tr><td>N</td><td>Nav-Karte</td></tr>
+<tr><td>M</td><td>TTS ein/aus</td></tr>
+<tr><td>O</td><td>Sound ein/aus</td></tr>
+<tr><td>I (im Menü)</td><td>Info-Panel (Version, Lizenz)</td></tr>
+<tr><td>ESC</td><td>Menü</td></tr>
+<tr><td>Klick (im Träger)</td><td>Türen / NPCs / START / Wandkarte</td></tr>
+</table>
+<p style="color:#444;font-size:10px;margin-top:5px;">Multi-Input: Jedes aktive Gerät = +1 Laser-Slot (max 3). Das ist kein Bug. Das ist Physik.</p>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
+Diese Seite wird lokal ausgeliefert. Kein Internet. Kein Tracking. Nur Fax.
+</div>
+</body>
+</html>

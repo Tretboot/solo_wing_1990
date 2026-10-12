@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konzepte — SOLO WING 1990</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html" class="active">Konzepte</a>
+</nav>
+<div class="wrap">
+<h1>KONZEPTE</h1>
+<div class="subtitle">Design-Überlegungen. Elite-Vergleich, ewig leben, Versionierung, der Träger als Dorf.</div>
+
+<h2>VOM TRÄGER "EWIG LEBEN" (Elite-Vergleich)</h2>
+<div class="card">
+<p><b>Elite:</b> Viele Systeme, jeder mit eigener Wirtschaft, NPC-Flotten, Missionen. Der Spieler springt zwischen Systemen. Der Träger ist nur ein Stützpunkt.</p>
+<p><b>Wir (SOLO WING 1990):</b> Wir lernen von Elite, aber <b>einschränken</b>:</p>
+<ul>
+<li>Der <b>Träger ist die Heimat</b>. Nicht nur Startpunkt, sondern der Ort, an dem man "ewig leben" kann. Bar, Büro, Kantine, Friseur, Kapelle — ein kleines <b>fliegendes Dorf</b>.</li>
+<li><b>Systeme sind Einsätze.</b> Man verlässt den Träger für eine Mission (1-3 Systeme), kommt zurück, lebt weiter.</li>
+<li><b>Wie viele Systeme?</b> Wir brauchen NICHT 20 wie Elite. Für die Kampagne: <b>3 Systeme</b> (SEKTOR 7, 9, 12). Das reicht für eine Kampagne mit Verzweigung.</li>
+<li><b>Der Träger lebt weiter:</b> Je nachdem wie die Mission läuft, verändert sich das Dorf — wie oft man zur Beerdigung muss, wie oft der Reparaturraum meckert, wer in der Bar sitzt.</li>
+</ul>
+<p><b>Fazit:</b> 3 Systeme + 1 Träger (als lebendes Dorf). Der Träger ist der emotionale Anker.</p>
+</div>
+
+<h2>DER TRÄGER ALS FLIEGENDES DORF</h2>
+<div class="card">
+<p>Der Träger ist kein toter Startpunkt. Er hat <b>Orte für Dialoge</b>:</p>
+<ul>
+<li>Bar (Piloten, Scoreboard)</li>
+<li>Kapitän-Büro (Akten, Befehle)</li>
+<li>Kantine (Küche-NPC, Essen)</li>
+<li>Friseur (absurd, Dialog)</li>
+<li>Observationsdeck (Ausblick, Ruhe)</li>
+<li>Maschinenraum (Technik)</li>
+<li>Reparaturraum (meckert bei Beschädigung)</li>
+<li>Kapelle (Beerdigung)</li>
+<li>Flugdeck (Mission-Start)</li>
+</ul>
+<p><b>Raumlogik:</b> Tür-Klick von Raum zu Raum. Karte in jedem Raum (wo man ist). Jeder Raum nach einer anderen Grafik (einfach, prozedural, für Agenten gut benutzbar).</p>
+</div>
+
+<h2>VERSIONIERUNG</h2>
+<div class="rule"><b>Keine Major-Bumps mehr.</b> Wir bleiben bewusst "weiter zurück". v0.6.0 → v0.6.1 → v0.6.2 ... (Minor-Patches). Ein neuer Feature-Block = Minor. Kein v0.7.0, v1.0.0.</div>
+<div class="rule"><b>Begründung:</b> Das Spiel ist ein lebendes Projekt, kein "Release". Die Versionszahl ist ein Fortschritts-Marker, kein Qualitätsversprechen.</div>
+
+<h2>HANDOFF ZU DEN SZENEN</h2>
+<div class="rule"><b>Flüssige Übergänge.</b> Der Übergang zwischen Szenen (Bar → Briefing → Takeoff → Cockpit) muss flüssig sein. Kein "leeres All" zwischen den Szenen. Der Handoff ist der Moment, wo die Geschichte weitergeht.</div>
+<div class="rule"><b>Cockpit-Bug:</b> "Ich sehe von dem Cockpit nichts" → auf der Todo. Nicht jetzt fixen. (v0.6.0 Cockpit v2 sollte das gelöst haben — Playtest abwarten.)</div>
+
+<h2>ARTSTYLE</h2>
+<div class="rule"><b>Prozedural, kein PNG.</b> Jeder Raum 20-40 Zeilen Canvas-Code. Für Agenten gut benutzbar und bedienbar. Kein Asset-Management. Konsistenter Look.</div>
+<div class="rule"><b>Einfach, aber erkennbar.</b> Die Bar ist warm (braun), die Kapelle dunkel (blau), der Friseur bunt (pink). Jeder Raum hat seinen eigenen Look, aber alle fühlen sich nach 1990 an.</div>
+
+<h2>NÄCHSTE SCHRITTE (Backlog)</h2>
+<div class="card">
+<ul>
+<li><b>Intro-Sequenz:</b> Asteroidenfeld → Name abfragen → Kreide-Tafel → Zoom in die Bar → "Das ist die Umsetzbar."</li>
+<li><b>Beerdigungs-Event:</b> Kapelle nach Tod (Kerzen zünden)</li>
+<li><b>Reparatur-Meckern:</b> Nach Beschädigung (Bolt meckert)</li>
+<li><b>Cockpit-Bug fixen:</b> "Ich sehe von dem Cockpit nichts"</li>
+<li><b>Mission Select:</b> m2, m3 wählbar</li>
+<li><b>Carrier-Interaktion:</b> 3-Treffer-Warnung, One-Hit-Kill</li>
+<li><b>Siedler-Mission m3:</b> KEIN FEUER-Logik</li>
+<li><b>Musik-Wechsel:</b> Takeoff → Cockpit</li>
+</ul>
+</div>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.
+</div>
+</body>
+</html>

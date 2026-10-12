@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design-Bibel — SOLO WING 1990</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="design.html" class="active">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html">Benchmarks</a>
+</nav>
+<div class="wrap">
+<h1>DESIGN-BIBEL</h1>
+<div class="subtitle">Die visuelle & tonale DNA. Damit alle Agenten (und Menschen) dasselbe Ziel haben.</div>
+
+<h2>1. AUFLÖSUNG & RENDERING</h2>
+<div class="rule"><b>VGA-Pixel-Look:</b> Intern 640×400 via <code>ctx.scale(2,2)</code>. Logik läuft in 320×200, Rendering skaliert 2×. <code>image-rendering: pixelated</code>, <code>imageSmoothingEnabled = false</code>. Text wird dadurch lesbar, ohne die Logik zu ändern.</div>
+<div class="rule"><b>Warum nicht 320×200 direkt?</b> Zu pixelig zum Lesen. 640×400 ist der Sweet Spot: Pixel-Look bleibt, Text wird lesbar. (Nutzer-Feedback v0.4: "Der Text ist jetzt super lesbar.")</div>
+
+<h2>2. FARBEN</h2>
+<p>Die Palette ist bewusst <b>90s-Konsolen</b>: dunkler Hintergrund, leuchtende Akzente, braune Cockpit-Elemente. Kein modernes UI.</p>
+<div class="swatches">
+  <div class="swatch-box"><div class="box" style="background:#0a0a0f"></div>Hintergrund<br>#0a0a0f</div>
+  <div class="swatch-box"><div class="box" style="background:#0f0"></div>Terminal-Grün<br>#00ff00</div>
+  <div class="swatch-box"><div class="box" style="background:#0af"></div>Info-Blau<br>#00aaff</div>
+  <div class="swatch-box"><div class="box" style="background:#f00"></div>Gegner/Laser<br>#ff0000</div>
+  <div class="swatch-box"><div class="box" style="background:#ff0"></div>Mass Driver<br>#ffff00</div>
+  <div class="swatch-box"><div class="box" style="background:#8a6d3b"></div>Cockpit-Braun<br>#8a6d3b</div>
+  <div class="swatch-box"><div class="box" style="background:#3366ff"></div>SEKTOR 7<br>#3366ff</div>
+  <div class="swatch-box"><div class="box" style="background:#ff3333"></div>SEKTOR 9<br>#ff3333</div>
+  <div class="swatch-box"><div class="box" style="background:#cccccc"></div>SEKTOR 12<br>#cccccc</div>
+</div>
+<div class="rule"><b>System-Farben:</b> Jeder Sektor hat eine Farbe. SEKTOR 7 = blau (kalt, militärisch), SEKTOR 9 = rot (heiß, instabil), SEKTOR 12 = neutral (zivil, staubig). Die Farbe durchzieht Bar, Briefing, Cockpit-Akzente.</div>
+
+<h2>3. FONT</h2>
+<div class="rule"><b>Monospace, immer.</b> <code>'Courier New', monospace</code>. Größen: 5px (Labels), 6px (klein), 7px (Standard), 8-9px (Headers), 10-12px (Titel). Keine Proportional-Fonts. Das ist 1990, nicht 2025.</div>
+
+<h2>4. PIXEL-REGELN (Sprites)</h2>
+<div class="rule"><b>Prozedural, kein PNG.</b> Alle Sprites werden auf Offscreen-Canvases gezeichnet (16×16 Basis, Carrier 64×32). Skalierung via <code>ctx.drawImage</code> abhängig vom Z-Abstand. <b>Warum?</b> Kein Asset-Management, für Agenten gut editierbar, konsistenter Look.</div>
+<div class="rule"><b>16×16 Basis:</b> Gegner-Schiffe sind 16×16 Pixel. Erkennbar als Raumschiff (Flügel, Rumpf, Triebwerk, Cockpit). Farben: rot/orange (Gegner), blau/weiß (Spieler), grau (Carrier).</div>
+<div class="rule"><b>Unscharfe Gesichter:</b> Prozedural (mehrere überlappende Rechtecke + Alpha). Kein PNG. Für Funksprüche + Bar-Dialoge.</div>
+
+<h2>5. TONFALL (Text & Dialoge)</h2>
+<div class="rule"><b>Deadpan, bürokratisch, 90s.</b> Der Humor kommt aus dem <b>Kontrast</b>: kosmische Stakes vs. bürokratische Profanität. Nie wacky. Nie laut. Der Commander ist nicht böse, er ist nur müde.</div>
+<div class="rule"><b>Max. 2 Sätze pro Dialogzeile.</b> Das ist Funkspruch, kein Roman. 90s-Referenzen: Fax, Modem, VHS, Windows 95, ISDN, AOL, Disketten.</div>
+<blockquote>"Die Gegenseite fliegt state of the art Technik. Von 1986."<span class="src">— COMMANDER, Briefing</span></blockquote>
+<blockquote>"Es gibt keine Welle vier, Neun. Es gibt Welle drei und dann die Kantine."<span class="src">— SECHS, Bar</span></blockquote>
+<blockquote>"Nächster."<span class="src">— COMMANDER, auf "Ist es furchtbar für ihn?"</span></blockquote>
+
+<h2>6. META-HUMOR</h2>
+<div class="rule"><b>Subtil, max. 1-2 Zeilen pro Screen.</b> Der Witz ist, dass das Spiel seine eigenen Grenzen anerkennt. "Wer mehr Eingaben hat, schießt mehr Laser. Das ist kein Bug. Das ist Physik." "Das Flugzeug hat vier Waffenplätze. Diese Konsole hat acht."</div>
+
+<h2>7. COCKPIT (WC1-Stil)</h2>
+<div class="rule"><b>Braune Panels, Gauges, Joystick, Beine.</b> Top-HUD (FUEL/HP/WEAPONS), linke Waffentafel (Radar + Schild), rechte Targetting-Tafel (Score + Ziel), Eject-Button, Joystick + Hand, blaue Beine. Das "Ich sitze drin"-Gefühl ist das Ziel. (Referenz: Wing Commander 1.)</div>
+
+<h2>8. RÄUME (Fliegendes Dorf)</h2>
+<div class="rule"><b>Jeder Raum ein eigener Artstyle.</b> Prozedural, 20-40 Zeilen Canvas-Code. Kein einheitliches Design — die Bar ist warm (braun), die Kapelle dunkel (blau), der Friseur bunt (pink), der Maschinenraum grün. <a href="raeume.html">→ Alle 10 Räume</a></div>
+
+<h2>9. AUDIO</h2>
+<div class="rule"><b>Prozedural, Web Audio API.</b> Keine Dateien. Laser (Square 800→200Hz), Explosion (Noise + Lowpass-Sweep), Schild (Sine 100Hz), Funk (Square 440Hz). TTS (Beta): Web Speech API, 10 Profile + Hash-Fallback, Stage-Directions werden ignoriert.</div>
+
+<h2>10. ORCHESTRIERUNG (Agenten-Regel, v0.6.2)</h2>
+<div class="rule"><b>Lead Developer = Top-Level. Non-Thinking = Code.</b> Lead Dev trifft nur Architektur-Entscheidungen (Spec, Schnittstellen, Edge-Cases) und reicht sie an einzelne Non-Thinking-Agenten weiter, die den Code liefern. Non-Thinking-Agenten reichen sich den Code hin und her (Pingpong) und härten ihn. Code Review gibt einen Score (1-5). Alles wird in <a href="agent_benchmarks.html">Agent-Benchmarks</a> gemessen. <b>Warum?</b> Lead Dev ist der beste Architekt, aber der langsameste Coder. NoThink Code crasht (Recursion) → mehr Limit. A/B-Test: nach 3 Runden Ø → NEU behalten oder rückgängig.</div>
+<div class="rule"><b>Referenz: WC1 NPC-Pilot-Intelligenz.</b> Der echte WC1-Quellcode (<code>wingleader.c</code>) ist als Referenz für unsere Flug-KI gesichert: 2-Ebenen-KI (Mission → Taktik), DETERMINATION-Knob (KI-Schwierigkeit), "Kilrathi flee straight down" (Rout), Formation-Burst, Escort-Logik, Heat-Seeking-Missiles, Futurion (Alien wird real). <a href="../WC1_PCI_ANALYSE.md">→ WC1_PCI_ANALYSE.md</a></div>
+
+<h2>11. DIE GOLDENE REGEL</h2>
+<blockquote>"Es ist kein kaputtes Projekt, sondern ein poliertes Retro-Junk mit ein paar scharfen Ecken."<span class="src">— Code Review Agent, v0.1</span></blockquote>
+<div class="rule"><b>Alles muss sich anfühlen wie 1990.</b> Wenn etwas zu modern aussieht, klingt oder fühlt — ist es falsch. Fax statt E-Mail. Diskette statt SSD. "State of the art. Von 1986."</div>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.
+</div>
+</body>
+</html>
