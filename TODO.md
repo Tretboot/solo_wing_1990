@@ -50,6 +50,20 @@
 - [ ] **Full Story-Test:** m1→m2→m3 durchspielen, Deck + Dialoge unterscheiden sich
 - [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb)
 
+## v0.6.9 — "Musik, Optik, Katalog & Website"
+- [x] **Ingame Handbuch** (Taste [H], 6 Kapitel, progressiv freigeschaltet)
+- [x] **Externes Handbuch** (HTML, 6 Kapitel, verknüpft mit Ingame-Inhalten)
+- [x] **Website-Überarbeitung** (Corporate Design v0.6.9, Sternenkorps-Standard)
+- [x] **Game ↔ Website Bridge** (Ingame [H], Website → Spiel, Handbuch-Links)
+- [x] **Switch-Port-Vorbereitung** (CSS Media Queries, UI-Scaling, Touch-Controls geplant)
+- [ ] **Eine Melodie, 7 Instrumentierungen** (Bar=Jazz, Maschinenraum=Hall, Büro=offiziell,
+      Kapelle=spärlich, Kantine=rund, Flugdeck=militärisch, KLO=Stille)
+- [ ] **Musik-Wechsel Takeoff → Cockpit** + JUMP-Musik (Spannung, hoch)
+- [ ] **Sprite-Pass** (Schiffe aufhübschen, Planeten-Renderer, Sternenbasis SEKTOR 7)
+- [ ] **Raum: SCHIFFSKATALOG** (X-Wing-Stil, Modelle + Infos, 12. Raum)
+- [ ] **Beobachtungsdeck: Planet + System-Name** (seit v0.6.4 offen)
+- [ ] **JUMP-Polish** (Quell-System schrumpft, Ziel wächst)
+
 ## v0.6.9 — "Musik, Optik & Katalog"
 - [ ] **Eine Melodie, 7 Instrumentierungen** (Bar=Jazz, Maschinenraum=Hall, Büro=offiziell,
       Kapelle=spärlich, Kantine=rund, Flugdeck=militärisch, KLO=Stille)
