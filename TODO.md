@@ -74,6 +74,14 @@
 - [ ] **Full Story-Test:** m1→m2→m3 durchspielen, Deck + Dialoge unterscheiden sich
 - [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb)
 
+## v0.6.9-rc — "Sektoren-Licht, Glas, Ethikrat & RC" (2026-10-12)
+- [x] **Sektoren-Licht:** Fenster in Sektoren-Farbe (Bar, Schule, Beobachtung) + Cheat [3]/[4]/[5] im Menü
+- [x] **Glass-Design** (Website): durchsichtige Glas-Elemente, Umschalter TERMINAL/GLASS
+- [x] **Ethikrat-Meeting** (Selbst-Meeting) + Protokoll als Blog-Post + Update in ethikrat.html
+- [x] **Aufsatz "Entwicklung"** (site/entwicklung.html) + Nav-Link auf allen 8 Seiten
+- [x] **Release Candidate:** release/v0.6.9-rc/ + Zip, Smoke-Test aus dem RC-Ordner grün (105/105)
+- [ ] **Playtest:** Glas-Theme + Sektoren-Licht im Browser, Top-Down-Balancing, Tube-Timing
+
 ## v0.6.9-dev — "Launch-Tube & Kamera-System" (2026-10-12)
 - [x] **Launch-Tube-Cinematic** (TAKEOFF: Rippen, Streben, Lichterketten, Triebwerk-Wackeln, Exit-Flash)
 - [x] **ViewMode-System** (Taste [V] im COCKPIT, zentral in `SW.Engine.view`): cockpit / chase / topdown
@@ -96,7 +104,7 @@
 - [ ] **Musik-Wechsel Takeoff → Cockpit** + JUMP-Musik (Spannung, hoch)
 - [ ] **Sprite-Pass** (Schiffe aufhübschen, Planeten-Renderer, Sternenbasis SEKTOR 7)
 - [ ] **Raum: SCHIFFSKATALOG** (X-Wing-Stil, Modelle + Infos, 12. Raum)
-- [ ] **Beobachtungsdeck: Planet + System-Name** (seit v0.6.4 offen)
+- [x] **Beobachtungsdeck: Planet + System-Name** (Code-Check 2026-10-12: war da — Checkbox war Wunschdenken)
 - [ ] **JUMP-Polish** (Quell-System schrumpft, Ziel wächst)
 
 ## v0.6.10 — "Humor-Overhaul" (geplant, Konzept: KONZEPTE.md → "v0.6.10")

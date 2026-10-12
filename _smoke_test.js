@@ -312,5 +312,43 @@ check('theme.js existiert (localStorage-Key sw1990_theme)', fs.existsSync(path.j
 check('index.html: theme.js eingebunden', fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('theme.js'));
 check('manual/index.html: ../theme.js eingebunden', fs.readFileSync(path.join(root, 'site', 'manual', 'index.html'), 'utf8').includes('../theme.js'));
 
+// --- 16. Sektor-Licht + Cheat-Sektortasten [3][4][5] ---
+check('World.systemInfo: s1 = blau', SW.World.systemInfo().farbe === '#3366ff');
+SW.Game.setSector('s2');
+check('setSector s2: SEKTOR 9 rot', SW.World.systemId === 's2' && SW.World.systemInfo().farbe === '#ff3333');
+SW.Game.state = 'MENU'; pump(3);
+check('Menü: Sektoren-Cheat-Rechtecke gesetzt', !!SW.Game._cheatSysRect0 && !!SW.Game._cheatSysRect2);
+SW.Input.keys['Digit5'] = true; pump(1); SW.Input.keys['Digit5'] = false;
+check('Cheat [5] -> SEKTOR 12', SW.World.systemId === 's3' && SW.World.systemInfo().farbe === '#cccccc');
+SW.Input.keys['Digit3'] = true; pump(1); SW.Input.keys['Digit3'] = false;
+check('Cheat [3] -> SEKTOR 7', SW.World.systemId === 's1');
+// Fenster-Räume mit Sektor-Licht in jedem Sektor rendern
+SW.Game.state = 'SHIP';
+for (const sid of ['s1','s2','s3']) {
+  SW.Game.setSector(sid);
+  for (const rid of ['bar','beobachtung','schule']) { SW.Ship.currentRoom = rid; pump(2); }
+}
+check('Bar/Beobachtung/Schule rendern in allen 3 Sektoren', SW.Game.state === 'SHIP');
+SW.Game.setSector('s1');
+
+// --- 17. Glass-Theme, Aufsatz + Release Candidate v0.6.9-rc ---
+check('Glass-Design: style-fancy.css mit backdrop-filter', fancyCss.indexOf('backdrop-filter') !== -1);
+check('Glass-Design: Umschalter-Label GLASS', fs.readFileSync(path.join(root, 'site', 'theme.js'), 'utf8').includes('GLASS'));
+check('Aufsatz entwicklung.html existiert', fs.existsSync(path.join(root, 'site', 'entwicklung.html')));
+check('Aufsatz: Nav-Link in index.html', fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('entwicklung.html'));
+const inRc = /v0\.6\.9-rc$/.test(path.basename(root));
+const rcSelf = fs.existsSync(path.join(root, 'index.html')) && fs.existsSync(path.join(root, 'js', 'main.js')) &&
+  fs.existsSync(path.join(root, 'data', 'missions.js')) && fs.existsSync(path.join(root, 'site', 'style.css'));
+if (inRc) {
+  check('RC: dieser Ordner ist das komplette Spiel (index.html+js+data+site)', rcSelf);
+} else {
+  const rcDir = path.join(root, 'release', 'v0.6.9-rc');
+  check('RC: release/v0.6.9-rc komplett (index.html+js+data+site+Test)',
+    fs.existsSync(path.join(rcDir, 'index.html')) && fs.existsSync(path.join(rcDir, 'js', 'main.js')) &&
+    fs.existsSync(path.join(rcDir, 'data', 'missions.js')) && fs.existsSync(path.join(rcDir, 'site', 'style.css')) &&
+    fs.existsSync(path.join(rcDir, '_smoke_test.js')));
+  check('RC: Zip vorhanden (release/v0.6.9-rc.zip)', fs.existsSync(path.join(root, 'release', 'v0.6.9-rc.zip')));
+}
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');
 process.exit(failures === 0 ? 0 : 1);

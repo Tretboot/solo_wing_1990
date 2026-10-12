@@ -272,7 +272,8 @@ SW.Ship = {
     ctx.save(); ctx.clip();
     ctx.fillStyle='#fff';
     for(let i=0;i<18;i++) ctx.fillRect(win.x+3+(i*13)%84, win.y+3+(i*17)%39, 1,1);
-    ctx.fillStyle=room.akzent; ctx.globalAlpha=0.15;
+    // Sektor-Licht: das Äußere trägt die Farbe des aktuellen Sektors
+    ctx.fillStyle=SW.World.systemInfo().farbe; ctx.globalAlpha=0.22;
     ctx.beginPath(); ctx.arc(win.x+45,win.y+22,15,0,Math.PI*2); ctx.fill();
     ctx.globalAlpha=1; ctx.restore();
     // Theke
@@ -565,6 +566,11 @@ SW.Ship = {
     // Fenster (links) mit Katzensilhouette
     ctx.fillStyle = '#0a0a0f';
     ctx.fillRect(18, 40, 44, 34);
+    // Sektor-Licht fällt in den Raum
+    ctx.fillStyle = SW.World.systemInfo().farbe;
+    ctx.globalAlpha = 0.10;
+    ctx.fillRect(18, 40, 44, 34);
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = '#334';
     ctx.strokeRect(18, 40, 44, 34);
     ctx.fillStyle = '#111';

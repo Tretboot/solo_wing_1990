@@ -56,6 +56,26 @@
 - **Smoke-Test:** 72/72 OK (10 neue Checks: m4-Abdeckung 11×Sieg/11×Tod, A/B-Gates,
   noteMission, Bridges, Script-Tags).
 
+### Sektoren-Licht, Glass-Theme, Aufsatz & RC (2026-10-12)
+- **Sektoren-Licht:** Jeder Sektor färbt die Fenster des Trägers (`SW.World.systemInfo().farbe`):
+  Bar-Polygonfenster, Schulraum-Fenster, Observationsdeck (war schon da). `SW.Game.setSector(id)`
+  + Cheat-Menü-Tasten [3]/[4]/[5] im Menü (mit Klick-Rechtecken, Farbpunkte markieren den
+  aktiven Sektor). Die verlorene Konferenz-Idee ist damit wieder drin.
+- **Glass-Design (Website):** `style-fancy.css` komplett neu — das dunkle Corporate-Theme wurde
+  durch ein Glas-Design ersetzt (gleicher Inhalt, neue Materialität): helles Licht-Grund-
+  rauschen, durchsichtige Elemente mit `backdrop-filter: blur`, weiche Schatten,
+  Sticky-Nav als Glasleiste, Glas-Button für den Umschalter (jetzt TERMINAL/GLASS).
+- **Ethikrat — 1. und letzte Sitzung:** Selbst-Meeting, Protokoll als Blog-Post
+  (site/index.html) + Update-Karte in site/ethikrat.html. Ergebnis: Die Sitzung löst sich
+  selbst auf. Formular 20-E (Selbstanzeige für Ein-Personen-Räte) erstellt.
+- **Aufsatz "Entwicklung" (site/entwicklung.html):** Wie sich die Arbeit seit dem
+  Agentenverbund-Handoff verändert hat (Verbund → VS Code + Cline, Smoke-Test als
+  Konferenzminute). Nav-Link auf allen 8 Site-Seiten.
+- **Release Candidate v0.6.9-rc:** `release/v0.6.9-rc/` (komplettes Spiel, 56 Dateien) +
+  `release/v0.6.9-rc.zip` (193 KB). Smoke-Test läuft aus dem RC-Ordner heraus grün.
+- **Smoke-Test:** 105/105 OK (8 neue Checks: Glass, Aufsatz, RC-Ordner, RC-Zip;
+  der RC-Check erkennt, ob er in der RC selbst läuft, und prüft dann sich selbst).
+
 ### Launch-Tube & Kamera-System (2026-10-12)
 - **Launch-Tube-Cinematic (TAKEOFF):** Startsequenz ersetzt. WC-Stil: Röhren-Rippen
   (12 Ringe) + Streben + Lichterketten (48 Lichter) entstehen am Fluchtpunkt in der

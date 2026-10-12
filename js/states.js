@@ -376,6 +376,14 @@ SW.Game = {
     ctx.fillText('[ LEERTASTE: ZURÜCK ]',SW.CX,SW.H-30);
     ctx.textAlign='left';
   },
+  // Sektor-Licht (Cheat [3][4][5]): setzt den aktuellen Sektor.
+  // Alle Fenster (Bar, Beobachtung, Schule) zeigen die Sektoren-Farbe.
+  setSector(id) {
+    const sys = SW.Systems.find(s => s.id === id);
+    if (!sys) return;
+    SW.World.systemId = id;
+    SW.Comm.add('SYSTEM: Sektor-Licht: ' + sys.name + '. Deklaration des Äußeren: entbehrlich.');
+  },
   renderMenu(ctx) {
     // Hintergrund: letzter Frame bleibt (Pause) — dunkles Overlay
     ctx.fillStyle = 'rgba(0,0,0,0.85)';
@@ -445,9 +453,17 @@ SW.Game = {
       ctx.fillStyle = '#0af';
       ctx.fillText('[2] KARTE (alle Räume)', 200, cheatY+12);
       this._cheatMapRect = { x: 200, y: cheatY+3, w: 115, h: 12 };
+      // SEKTOR-LICHT (3/4/5): Fenster zeigen die Sektoren-Farbe
+      for (let i = 0; i < SW.Systems.length; i++) {
+        const s = SW.Systems[i];
+        const y = cheatY + 24 + i*11;
+        ctx.fillStyle = s.farbe;
+        ctx.fillText('[' + (i+3) + '] ' + s.name + (s.id === SW.World.systemId ? ' ●' : ''), 200, y);
+        this['_cheatSysRect' + i] = { x: 200, y: y-9, w: 100, h: 12 };
+      }
       ctx.fillStyle = '#444';
       ctx.font = '5px monospace';
-      ctx.fillText('Nur für Testing.', 200, cheatY+24);
+      ctx.fillText('Nur für Testing. Licht folgt.', 200, cheatY+24+SW.Systems.length*11+5);
     }
 
     // Zurück

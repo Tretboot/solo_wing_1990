@@ -31,7 +31,7 @@
     function paint() {
       var fancy = current() === 'fancy';
       var c = fancy ? '#00aaff' : '#0f0';
-      b.textContent = '\u25D0 ' + (fancy ? 'CORPORATE' : 'TERMINAL');
+      b.textContent = '\u25D0 ' + (fancy ? 'GLASS' : 'TERMINAL');
       b.style.color = c;
       b.style.borderColor = c;
       b.style.border = '1px solid ' + c;

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-Benchmarks — SOLO WING 1990</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+/* ===== BENCHMARK-GRAPHS (CSS-Balken, lokal, kein externes JS) ===== */
+.bench { background:#0a0a0a; border:1px solid #030; padding:12px; margin:10px 0; }
+.bench h4 { color:#0af; font-size:11px; margin:0 0 8px; }
+.bar-row { display:flex; align-items:center; margin:5px 0; font-size:10px; }
+.bar-label { width:170px; color:#aaa; flex-shrink:0; }
+.bar-track { flex:1; height:14px; background:#111; border:1px solid #222; position:relative; }
+.bar-fill { height:100%; }
+.bar-fill.good { background:#0f0; }
+.bar-fill.mid  { background:#fa0; }
+.bar-fill.bad  { background:#f44; }
+.bar-val { width:60px; text-align:right; color:#888; flex-shrink:0; }
+.legend { font-size:9px; color:#666; margin-top:8px; }
+.legend span { display:inline-block; width:10px; height:10px; vertical-align:middle; margin:0 3px 0 10px; }
+.decision { background:#0a0a0a; border-left:3px solid #0f0; padding:10px; margin:10px 0; font-size:11px; color:#aaa; }
+.decision b { color:#0f0; }
+.decision.warn { border-left-color:#fa0; }
+.decision.warn b { color:#fa0; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html" class="active">Benchmarks</a>
+  <a href="entwicklung.html">Entwicklung</a>
+</nav>
+<div class="wrap">
+<h1>AGENT-BENCHMARKS</h1>
+<div class="subtitle">Sideprojekt | Orchestrierung messen. Lead Developer = Top-Level. Non-Thinking = Code.</div>
+
+<h2>1. ORCHESTRIERUNGS-REGEL (neu, v0.6.2)</h2>
+<div class="card">
+<p><b>ALT:</b> Lead Developer codet direkt. Problem: denkt zu lange, blockiert, hohe Latenz.</p>
+<p><b>NEU:</b> Lead Developer trifft nur <b>Top-Level-Entscheidungen</b> (Architektur, Schnittstellen, Edge-Cases) und <b>reicht sie an einzelne Non-Thinking-Agenten</b> weiter, die den Code liefern. Non-Thinking-Agenten reichen sich den Code <b>hin und her</b> (Pingpong-Loop) und verbessern ihn.</p>
+<div class="decision">
+<b>Warum:</b> Lead Dev ist der beste Architekt, aber der langsameste Coder. Non-Thinking ist schnell, aber braucht eine klare Spec. Die Kombination: <b>Lead Dev schreibt die Spec (Top-Level), Non-Thinking codet, Pingpong härtet.</b>
+</div>
+<table>
+<tr><th>Rolle</th><th>ALT</th><th>NEU</th></tr>
+<tr><td>Lead Developer</td><td>codet + architektoniert</td><td><b>nur Top-Level</b> (Spec, Schnittstellen, Edge-Cases), delegiert</td></tr>
+<tr><td>Non-Thinking (×2-3)</td><td>Routine-Tasks</td><td><b>coden</b> + Pingpong (hin und her verbessern)</td></tr>
+<tr><td>Code Review</td><td>Review</td><td>Review + <b>Qualitäts-Score (1-5)</b> für die Messung</td></tr>
+</table>
+</div>
+
+<h2>2. TEST-PROTOKOLL (was wir messen)</h2>
+<div class="card">
+<p>Jede Coding-Runde wird erfasst. Metriken:</p>
+<table>
+<tr><th>Metric</th><th>Bedeutung</th><th>Skala</th></tr>
+<tr><td>Task</td><td>Was gebaut wurde</td><td>Freitext</td></tr>
+<tr><td>Orchestrierung</td><td>ALT (Lead Dev direkt) / NEU (Lead Dev Top + Non-Thinking Code)</td><td>ALT / NEU</td></tr>
+<tr><td>Agent</td><td>Wer codet</td><td>Name</td></tr>
+<tr><td>Runden</td><td>Wie viele Pingpong-Runden bis stabil</td><td>Zahl (1 = sofort)</td></tr>
+<tr><td>Syntax-Fehler</td><td>Anzahl (node --check)</td><td>Zahl (0 = sauber)</td></tr>
+<tr><td>Logik-Fehler</td><td>Anzahl (von Code Review)</td><td>Zahl (0 = sauber)</td></tr>
+<tr><td>Qualität</td><td>Code Review Score</td><td>1-5</td></tr>
+<tr><td>Crash/Block</td><td>Recursion-Limit, Timeout, Block</td><td>ja / nein</td></tr>
+</table>
+<div class="decision">
+<b>Entscheidungsregel (A/B):</b> Nach 3 Runden Ø berechnen.
+<br>• Wenn <b>NEU ≥ ALT</b> in Qualität (Ø) UND <b>NEU ≤ ALT</b> in (Runden + Fehler) → <b>NEU behalten</b>.
+<br>• Wenn <b>NEU &lt; ALT</b> in Qualität → <b>rückgängig</b> (Lead Dev codet wieder direkt).
+</div>
+</div>
+
+<h2>3. ERSTE MESSDATEN (v0.6.2)</h2>
+<div class="card">
+<table>
+<tr><th>Task</th><th>Orch.</th><th>Agent</th><th>Runden</th><th>Syntax</th><th>Logik</th><th>Qualität</th><th>Crash</th></tr>
+<tr><td>Intro (Seed)</td><td>ALT</td><td>Lead Dev (direkt)</td><td>1</td><td>0</td><td>0</td><td>4/5</td><td>nein (aber langsam)</td></tr>
+<tr><td>Intro (Seed)</td><td>ALT</td><td>No Thinking (direkt)</td><td>1</td><td>0</td><td>?</td><td>?</td><td>nein (abgeschnitten)</td></tr>
+<tr><td>Intro (Seed)</td><td>ALT</td><td>NoThink Code (direkt)</td><td>—</td><td>—</td><td>—</td><td>—</td><td><b>JA (Recursion 9)</b></td></tr>
+<tr><td>Intro (R1)</td><td>NEU</td><td>No Thinking (Code, Lead-Dev-Spec)</td><td>1</td><td>0</td><td>4</td><td>3,5</td><td>nein</td></tr>
+<tr><td>Intro (R2)</td><td>NEU</td><td>NoThink Code (Review)</td><td>—</td><td>—</td><td>—</td><td>—</td><td><b>JA (Init-Fehler #2)</b></td></tr>
+<tr><td>Intro (Final)</td><td>NEU</td><td>Commander (Fix-Pass, CR-Feedback)</td><td>1</td><td>0</td><td>0</td><td>4,0</td><td>nein</td></tr>
+</table>
+<p style="color:#666;font-size:10px;margin-top:8px;">R1: Code Review 3,5/5, 4 Logik-Fehler (Name-Input-Repeat = kritisch, Cursor-Blink, Player.z, Death-Intent). R2: NoThink Code crashte (2×). Final: Commander hat die 4 Fixes direkt umgesetzt → 4,0/5, 0 Fehler. <b>Erkenntnis:</b> NoThink Code ist in dieser Umgebung nicht initialisierbar → aus dem Coding-Loop nehmen. No Thinking + Commander-Fix-Pass funktioniert.</p>
+</div>
+
+<h2>4. GRAPHS</h2>
+
+<div class="bench">
+<h4>QUALITÄT (Code Review Score, Ø 1-5) — pro Orchestrierung</h4>
+<div class="bar-row"><span class="bar-label">ALT — Lead Dev direkt</span><div class="bar-track"><div class="bar-fill good" style="width:80%"></div></div><span class="bar-val">4.0</span></div>
+<div class="bar-row"><span class="bar-label">ALT — No Thinking direkt</span><div class="bar-track"><div class="bar-fill mid" style="width:60%"></div></div><span class="bar-val">3.0*</span></div>
+<div class="bar-row"><span class="bar-label">ALT — NoThink Code direkt</span><div class="bar-track"><div class="bar-fill bad" style="width:10%"></div></div><span class="bar-val">— (Crash)</span></div>
+<div class="bar-row"><span class="bar-label">NEU — Lead Dev Top + No Thinking</span><div class="bar-track"><div class="bar-fill good" style="width:80%"></div></div><span class="bar-val">4.0*</span></div>
+<div class="legend"><span style="background:#0f0"></span>gut (≥4) <span style="background:#fa0"></span>mittel (3) <span style="background:#f44"></span>schlecht (&lt;3 / Crash) &nbsp;|&nbsp; * = vorläufig, Code Review ausstehend</div>
+</div>
+
+<div class="bench">
+<h4>EFFIZIENZ (Runden + Fehler, weniger = besser)</h4>
+<div class="bar-row"><span class="bar-label">ALT — Lead Dev direkt</span><div class="bar-track"><div class="bar-fill mid" style="width:50%"></div></div><span class="bar-val">1 Rd, langsam</span></div>
+<div class="bar-row"><span class="bar-label">ALT — No Thinking direkt</span><div class="bar-track"><div class="bar-fill good" style="width:30%"></div></div><span class="bar-val">1 Rd, mittel</span></div>
+<div class="bar-row"><span class="bar-label">ALT — NoThink Code direkt</span><div class="bar-track"><div class="bar-fill bad" style="width:95%"></div></div><span class="bar-val">Crash</span></div>
+<div class="bar-row"><span class="bar-label">NEU — Lead Dev Top + No Thinking</span><div class="bar-track"><div class="bar-fill good" style="width:35%"></div></div><span class="bar-val">1 Rd, schnell</span></div>
+<div class="legend">Balkenlänge = relativer Aufwand (Zeit + Runden + Fehler). Kürzer = besser.</div>
+</div>
+
+<div class="bench">
+<h4>CRASH-RATE (Recursion-Limit / Block) — pro Agent</h4>
+<div class="bar-row"><span class="bar-label">Lead Developer</span><div class="bar-track"><div class="bar-fill good" style="width:5%"></div></div><span class="bar-val">0%</span></div>
+<div class="bar-row"><span class="bar-label">No Thinking</span><div class="bar-track"><div class="bar-fill good" style="width:5%"></div></div><span class="bar-val">0%</span></div>
+<div class="bar-row"><span class="bar-label">NoThink Code</span><div class="bar-track"><div class="bar-fill bad" style="width:100%"></div></div><span class="bar-val">100%*</span></div>
+<div class="legend">* NoThink Code crashte 2× (Recursion 9 + Unable to initialize). → <b>Aus dem Coding-Loop genommen</b> (v0.6.2b). Nur noch für Text/Daten.</div>
+</div>
+
+<h2>5. ENTSCHEIDUNG (laufend)</h2>
+<div class="decision">
+<b>Status: NEU vorläufig bestätigt (2/3 Runden).</b>
+<br>• <b>NEU (Lead Dev Top + No Thinking Code + Commander-Fix):</b> Ø Qualität 3,75, Ø Runden 1, Crash 0 (nach NoThinking-Entfernung).
+<br>• <b>Erkenntnis R2:</b> NoThink Code crasht in dieser Umgebung (2× "Unable to initialize") → <b>aufhören, NoThink Code für Coding zu nutzen</b>. Stattdessen: <b>No Thinking (Code) + Commander-Fix-Pass</b> (Code Review liefert die Fixes, Commander setzt sie um).
+<br>• <b>Neue Regel (v0.6.2b):</b> Lead Dev = Top-Level-Spec. No Thinking = Code. Code Review = Score + Fix-Liste. Commander = Fix-Pass + Integration. NoThink Code = nur für Text/Daten (nicht Code).
+<br>Nächste Messung: Fax-Drucker (R3) unter der neuen Regel.
+</div>
+
+<h2>6. REFERENZ: WC1 NPC-PILOT-INTELLIGENCE</h2>
+<div class="card">
+<p>Der echte WC1-Quellcode (<code>wingleader.c</code>, 1989/1990 Chris Roberts) ist als Referenz für unsere Flug-KI gesichert. Mission-Types (patrol, escort, strike, defend, wingman, rendezvous, rout) + Taktiken (cruise, look_out, approach_target, engage, destroy) + <code>DETERMINATION = 70 - level*20</code> (KI-Schwierigkeit) + "Kilrathi flee straight down" (Rout).</p>
+<p><a href="../WC1_PCI_ANALYSE.md">→ WC1_PCI_ANALYSE.md öffnen</a> — was wir daraus für Autopilot, Formation, Piraten-KI und Waffen lernen.</p>
+</div>
+
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
+Sideprojekt: Agenten-Orchestrierung messen. Kein Internet. Kein Tracking. Nur Fax.
+</div>
+</body>
+</html>

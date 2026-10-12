@@ -58,6 +58,13 @@
         if (!SW.Input.keys['Digit1']) SW._c1Held = false;
         if (SW.Input.keys['Digit2'] && !SW._c2Held) { SW._c2Held = true; SW.Game.state = 'CHEAT_MAP'; }
         if (!SW.Input.keys['Digit2']) SW._c2Held = false;
+        // SEKTOR-LICHT: [3][4][5] wechseln den Sektor (Fenster-Farbe)
+        if (SW.Input.keys['Digit3'] && !SW._c3Held) { SW._c3Held = true; SW.Game.setSector('s1'); }
+        if (!SW.Input.keys['Digit3']) SW._c3Held = false;
+        if (SW.Input.keys['Digit4'] && !SW._c4Held) { SW._c4Held = true; SW.Game.setSector('s2'); }
+        if (!SW.Input.keys['Digit4']) SW._c4Held = false;
+        if (SW.Input.keys['Digit5'] && !SW._c5Held) { SW._c5Held = true; SW.Game.setSector('s3'); }
+        if (!SW.Input.keys['Digit5']) SW._c5Held = false;
         // Cheat-Klicks
         if (SW.Input.mouseDown) {
           SW.Input.mouseDown = false;
@@ -69,6 +76,10 @@
           if (SW.Game._cheatMapRect) {
             const r = SW.Game._cheatMapRect;
             if (mx>=r.x && mx<=r.x+r.w && my>=r.y && my<=r.y+r.h) { SW.Game.state = 'CHEAT_MAP'; return; }
+          }
+          for (let i = 0; i < SW.Systems.length; i++) {
+            const r = SW.Game['_cheatSysRect' + i];
+            if (r && mx>=r.x && mx<=r.x+r.w && my>=r.y && my<=r.y+r.h) { SW.Game.setSector(SW.Systems[i].id); return; }
           }
         }
       }
