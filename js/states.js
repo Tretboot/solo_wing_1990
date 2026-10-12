@@ -550,14 +550,19 @@ SW.Game = {
     SW.Briefing.render(ctx);
   },
   renderTakeoff(ctx) {
+    // Launch-Tube-Cinematic (Röhre → Freigang → Exit-Flash)
     ctx.fillStyle='#000';ctx.fillRect(0,0,SW.W,SW.H);
-    SW.Engine.renderStars(ctx,SW.Player.x,SW.Player.y);
     SW.Flight.render(ctx);
     ctx.fillStyle='#0f0';ctx.font='7px monospace';ctx.textAlign='center';
-    ctx.fillText('ABHEBUNG IN PROGRESS',SW.CX,15);ctx.textAlign='left';
+    if (SW.Flight.progress<0.6) ctx.fillText('STARTRÖHRE — ZÜNDUNG',SW.CX,15);
+    else ctx.fillText('FREIGANG',SW.CX,15);
+    ctx.textAlign='left';
   },
   renderCockpit(ctx) {
     ctx.fillStyle='#000';ctx.fillRect(0,0,SW.W,SW.H);
+    const vm = SW.Engine.view.mode;
+    if (vm === 'topdown') { this.renderCockpitTopDown(ctx); return; }
+    // ===== PERSPEKTIVE (cockpit + chase) =====
     // Roll: rotiere Weltraum-Ansicht (Sterne, Feinde, Projektile)
     if (Math.abs(SW.Player.rollAngle) > 0.005) {
       ctx.save();
@@ -570,8 +575,22 @@ SW.Game = {
     SW.Projectiles.render(ctx);
     SW.Explosions.render(ctx);
     if (Math.abs(SW.Player.rollAngle) > 0.005) ctx.restore();
+    if (vm === 'chase') {
+      // Chase-Cam: Schiff im unteren Drittel (Rückenansicht), rollt mit
+      const shX = SW.CX + SW.Player.vx * 1.2;
+      const shY = SW.H - 40 + SW.Player.vy * 0.4;
+      ctx.save();
+      ctx.translate(shX, shY);
+      ctx.rotate(SW.Player.rollAngle);
+      SW.Sprites.draw(ctx, SW.Sprites.playerShip, 0, 0, 1.5);
+      ctx.fillStyle = (SW.Game.frame % 6 < 3) ? '#ff6600' : '#ffaa00';
+      ctx.fillRect(-5, 8, 3, 5); ctx.fillRect(2, 8, 3, 5);  // Triebwerke
+      ctx.restore();
+      SW.UI.renderMiniHud(ctx);
+    } else {
+      SW.UI.renderCockpit(ctx);
+    }
     // UI (nicht rotiert)
-    SW.UI.renderCockpit(ctx);
     SW.UI.renderRadar(ctx);
     if (SW.UI.navMapVisible) SW.UI.renderNavMap(ctx);
     SW.Comm.render(ctx);
@@ -584,6 +603,32 @@ SW.Game = {
     if (SW.UI.navMapVisible) {
       ctx.fillStyle='#0af';ctx.font='5px monospace';ctx.textAlign='center';
       ctx.fillText('[N] NAV',SW.CX,SW.H-2);ctx.textAlign='left';
+    }
+  },
+  // Top-Down (Ansicht 'VOGEL'): flache 2D-Ebene, Z → Y (vorn = oben)
+  renderCockpitTopDown(ctx) {
+    SW.Engine.renderStarsTopDown(ctx);
+    SW.Enemies.render(ctx);
+    SW.Projectiles.render(ctx);
+    SW.Explosions.render(ctx);
+    // Spieler: Top-Down-Sprite unten Mitte (Rollen angedeutet)
+    const t = SW.Engine.view.top;
+    ctx.save();
+    ctx.translate(t.shipX, t.shipY);
+    ctx.rotate(SW.Player.rollAngle * 0.6);
+    SW.Sprites.draw(ctx, SW.Sprites.playerShipTop, 0, 0, 1.6);
+    ctx.fillStyle = (SW.Game.frame % 6 < 3) ? '#ff6600' : '#ffaa00';
+    ctx.fillRect(-3, 12, 2, 4); ctx.fillRect(1, 12, 2, 4);  // Triebwerke
+    ctx.restore();
+    // UI
+    SW.UI.renderMiniHud(ctx);
+    SW.UI.renderRadar(ctx);
+    if (SW.UI.navMapVisible) SW.UI.renderNavMap(ctx);
+    SW.Comm.render(ctx);
+    SW.UI.renderCrosshair(ctx);
+    if (SW.Autopilot.active) {
+      ctx.fillStyle='#00aaff';ctx.font='6px monospace';ctx.textAlign='center';
+      ctx.fillText('◈ AUTOPILOT ◈',SW.CX,12);ctx.textAlign='left';
     }
   },
   renderLanding(ctx) {

@@ -73,13 +73,27 @@ SW.Input = {
   },
 
   getAimDirection() {
-    let dx = (this.mouseX - SW.CX) / SW.FOCAL, dy = (this.mouseY - SW.CY) / SW.FOCAL;
+    let dx, dy, dz;
+    if (SW.Engine && SW.Engine.view.mode === 'topdown') {
+      // Top-Down: Ziel = Maus relativ zum Schiff (unten Mitte), vorne = +z
+      const t = SW.Engine.view.top;
+      dx = (this.mouseX - t.shipX) / (t.xScale * 80);
+      dz = Math.max(0.35, (t.shipY - this.mouseY) / (t.zScale * 80));
+      dy = 0;
+      if (this.gamepadData) {
+        const rax = this.gamepadData.axes[2] || 0, ray = this.gamepadData.axes[3] || 0;
+        if (Math.abs(rax) > 0.1 || Math.abs(ray) > 0.1) { dx = rax * 2; dz = Math.max(0.35, -ray * 2); dy = 0; }
+      }
+      const lenT = Math.sqrt(dx*dx + dy*dy + dz*dz);
+      return { x: dx/lenT, y: dy/lenT, z: dz/lenT };
+    }
+    dx = (this.mouseX - SW.CX) / SW.FOCAL; dy = (this.mouseY - SW.CY) / SW.FOCAL; dz = 1;
     if (this.gamepadData) {
       const rax = this.gamepadData.axes[2] || 0, ray = this.gamepadData.axes[3] || 0;
       if (Math.abs(rax) > 0.1 || Math.abs(ray) > 0.1) { dx = rax; dy = ray; }
     }
-    const len = Math.sqrt(dx*dx + dy*dy + 1);
-    return { x: dx/len, y: dy/len, z: 1/len };
+    const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    return { x: dx/len, y: dy/len, z: dz/len };
   },
 
   getFirePressed() {

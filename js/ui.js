@@ -62,6 +62,40 @@ SW.UI = {
     ctx.textAlign = 'left';
   },
 
+  // Mini-HUD für Chase-Cam + Top-Down (ohne Cockpit-Frame)
+  renderMiniHud(ctx) {
+    ctx.fillStyle='rgba(10,10,16,0.75)';
+    ctx.fillRect(0,0,SW.W,14);              // Balken oben
+    ctx.fillRect(0,SW.H-12,SW.W,12);        // Balken unten
+    ctx.fillStyle='#14141a';
+    ctx.fillRect(2,16,48,24);               // Schild-Panel
+    ctx.fillRect(SW.W-50,16,48,24);         // Score-Panel
+    ctx.fillStyle='#666'; ctx.font='5px monospace';
+    ctx.fillText('FRONT',6,24);
+    const fw=(SW.Player.frontShield/SW.SHIELD_MAX)*17;
+    ctx.fillStyle='#222'; ctx.fillRect(30,20,17,5);
+    ctx.fillStyle=SW.Player.frontShield>30?'#0f0':'#f00';
+    ctx.fillRect(30,20,fw,5);
+    ctx.fillStyle='#666'; ctx.fillText('REAR',6,36);
+    const rw=(SW.Player.rearShield/SW.SHIELD_MAX)*17;
+    ctx.fillStyle='#222'; ctx.fillRect(30,32,17,5);
+    ctx.fillStyle=SW.Player.rearShield>30?'#0f0':'#f00';
+    ctx.fillRect(30,32,rw,5);
+    ctx.fillStyle='#0f0'; ctx.font='6px monospace';
+    ctx.fillText('SCORE',SW.W-46,26);
+    ctx.fillStyle='#fff'; ctx.font='8px monospace';
+    ctx.fillText(String(SW.Game.score).padStart(5,'0'),SW.W-46,37);
+    // Radar-Kreis (in diesem Modus fehlt er im Frame)
+    ctx.fillStyle='rgba(0,20,10,0.7)';
+    ctx.beginPath(); ctx.arc(26,125,15,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#0f0'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(26,125,15,0,Math.PI*2); ctx.stroke();
+    const slots=SW.Input.getLaserSlots();
+    ctx.fillStyle='#0f0'; ctx.font='6px monospace'; ctx.textAlign='center';
+    ctx.fillText('LASER:'+slots+'   [V] '+SW.Engine.viewName(),SW.CX,SW.H-3);
+    ctx.textAlign='left';
+  },
+
   renderRadar(ctx) {
     const rx=26, ry=125, rr=15;
     // Blips (der Kreis ist im Frame)

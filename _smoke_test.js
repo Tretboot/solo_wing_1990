@@ -272,5 +272,32 @@ if (SW.SmartDialogues) {
 check('index.html: js/dialogue.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/dialogue.js'));
 check('index.html: js/newspaper.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/newspaper.js'));
 
+// --- 14. Kamera-System + Launch-Tube (v0.6.9-dev) ---
+check('ViewState existiert (SW.Engine.view)', !!SW.Engine.view && SW.Engine.view.mode === 'cockpit');
+SW.Game.setState('COCKPIT'); pump(2);
+SW.Engine.nextView();
+check('V: cockpit -> chase (weitere Brennweite)', SW.Engine.view.mode === 'chase' && SW.Engine.view.focal === SW.Engine.view.chaseFocal);
+pump(3);
+check('Chase-Cam rendert (COCKPIT)', SW.Game.state === 'COCKPIT');
+SW.Engine.nextView();
+check('V: chase -> topdown', SW.Engine.view.mode === 'topdown');
+pump(3);
+check('Top-Down rendert (COCKPIT)', SW.Game.state === 'COCKPIT');
+check('Top-Down-Sprite vorhanden', !!SW.Sprites.playerShipTop);
+SW.Input.mouseX = 100; SW.Input.mouseY = 40;
+const aimTop = SW.Input.getAimDirection();
+check('Top-Down-Aim: z > 0 und links (Maus 100,40)', aimTop.z > 0 && aimTop.x < 0);
+SW.Engine.nextView();
+check('V: topdown -> cockpit (Runde geschlossen)', SW.Engine.view.mode === 'cockpit' && SW.Engine.view.focal === SW.FOCAL);
+// Launch-Tube: TAKEOFF durchlaufen (Tube -> Freigang -> Flash -> COCKPIT)
+SW.Game.startMission('m1');
+SW.Game.setState('TAKEOFF');
+check('Tube: 12 Ringe + 48 Lichter initialisiert', SW.Flight.tubeRings.length === 12 && SW.Flight.tubeLights.length === 48);
+let tubeFrames = 0;
+while (SW.Game.state === 'TAKEOFF' && tubeFrames < 400) { pump(1); tubeFrames++; }
+check('Tube: Takeoff -> COCKPIT (' + tubeFrames + ' Frames)', SW.Game.state === 'COCKPIT' && tubeFrames <= 230);
+check('Tube: Fokal wiederhergestellt', SW.Engine.view.focal === SW.FOCAL);
+check('Tube: Carrier danach unsichtbar', SW.Carrier.visible === false);
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');
 process.exit(failures === 0 ? 0 : 1);

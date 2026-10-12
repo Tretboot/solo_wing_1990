@@ -183,6 +183,13 @@
       // N = Nav/Spacemap Toggle
       if (SW.Input.keys['KeyN']&&!SW.Input._nHeld) { SW.UI.navMapVisible=!SW.UI.navMapVisible;SW.Input._nHeld=true; }
       if (!SW.Input.keys['KeyN']) SW.Input._nHeld=false;
+      // V = Ansicht wechseln (Cockpit → Verfolgung → Top-Down)
+      if (SW.Input.keys['KeyV']&&!SW.Input._vHeld) {
+        SW.Engine.nextView();
+        SW.Input._vHeld=true;
+        SW.Comm.add('SYSTEM: Ansicht: '+SW.Engine.viewName()+'. Formular 77-V ausgefüllt.');
+      }
+      if (!SW.Input.keys['KeyV']) SW.Input._vHeld=false;
     }
     if (SW.Game.state==='HANGAR') {
       const t = SW.Game._hangarTimer||0;
