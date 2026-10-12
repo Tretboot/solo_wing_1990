@@ -211,6 +211,17 @@ SW.Dialogues = {
       {npc:"KLO",text:"Sie fragen mich, was kommt. Ich sage: Wasser. Immer Wasser. Und dann kommt das, was nach Wasser kommt."},
       {npc:"KLO",text:"Die Revision hat ein Schiff umstrukturiert. Ich war da. Ich habe es geputzt. Danach. Es roch besser."},
       {npc:"KLO",text:"Kältekammer 7. Es atmet. 2/min. Das ist kein Formular. Das ist ein Atemzug."}
+    ],
+    schule: [
+      {npc:"DISKETTENS",text:"Willkommen im Kurs 'Versionskontrolle für Leute, die mit verbundenen Augen auf die Tastatur drücken.' Formular 14-C ausfüllen. Selbstanzeige."},
+      {npc:"DISKETTENS",text:"Lehrplan, Lektion eins: git status. VOR JEDEM COMMIT. Damit weißt du, was im Baum steht. Und was du fast mitgebracht hast."},
+      {npc:"DISKETTENS",text:"Lektion zwei: git add <datei>. Gezielt. Nicht add -A. Der ganze Baum war bisher nicht deine Idee. Die Katze weist jede Verantwortung von sich."},
+      {npc:"ARCHIV",text:"*Klicken.*"},
+      {npc:"DISKETTENS",text:"Lektion drei: git commit -m 'Text'. Zeile eins sachlich. Zeile zwei darf Deadpan sein. 'Ich weiß nicht warum ich das kommentieren soll' ist keine Convention. Das ist ein Geständnis."},
+      {npc:"DISKETTENS",text:"Lektion vier: git log --oneline. Die Historie. Unänderlich. Die letzten zwei Wochen hat es nicht gegeben."},
+      {npc:"ARCHIV",text:"*Klicken.*"},
+      {npc:"DISKETTENS",text:"Und die wichtigste Regel: Git lehnt leere Commits ab. Das ist auf diesem Schiff das Einzige, was zuverlässig funktioniert. Anwesenheit ist trotzdem Pflicht."},
+      {npc:"DISKETTENS",text:"Hausaufgabe: README, GIT-Sektion. Dort liegt das Unfall-Protokoll. Die Katze hat den Vorfall nicht bestritten."}
     ]
   },
 

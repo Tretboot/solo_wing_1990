@@ -82,6 +82,7 @@
 - [x] Handbuch: [V] im Steuerungs-Kapitel
 - [ ] **Playtest:** Top-Down-Balancing (Aim-Feeling, Radar-Abgleich, Feind-Skalierung)
 - [ ] **Playtest:** Launch-Tube-Timing (210 Frames) + Whoosh-Sound beim Freigang?
+- [x] **Schulraum "ZWEIG"** (12. Raum: Git-Tutorial mit Diskettens + Archiv, Kreidetafel, Formular 14-C, Katze am Fenster)
 
 ## v0.6.9 — "Musik, Optik, Katalog & Website"
 - [x] **Ingame Handbuch** (Taste [H], 6 Kapitel, progressiv freigeschaltet)

@@ -1,5 +1,5 @@
 // ===== SOLO WING 1990 — RÄUME (Phase 6.1) =====
-// Der Träger als "fliegendes Dorf". 10 statische Räume.
+// Der Träger als "fliegendes Dorf". 12 statische Räume.
 // Jeder Raum: Artstyle (prozedural), NPCs, Türen (Nachbarn), Zweck.
 // Konferenz: No Thinking + Lead Story Writer, 2 Runden.
 
@@ -8,7 +8,7 @@ SW.Rooms = [
     id: 'bar', name: 'BAR', zweck: 'Piloten, Scoreboard, Dialoge',
     farbe: '#8a6d3b', akzent: '#ffcc00',
     npcs: ['Sechs','Neun','Zwo'],
-    toren: ['flugdeck','kantine','kapelle'],
+    toren: ['flugdeck','kantine','kapelle','schule'],
     art: 'bar' // prozedural: Theke, Fenster, Scoreboard
   },
   {
@@ -22,7 +22,7 @@ SW.Rooms = [
     id: 'buerro', name: 'KAPITÄN-BÜRO', zweck: 'Akten, Befehle, Formulare',
     farbe: '#3a2a1a', akzent: '#ff9900',
     npcs: ['Commander','Archiv'],
-    toren: ['flugdeck','kantine','beobachtung'],
+    toren: ['flugdeck','kantine','beobachtung','schule'],
     art: 'buerro' // prozedural: Schreibtisch, Aktenregale, Fax
   },
   {
@@ -64,7 +64,7 @@ SW.Rooms = [
     id: 'maschinenraum', name: 'MASCHINENRAUM', zweck: 'Antrieb, Warpcraft, Kassetten-Tape-Loop',
     farbe: '#2a2a3a', akzent: '#00ff00',
     npcs: ['Diskettens','Rohr'],
-    toren: ['flugdeck','reparatur','krankenstation'],
+    toren: ['flugdeck','reparatur','krankenstation','schule'],
     art: 'maschinenraum' // prozedural: Rohre, Hebel, brummende Motoren
   },
   {
@@ -80,6 +80,13 @@ SW.Rooms = [
     npcs: ['KLO'],
     toren: ['bar','krankenstation'],
     art: 'klo' // prozedural: Kacheln, Spülung, Wischmopp
+  },
+  {
+    id: 'schule', name: 'SCHULRAUM "ZWEIG"', zweck: 'Git-Unterricht, Weiterbildung, Unfall-Analyse',
+    farbe: '#1a2a1a', akzent: '#ccff66',
+    npcs: ['Diskettens','Archiv'],
+    toren: ['maschinenraum','buerro','bar'],
+    art: 'schule' // prozedural: Tafel mit Git-Tree, Schülertische, Formular-14-C-Poster, Katze am Fenster
   }
 ];
 

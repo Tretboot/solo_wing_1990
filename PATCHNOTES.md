@@ -84,6 +84,21 @@
   Handlungsbedarf. Verifikation: `_csscheck.js` (0 Backtick-`n`-Hits in
   site/, CSS-Klammern 65/65, HTML-Balance OK).
 
+### Schulraum "ZWEIG" — 12. Raum + Git-Tutorial (2026-10-12)
+- **Neuer Raum:** `data/rooms.js → id: 'schule'` (SCHULRAUM "ZWEIG", Farbe #1a2a1a,
+  Akzent #ccff66, NPCs: Diskettens + Archiv), Türen von/zu BAR, MASCHINENRAUM und
+  KAPITÄN-BÜRO (zuerst 3, dann 4. Tür — Raum 11/12).
+- **Artstyle:** `js/ship.js → artSchule()` — Kreidetafel mit `git log --oneline`
+  (Commit-Tree, Branch "tet", roter KATZE-Commit), Schülertische, Formular-14-C-Poster
+  (Selbstanzeige), Katzensilhouette am Fenster ("Tastatur?").
+- **Git-Tutorial-Dialog:** `data/dialogues.js → rooms.schule` (9 Zeilen, Sarkasmus-
+  Lehrgang: status → add → commit → log, "Git lehnt leere Commits ab. Das ist auf
+  diesem Schiff das Einzige, was zuverlässig funktioniert.").
+- **Website:** Raum-Karte in `site/raeume.html` (12 Räume).
+- **Befund (Test):** Die Raumeigenschaft heißt `toren` (Singular) — der neue
+  Smoke-Check war erst mit `torren` geschrieben (1 roter Test, Rechtschreibung).
+- **Smoke-Test:** 92/92 OK (4 neue Checks: 12. Raum, Tutorial, Türen, NPCs).
+
 ## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
 
 ### Neue Features

@@ -255,6 +255,7 @@ SW.Ship = {
       case 'maschinenraum': this.artMaschinenraum(ctx, room); break;
       case 'krankenstation': this.artKrankenstation(ctx, room); break;
       case 'klo': this.artKlo(ctx, room); break;
+      case 'schule': this.artSchule(ctx, room); break;
     }
   },
 
@@ -503,6 +504,81 @@ SW.Ship = {
     // Boden
     ctx.fillStyle='#1a2a2a'; ctx.fillRect(0,SW.H-25,SW.W,25);
     for(let i=0;i<16;i++){ ctx.fillStyle=i%2?'#2a3a3a':'#1a2a2a'; ctx.fillRect(i*20,SW.H-25,20,25); }
+  },
+
+  // Schulraum "ZWEIG": Tafel mit Git-Tree, Schülertische, Formular-14-C, Katze am Fenster
+  artSchule(ctx, room) {
+    // Tafel (Mitte, Git-Tree in Kreide)
+    ctx.fillStyle = '#0f1f12';
+    ctx.fillRect(70, 34, 180, 86);
+    ctx.strokeStyle = '#5a4a2a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(70, 34, 180, 86);
+    ctx.lineWidth = 1;
+    // Kreide: git log
+    ctx.fillStyle = 'rgba(204,255,102,0.9)';
+    ctx.font = '6px monospace';
+    ctx.fillText('git log --oneline', 80, 46);
+    ctx.strokeStyle = 'rgba(204,255,102,0.8)';
+    ctx.beginPath(); ctx.moveTo(80, 58); ctx.lineTo(238, 58); ctx.stroke();
+    // Commits (main)
+    ctx.fillStyle = 'rgba(204,255,102,0.9)';
+    for (const cx of [95, 135, 175, 215]) { ctx.beginPath(); ctx.arc(cx, 58, 3, 0, Math.PI*2); ctx.fill(); }
+    // Branch (vom 3. Commit ab)
+    ctx.beginPath(); ctx.moveTo(175, 58); ctx.quadraticCurveTo(175, 74, 195, 77); ctx.lineTo(238, 77); ctx.stroke();
+    ctx.fillStyle = 'rgba(204,255,102,0.9)';
+    for (const cx of [210, 238]) { ctx.beginPath(); ctx.arc(cx, 77, 3, 0, Math.PI*2); ctx.fill(); }
+    ctx.font = '5px monospace';
+    ctx.fillText('main', 80, 70);
+    ctx.fillText('branch "tet"', 185, 90);
+    // Der kaputte Commit (rot) + Katze
+    ctx.fillStyle = 'rgba(255,68,68,0.9)';
+    ctx.beginPath(); ctx.arc(238, 58, 3, 0, Math.PI*2); ctx.fill();
+    ctx.font = '5px monospace';
+    ctx.fillText('KATZE', 242, 50);
+    // Kreideregister + Kreide + Radiergummi
+    ctx.fillStyle = '#5a4a2a'; ctx.fillRect(66, 120, 188, 4);
+    ctx.fillStyle = '#fff'; ctx.fillRect(90, 118, 8, 2);
+    ctx.fillStyle = '#ccff66'; ctx.fillRect(112, 118, 6, 2);
+    ctx.fillStyle = '#3a2a1a'; ctx.fillRect(200, 117, 14, 4);
+    // Schülertische (vorne)
+    for (const dx of [45, 130, 215]) {
+      ctx.fillStyle = '#4a3a2a';
+      ctx.fillRect(dx, 130, 60, 7);
+      ctx.fillStyle = '#2a2018';
+      ctx.fillRect(dx+4, 137, 6, 12);
+      ctx.fillRect(dx+50, 137, 6, 12);
+    }
+    // Poster: Formular 14-C (Selbstanzeige)
+    ctx.fillStyle = '#d8d0c0';
+    ctx.fillRect(268, 38, 42, 52);
+    ctx.fillStyle = '#333';
+    ctx.font = '5px monospace';
+    ctx.fillText('FORMULAR', 272, 48);
+    ctx.fillText('14-C', 272, 56);
+    ctx.fillText('(Selbstanzeige)', 272, 64);
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(274, 68, 30, 14);
+    ctx.fillStyle = '#fff';
+    ctx.font = '7px monospace';
+    ctx.fillText('KATZE', 279, 78);
+    // Fenster (links) mit Katzensilhouette
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(18, 40, 44, 34);
+    ctx.strokeStyle = '#334';
+    ctx.strokeRect(18, 40, 44, 34);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(28, 58, 16, 12);   // Körper
+    ctx.fillRect(32, 52, 10, 8);   // Kopf
+    ctx.fillRect(32, 48, 3, 4);    // Ohr 1
+    ctx.fillRect(39, 48, 3, 4);    // Ohr 2
+    ctx.fillRect(44, 54, 6, 3);    // Schwanz
+    ctx.fillStyle = '#ff0';
+    ctx.fillRect(34, 55, 2, 2);    // Augen
+    ctx.fillRect(38, 55, 2, 2);
+    ctx.fillStyle = '#555';
+    ctx.font = '5px monospace';
+    ctx.fillText('Tastatur?', 24, 84);
   },
 
   // ===== NPC RENDER =====

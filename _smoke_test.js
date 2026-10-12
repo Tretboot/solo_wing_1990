@@ -94,7 +94,7 @@ check('BAR laeuft ohne Fehler', SW.Game.state === 'BAR');
 SW.Game.setState('SHIP'); pump(3);
 check('SHIP laeuft ohne Fehler', SW.Game.state === 'SHIP');
 const roomsWithNpcs = SW.Rooms.filter(r => r.npcs.length >= 1).length;
-check('alle 11 Raeume haben NPCs (' + roomsWithNpcs + '/11)', roomsWithNpcs === 11);
+check('alle 12 Raeume haben NPCs (' + roomsWithNpcs + '/12)', roomsWithNpcs === 12);
 for (const n of ['Archiv','Löffel','Stille','Mutters','Spiegel','Rohr','Nadel']) {
   check('RoomNPCs: ' + n, !!SW.RoomNPCs[n]);
 }
@@ -103,10 +103,14 @@ SW.Ship.startDialogue(); pump(3);
 const kantineLines = SW.Dialogues.rooms.kantine.map(l => l.npc).join(',');
 check('Kantine-Dialog hat LÖFFEL', kantineLines.includes('LÖFFEL'));
 check('Beobachtung hat NPC (Spiegel)', SW.World.npcInRoom('beobachtung').length >= 1);
+check('Schulraum ZWEIG ist der 12. Raum', SW.Rooms.length === 12 && !!SW.Rooms.find(r => r.id === 'schule'));
+check('Schulraum: Git-Tutorial-Dialog (9 Zeilen)', (SW.Dialogues.rooms.schule || []).length === 9);
+check('Schulraum: Toere nach Maschinenraum/Buero/Bar', ['maschinenraum','buerro','bar'].every(t => SW.Rooms.find(r => r.id === t).toren.includes('schule')));
+check('Schulraum: NPCs Diskettens + Archiv', SW.World.npcInRoom('schule').length >= 2);
 
 // --- 4. CHEAT_MAP (Wandkarte) ---
 SW.Game.state = 'CHEAT_MAP'; pump(3);
-check('Cheat-Map rendert, 11 Klick-Regionen', SW.Ship._cheatMapRects.length === 11);
+check('Cheat-Map rendert, 12 Klick-Regionen', SW.Ship._cheatMapRects.length === 12);
 const first = SW.Ship._cheatMapRects[0];
 SW.Ship.handleCheatMapClick(first.x + 5, first.y + 5);
 check('Klick auf Raum -> SHIP', SW.Game.state === 'SHIP' && SW.Ship.currentRoom === SW.Rooms[0].id);
