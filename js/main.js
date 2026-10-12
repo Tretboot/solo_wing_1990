@@ -243,8 +243,7 @@
   SW.Sprites.init();
   SW.Engine.initStars();
   SW.Input.init(canvas);
-  SW.TTS.init(); // Vorab init — Intro-TTS braucht es bei 1800ms (vor erstem Klick)
-  SW.Audio.init();
+  // Audio + TTS werden bei erstem User-Interaction initialisiert (Browser-Policy)
   SW.Quests.init();
   SW.Quests.onNewQuest = (q) => { console.log('[QUEST] Neu:', q.titel); };
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
