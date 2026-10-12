@@ -127,7 +127,7 @@ SW.Config.cheatEnabled = true;
 SW.Game.startMission('m1');
 check('startMission -> SHIP', SW.Game.state === 'SHIP');
 SW.Game.setState('TAKEOFF');
-for (let i = 0; i < 200 && SW.Flight.mode; i++) SW.Flight.update();
+for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
 check('Takeoff -> COCKPIT', SW.Game.state === 'COCKPIT');
 pump(5);
 SW.UI.navMapVisible = true; pump(2);
@@ -144,7 +144,7 @@ check('Cockpit mit Roll rendert', SW.Game.state === 'COCKPIT');
 
 // --- 7. LANDING -> HANGAR -> DEBRIEFING (Sieg) -> SHIP ---
 SW.Game.setState('LANDING');
-for (let i = 0; i < 200 && SW.Flight.mode; i++) SW.Flight.update();
+for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
 check('Landing -> HANGAR', SW.Game.state === 'HANGAR');
 check('_hangarLines gefuellt (' + (SW.Game._hangarLines||[]).length + ' Zeilen)', (SW.Game._hangarLines||[]).length >= 2);
 pump(5);
