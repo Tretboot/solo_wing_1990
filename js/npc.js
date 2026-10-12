@@ -112,6 +112,14 @@ SW.NPC = {
         ctx.beginPath(); ctx.ellipse(x + size * 0.15, y - size * 0.1, size * 0.3, size * 0.18, 0, Math.PI, 0); ctx.fill(); break;
       case 'short-grey':
         ctx.beginPath(); ctx.ellipse(x, y - size * 0.08, size * 0.48, size * 0.2, 0, Math.PI, 0); ctx.fill(); break;
+      case 'side-part':
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.5, y); ctx.lineTo(x - size * 0.4, y - size * 0.25);
+        ctx.lineTo(x + size * 0.2, y - size * 0.28); ctx.lineTo(x + size * 0.45, y); ctx.fill(); break;
+      default: break;
+    }
+  },
+
   // Gesichtszüge zeichnen
   _drawFeatures(ctx, x, y, size, npc) {
     const eyeSize = size * 0.08, eyeY = y + size * 0.05;
@@ -157,8 +165,11 @@ SW.NPC = {
       ctx.beginPath(); ctx.arc(x - size * 0.15, eyeY, size * 0.05, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(x + size * 0.15, eyeY, size * 0.05, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
-  // Körper zeichnen
-  _drawBody(ctx, x, y, size, color, pose) {
+    }
+  },
+
+  // Körper zeichnen (pose: 'standing' = default, 'holding-wrench' ...)
+  _drawBody(ctx, x, y, size, color, pose, npc) {
     const bodyWidth = size * 0.8, bodyHeight = size * 1.2;
     switch (pose) {
       case 'cockpit-left': case 'cockpit-center': case 'cockpit-right':
@@ -196,17 +207,40 @@ SW.NPC = {
         } break;
     }
   },
-    }
-  },
-      case 'side-part':
-        ctx.beginPath();
-        ctx.moveTo(x - size * 0.5, y); ctx.lineTo(x - size * 0.4, y - size * 0.25);
-        ctx.lineTo(x + size * 0.2, y - size * 0.28); ctx.lineTo(x + size * 0.45, y); ctx.fill(); break;
-      default: break;
-    }
-  },
-  // Haupt-Funktion: Gesicht zeichnen
+
+  // Haupt-Funktion: Gesicht zeichnen (Kopf + optional Körper + Accessoires).
+  // Eine API für alle Szenen (Briefing, Cockpit-Video, Träger-Räume).
+  // options: { showBody, showUniform, pose, animated, frame }
   drawFace(ctx, npcId, x, y, size, options = {}) {
+    const npc = this.registry[npcId];
+    if (!npc) return;
+    const frame = options.frame || 0;
+    // Leichter Bob (Atmen), wenn animiert
+    const py = y + (options.animated ? Math.sin(frame * 0.08) * size * 0.02 : 0);
+    const pose = options.pose || npc.videoPose || 'standing';
+    // Reihenfolge: Körper (hinten) → Kopf → Accessoires (vorne)
+    if (options.showBody && npc.uniform) this._drawBody(ctx, x, py, size, npc.uniform, pose, npc);
+    this._drawHead(ctx, x, py, size, npc);
+    this._drawAccessories(ctx, x, py, size, npc, pose, frame);
+  },
+
+  // Name (z.B. 'COMMANDER' aus einer Funkzeile) → Registry-Key (z.B. 'commander').
+  // Fallback: Teil-Treffer (z.B. 'PFLASTER' → 'pflaster'), sonst null.
+  resolve(npcName) {
+    if (!npcName) return null;
+    const n = String(npcName).toUpperCase();
+    const ids = Object.keys(this.registry);
+    for (const id of ids) {
+      const e = this.registry[id];
+      if (e.name === n || id.toUpperCase() === n) return id;
+    }
+    for (const id of ids) {
+      const e = this.registry[id];
+      if (e.name.indexOf(n) >= 0 || n.indexOf(e.name) >= 0) return id;
+    }
+    return null;
+  },
+
   // Accessoires zeichnen
   _drawAccessories(ctx, x, y, size, npc, pose, frame) {
     if (npc.features.includes('stethoscope')) {
@@ -238,9 +272,10 @@ SW.NPC = {
     return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
   },
 
-  // Cockpit-Video Renderer
+  // Cockpit-Video Renderer (280×160): Porträt + Sprechblase + TTS-Indikator.
+  // npcId: Registry-Key ODER Display-Name (wird über resolve() aufgelöst).
   renderCockpitVideo(ctx, npcId, text, frame) {
-    const npc = this.registry[npcId];
+    const npc = this.registry[this.resolve(npcId) || npcId];
     if (!npc) return;
     ctx.fillStyle = 'rgba(10, 15, 20, 0.95)'; ctx.fillRect(20, 20, 280, 160);
     const sysColor = SW.World?.currentSystem ? SW.Systems.getSystem(SW.World.currentSystem)?.farbe || '#0af' : '#0af';
@@ -250,11 +285,13 @@ SW.NPC = {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; ctx.fillRect(bubbleX, bubbleY, bubbleW, bubbleH);
     ctx.strokeStyle = sysColor; ctx.lineWidth = 1; ctx.strokeRect(bubbleX, bubbleY, bubbleW, bubbleH);
     ctx.fillStyle = sysColor; ctx.font = 'bold 7px monospace'; ctx.fillText(npc.name, bubbleX + 8, bubbleY + 12);
+    // Sprechblasen-Text (Umbruch, max. 4 Zeilen)
     ctx.fillStyle = '#0f0'; ctx.font = '6px monospace';
     const words = text.split(' '), lines = []; let line = '';
     for (const word of words) { if ((line + word).length > 28) { lines.push(line); line = word + ' '; } else { line += word + ' '; } }
     lines.push(line);
     for (let i = 0; i < Math.min(lines.length, 4); i++) ctx.fillText(lines[i].trim(), bubbleX + 8, bubbleY + 22 + i * 10);
+    // TTS-Indikator: blinkender Punkt, solange TTS an ist
     if (SW.TTS?.enabled) { const blink = Math.floor(frame / 10) % 2 === 0; ctx.fillStyle = blink ? '#fff' : '#666'; ctx.font = '5px monospace'; ctx.fillText('●', bubbleX + bubbleW - 12, bubbleY + 10); }
   }
 };

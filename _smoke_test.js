@@ -2,6 +2,8 @@
 // Lädt alle Skripte in index.html-Reihenfolge in einer Node-VM (DOM-Stubs)
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
 // COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → SHIP.
+// Skript-Liste AMT 26 Dateien = index.html (2026-10-12 synchronisiert:
+// js/npc.js + js/manual.js ergänzt).
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -59,9 +61,9 @@ const scripts = [
   'js/config.js', 'data/missions.js', 'data/dialogues.js', 'data/systems.js',
   'data/crew.js', 'data/rooms.js', 'data/lore.js', 'data/ships.js',
   'data/quests.js', 'data/akademie.js',
-  'js/audio.js', 'js/tts.js', 'js/input.js', 'js/engine.js', 'js/sprites.js',
+  'js/audio.js', 'js/tts.js', 'js/npc.js', 'js/input.js', 'js/engine.js', 'js/sprites.js',
   'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js',
-  'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js', 'js/main.js'
+  'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js', 'js/manual.js', 'js/main.js'
 ];
 console.log('Lade ' + scripts.length + ' Skripte ...');
 for (const s of scripts) {
