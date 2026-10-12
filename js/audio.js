@@ -101,5 +101,67 @@ SW.Audio = {
     og.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
     osc.connect(og); og.connect(this.masterGain);
     osc.start(t); osc.stop(t + 0.5);
+  },
+  // ===== MUSIK (v0.6.9-final) =====
+  // Prozeduraler Loop als Platzhalter (wird später durch echte Musik ersetzt).
+  // startMusic('intro'): leises A-moll-Arpeggio über Drohn-Bass (A2/E2).
+  // stopMusic(): Fade-out + Disconnect. Menü = Stille (Musik pausiert).
+  musicEnabled: true,
+  music: null,
+  toggleMusic() {
+    this.musicEnabled = !this.musicEnabled;
+    if (!this.musicEnabled) this.stopMusic();
+    else if (this.ready && this.enabled && SW.Game && SW.Game.state === 'INTRO') this.startMusic('intro');
+    return this.musicEnabled;
+  },
+  startMusic(kind) {
+    if (!this.ready || !this.enabled || !this.musicEnabled) return;
+    this.stopMusic();
+    const gain = this.ctx.createGain();
+    gain.gain.value = 0.07; // leise: Atmosphäre, nicht Hauptdarsteller
+    gain.connect(this.masterGain);
+    const music = { gain: gain, timer: null, step: 0 };
+    // A-moll: A3 C4 E4 G4 E4 C4 A3 G3 (Melodie), A2/E2 (Drohn)
+    const melody = [220, 261.63, 329.63, 392, 329.63, 261.63, 220, 196];
+    const drone = [110, 82.41];
+    const STEP = 320; // ms pro Schritt → 8 Schritte ≈ 2.6 s pro Loop
+    const playStep = () => {
+      if (!this.music || this.music !== music || !this.musicEnabled || !this.enabled || !this.ready) return;
+      const t = this.ctx.currentTime;
+      const s = music.step;
+      // Drohn-Bass auf Schritt 0 und 4 (wechselnd A2/E2)
+      if (s % 4 === 0) {
+        const dOsc = this.ctx.createOscillator(), dGain = this.ctx.createGain();
+        dOsc.type = 'triangle'; dOsc.frequency.value = drone[Math.floor(s / 4) % 2];
+        dGain.gain.setValueAtTime(0.5, t);
+        dGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+        dOsc.connect(dGain); dGain.connect(gain);
+        dOsc.start(t); dOsc.stop(t + 1.25);
+      }
+      // Melodie (ein Ton pro Schritt, 1990er-FM-Flair)
+      const mOsc = this.ctx.createOscillator(), mGain = this.ctx.createGain();
+      mOsc.type = 'sine'; mOsc.frequency.value = melody[s % melody.length];
+      mGain.gain.setValueAtTime(0.55, t);
+      mGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      mOsc.connect(mGain); mGain.connect(gain);
+      mOsc.start(t); mOsc.stop(t + 0.32);
+      music.step++;
+      music.timer = setTimeout(playStep, STEP);
+    };
+    playStep();
+    this.music = music;
+  },
+  stopMusic() {
+    if (!this.music) return;
+    const m = this.music;
+    this.music = null;
+    if (m.timer) clearTimeout(m.timer);
+    if (this.ready) {
+      try {
+        m.gain.gain.setValueAtTime(m.gain.gain.value, this.ctx.currentTime);
+        m.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+      } catch (e) {}
+      setTimeout(function () { try { m.gain.disconnect(); } catch (e) {} }, 350);
+    }
   }
 };

@@ -588,27 +588,33 @@ SW.Ship = {
   },
 
   // ===== NPC RENDER =====
+  // v0.6.9-final: prozedurale Gesichter (SW.NPC.drawFace) statt Silhouetten.
+  // Fallback für NPCs ohne Registry-Eintrag (z.B. Klopstock, Löffel): Silhouette.
   renderNPCs(ctx, room) {
     const npcs = SW.World.npcInRoom(room.id);
-    const positions = [[70,150],[160,155],[250,150]];
+    const positions = [[70,140],[160,144],[250,140]];
     for (let i=0; i<npcs.length && i<3; i++) {
       const name = npcs[i];
-      const npcData = SW.RoomNPCs[name] || { farbe:'#888' };
       const x = positions[i][0], y = positions[i][1];
-      // Silhouette
-      ctx.fillStyle = npcData.farbe || '#888';
-      ctx.globalAlpha = 0.7;
-      ctx.fillRect(x-4, y-14, 8, 8); // Kopf
-      ctx.fillRect(x-6, y-6, 12, 14); // Körper
-      ctx.globalAlpha = 1;
+      const npcId = SW.NPC ? SW.NPC.resolve(name) : null;
+      if (npcId && SW.NPC.registry[npcId]) {
+        SW.NPC.drawFace(ctx, npcId, x, y, 22, { showBody: true, showUniform: true, animated: true, frame: this._frame });
+      } else {
+        const npcData = SW.RoomNPCs[name] || { farbe:'#888' };
+        ctx.fillStyle = npcData.farbe || '#888';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(x-4, y-14, 8, 8); // Kopf
+        ctx.fillRect(x-6, y-6, 12, 14); // Körper
+        ctx.globalAlpha = 1;
+      }
       // Name
       ctx.fillStyle = '#ccc';
       ctx.font = '5px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(name, x, y+16);
+      ctx.fillText(name, x, y+30);
       ctx.textAlign = 'left';
       // Klick-Region
-      this._npcRects.push({ x: x-10, y: y-18, w: 20, h: 36, name: name });
+      this._npcRects.push({ x: x-14, y: y-16, w: 28, h: 48, name: name });
     }
   },
 
@@ -691,32 +697,41 @@ SW.Ship = {
     ctx.strokeStyle = room.akzent;
     ctx.lineWidth = 1;
     ctx.strokeRect(15, boxY, SW.W-30, boxH);
-    // Gesicht (Dialog-Namen sind UPPERCASE, RoomNPCs-Keys camelCase → case-insensitive Fallback)
-    let npcData = SW.RoomNPCs[line.npc];
-    if (!npcData) {
-      const key = Object.keys(SW.RoomNPCs).find(k => k.toUpperCase() === String(line.npc).toUpperCase());
-      npcData = key ? SW.RoomNPCs[key] : { farbe:'#888' };
+    // Gesicht des Sprechers (v0.6.9-final): echtes prozedurales Porträt,
+    // Fallback = unscharfe Silhouette (für NPCs ohne Registry-Eintrag).
+    const faceId = SW.NPC ? SW.NPC.resolve(line.npc) : null;
+    if (faceId && SW.NPC.registry[faceId]) {
+      SW.NPC.drawFace(ctx, faceId, 32, boxY+18, 24, { animated: true, frame: this._frame });
+    } else {
+      let npcData = SW.RoomNPCs[line.npc];
+      if (!npcData) {
+        const key = Object.keys(SW.RoomNPCs).find(k => k.toUpperCase() === String(line.npc).toUpperCase());
+        npcData = key ? SW.RoomNPCs[key] : { farbe:'#888' };
+      }
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = npcData.farbe;
+      ctx.fillRect(22, boxY+6, 14, 16);
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(25, boxY+11, 3, 2);
+      ctx.fillRect(31, boxY+11, 3, 2);
+      ctx.fillRect(26, boxY+17, 6, 1);
+      ctx.restore();
     }
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = npcData.farbe;
-    ctx.fillRect(22, boxY+6, 14, 16);
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(25, boxY+11, 3, 2);
-    ctx.fillRect(31, boxY+11, 3, 2);
-    ctx.fillRect(26, boxY+17, 6, 1);
-    ctx.restore();
     // Name
     ctx.fillStyle = room.akzent;
     ctx.font = 'bold 7px monospace';
-    ctx.fillText(line.npc, 42, boxY+12);
-    // Text (4 Zeilen, Font 6px, Umbruch 110, paginiert)
+    ctx.fillText(line.npc, 48, boxY+12);
+    // Text (4 Zeilen, Font 6px, paginiert). Umbruch 62 Zeichen:
+    // 6px monospace ≈ 3.6px/Zeichen → 62×3.6 = 223px, passt in die Box
+    // (x=42 bis 305 = 263px). Der alte Wert 110 (396px) lief über den
+    // rechten Bildrand — "Text wird rechts abgeschnitten".
     ctx.fillStyle = '#0f0';
     ctx.font = '6px monospace';
     const words = displayText.split(' ');
     let l=''; const allLines=[];
-    for (const w of words) { if((l+w).length>110){allLines.push(l);l=w+' ';}else{l+=w+' ';} }
+    for (const w of words) { if((l+w).length>62){allLines.push(l);l=w+' ';}else{l+=w+' ';} }
     allLines.push(l);
     const perPage = 4;
     this._dialoguePages = Math.max(1, Math.ceil(allLines.length/perPage));

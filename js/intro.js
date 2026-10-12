@@ -24,7 +24,7 @@ SW.Intro = {
   init() {
     // idempotent: Timeout aus vorherigem Lauf sicher entfernen
     if (this.commTimeout) { clearTimeout(this.commTimeout); this.commTimeout = null; }
-    this.phase = 1; this.t = 0;
+    this.phase = 0; this.t = 0; this._spaceHeld = false;
     this.rocks = []; this.rockTimer = 0; this.rockCount = 0;
     this.name = ''; this.cursorOn = true; this.cursorTimer = 0;
     this.shieldFlash = 0; this.iFrames = 0;
@@ -55,6 +55,13 @@ SW.Intro = {
     };
   },
 
+  // Titelschirm → Asteroidenfeld. SPACE ist ein User-Gesture → Audio-Init
+  // erlaubt, Intro-Musik startet hier (wenn nicht im Menü deaktiviert).
+  toPhase1() {
+    this.phase = 1; this.t = 0;
+    SW.Audio.init();
+    SW.Audio.startMusic('intro');
+  },
   toPhase2() { this.phase = 2; this.t = 0; SW.Audio.playCommBeep(); },
 
   toPhase3() {
@@ -80,6 +87,14 @@ SW.Intro = {
     // ESC-Edge in jeder Phase → AKADEMIE
     const K = SW.Input.keys, prev = this._prevKeys;
     if (K['Escape'] && !prev['Escape']) { this.escToAkademie(); return; }
+
+    // Phase 0 (Titelschirm): SPACE = Start, sonst nur warten
+    if (this.phase === 0) {
+      const space = K['Space'];
+      if (space && !this._spaceHeld) { this._spaceHeld = true; this.toPhase1(); return; }
+      if (!space) this._spaceHeld = false;
+      return;
+    }
 
     if (this.phase === 1) this.updatePhase1(frame);
     else if (this.phase === 2) this.handleNameInput();
@@ -175,9 +190,29 @@ SW.Intro = {
   render(ctx) {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SW.W, SW.H);
     SW.Engine.renderStars(ctx, SW.Player.x * 0.1, SW.Player.y * 0.1);
-    if (this.phase === 1) this.renderPhase1(ctx);
+    if (this.phase === 0) this.renderPhase0(ctx);
+    else if (this.phase === 1) this.renderPhase1(ctx);
     else if (this.phase === 2) this.renderPhase2(ctx);
     else if (this.phase === 3) this.renderPhase3(ctx);
+  },
+
+  // Titelschirm (v0.6.9-final): Titel + Version + Platzhalter-Hinweis.
+  // Der Hinweis ist Absicht: vieles ist Placeholder-Grafik/-Sound.
+  renderPhase0(ctx) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#0f0'; ctx.font = 'bold 16px monospace';
+    ctx.fillText('SOLO WING 1990', SW.CX, 55);
+    ctx.fillStyle = '#0af'; ctx.font = '8px monospace';
+    ctx.fillText('v0.6.9-final — STERNENKORPS / TRÄGER FAX-TRAGÖDIE', SW.CX, 75);
+    ctx.fillStyle = '#888'; ctx.font = '7px monospace';
+    ctx.fillText('Viele Grafiken und Sounds sind Platzhalter.', SW.CX, 105);
+    ctx.fillText('Spielen auf eigene Gefahr. Formular 77-A deckt den Rest ab.', SW.CX, 117);
+    const blink = Math.floor(this.t / 30) % 2 === 0;
+    ctx.fillStyle = blink ? '#fff' : '#666'; ctx.font = '9px monospace';
+    ctx.fillText('[ LEERTASTE: STARTEN ]', SW.CX, 145);
+    ctx.fillStyle = '#444'; ctx.font = '6px monospace';
+    ctx.fillText('[ ESC: ÜBERSPRINGEN ]', SW.CX, 162);
+    ctx.textAlign = 'left';
   },
 
   drawRock(ctx, r) {

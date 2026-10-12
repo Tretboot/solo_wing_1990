@@ -5,6 +5,8 @@ SW.Game = {
   state:'BAR',score:0,victory:false,frame:0,mission:null,_simMode:false,_akademieBestanden:false,
   setState(s) {
     this.state=s;
+    // Musik-Pause: beim Verlassen des INTROS stoppt die Intro-Musik
+    if (s!=='INTRO' && SW.Audio) SW.Audio.stopMusic();
     if (s==='INTRO') { SW.Intro.init(); }
     if (s==='AKADEMIE') { SW.Akademie.init(); }
     if (s==='SHIP') { if(!SW._shipInit) { SW.Ship.init(this.mission?.id||'m1'); SW._shipInit=true; } }
@@ -417,13 +419,14 @@ SW.Game = {
       'N               :  Nav-Karte',
       'M               :  TTS ein/aus',
       'O               :  Sound ein/aus',
+      'P               :  Musik ein/aus',
       'ESC             :  Menü'
     ];
     for (let i=0; i<controls.length; i++) {
       ctx.fillText(controls[i], 32, 66 + i*11);
     }
 
-    // OPTIONEN
+    // OPTIONEN (SOUND-Gruppe: SFX/MUSIK/TTS — spätere Ausbaustufe: Untermenü)
     ctx.fillStyle = '#0af';
     ctx.font = 'bold 8px monospace';
     ctx.fillText('OPTIONEN', 200, 54);
@@ -432,19 +435,21 @@ SW.Game = {
     ctx.fillText('TTS: ' + (SW.TTS.enabled ? 'AN' : 'AUS') + '  [M]', 200, 66);
     ctx.fillStyle = SW.Audio.enabled ? '#0f0' : '#f66';
     ctx.fillText('SOUND: ' + (SW.Audio.enabled ? 'AN' : 'AUS') + '  [O]', 200, 77);
+    ctx.fillStyle = SW.Audio.musicEnabled ? '#0f0' : '#f66';
+    ctx.fillText('MUSIK: ' + (SW.Audio.musicEnabled ? 'AN' : 'AUS') + '  [P]', 200, 88);
     ctx.fillStyle = '#666';
-    ctx.fillText('Laser-Slots: ' + SW.Input.getLaserSlots(), 200, 92);
-    ctx.fillText('(mehr Geräte = mehr)', 200, 101);
+    ctx.fillText('Laser-Slots: ' + SW.Input.getLaserSlots(), 200, 102);
+    ctx.fillText('(mehr Geräte = mehr)', 200, 111);
     ctx.fillStyle = '#888';
-    ctx.fillText('INFO: [I]  (Version, Lizenz)', 200, 112);
+    ctx.fillText('INFO: [I]  (Version, Lizenz)', 200, 120);
 
     // CHEAT (Testing) — rechte Spalte unter OPTIONEN (links steht die ANLEITUNG)
     if (SW.Config.cheatEnabled) {
       ctx.fillStyle = '#f66';
       ctx.font = 'bold 8px monospace';
-      ctx.fillText('CHEAT [Testing]', 200, 118);
+      ctx.fillText('CHEAT [Testing]', 200, 130);
       ctx.font = '7px monospace';
-      const cheatY = 130;
+      const cheatY = 141;
       // ZUM TRÄGER
       ctx.fillStyle = '#0f0';
       ctx.fillText('[1] ZUM TRÄGER', 200, cheatY);
@@ -456,14 +461,14 @@ SW.Game = {
       // SEKTOR-LICHT (3/4/5): Fenster zeigen die Sektoren-Farbe
       for (let i = 0; i < SW.Systems.length; i++) {
         const s = SW.Systems[i];
-        const y = cheatY + 24 + i*11;
+        const y = cheatY + 24 + i*10;
         ctx.fillStyle = s.farbe;
         ctx.fillText('[' + (i+3) + '] ' + s.name + (s.id === SW.World.systemId ? ' ●' : ''), 200, y);
         this['_cheatSysRect' + i] = { x: 200, y: y-9, w: 100, h: 12 };
       }
       ctx.fillStyle = '#444';
       ctx.font = '5px monospace';
-      ctx.fillText('Nur für Testing. Licht folgt.', 200, cheatY+24+SW.Systems.length*11+5);
+      ctx.fillText('Nur für Testing. Licht folgt.', 200, cheatY+24+SW.Systems.length*10+4);
     }
 
     // Zurück

@@ -29,6 +29,7 @@
       } else if (['COCKPIT','SHIP','BRIEFING_BOARD','JUMP','TAKEOFF','LANDING','BRIEFING'].includes(SW.Game.state)) {
         SW.Game._menuReturn = SW.Game.state;
         SW.Game.state = 'MENU';
+        SW.Audio.stopMusic(); // Menü = Stille und Pause (auch für die Musik)
       }
     }
     if (!SW.Input.keys['Escape']) SW._escHeld = false;
@@ -52,6 +53,9 @@
       if (!SW.Input.keys['KeyM']) SW._mHeld = false;
       if (SW.Input.keys['KeyO'] && !SW._oHeld) { SW.Audio.toggle(); SW._oHeld = true; }
       if (!SW.Input.keys['KeyO']) SW._oHeld = false;
+      // P = MUSIK ein/aus (SOUND-Gruppe; Intro-Musik startet neu, wenn an)
+      if (SW.Input.keys['KeyP'] && !SW._pHeld) { SW.Audio.toggleMusic(); SW._pHeld = true; }
+      if (!SW.Input.keys['KeyP']) SW._pHeld = false;
       // CHEAT: [1] = zum Träger, [2] = Karte (nur wenn cheatEnabled)
       if (SW.Config.cheatEnabled) {
         if (SW.Input.keys['Digit1'] && !SW._c1Held) { SW._c1Held = true; SW.Game.setState('SHIP'); }

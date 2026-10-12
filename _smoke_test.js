@@ -239,9 +239,12 @@ SW.Ship.dialogueActive = true;
 SW.Ship.typing = false;
 SW.Ship.charIndex = SW.Ship.dialogueLines[0].text.length;
 pump(2);
-check('Dialog: langer Text = 2 Seiten', SW.Ship._dialoguePages === 2);
+// 492 Zeichen bei Umbruch 62 = 9 Zeilen = 3 Seiten (4/Seite)
+check('Dialog: langer Text = 3 Seiten', SW.Ship._dialoguePages === 3);
 SW.Ship.advanceDialogue();
 check('Dialog: scrollt auf Seite 2', SW.Ship.dialoguePage === 1);
+SW.Ship.advanceDialogue();
+check('Dialog: scrollt auf Seite 3', SW.Ship.dialoguePage === 2);
 SW.Ship.advanceDialogue();
 check('Dialog: nach letzter Seite endet Dialog', SW.Ship.dialogueActive === false);
 
