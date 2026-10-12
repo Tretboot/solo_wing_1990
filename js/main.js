@@ -19,10 +19,12 @@
     }
     SW._lastState = SW.Game.state;
 
-    // ESCAPE MENÜ (toggle)
+    // ESCAPE (wenn Handbuch offen → schließt, sonst Menü)
     if (SW.Input.keys['Escape'] && !SW._escHeld) {
       SW._escHeld = true;
-      if (SW.Game.state === 'MENU') {
+      if (SW.Manual && SW.Manual.isOpen) {
+        SW.Manual.close();
+      } else if (SW.Game.state === 'MENU') {
         SW.Game.setState(SW.Game._menuReturn || 'COCKPIT');
       } else if (['COCKPIT','SHIP','BRIEFING_BOARD','JUMP','TAKEOFF','LANDING','BRIEFING'].includes(SW.Game.state)) {
         SW.Game._menuReturn = SW.Game.state;
@@ -30,6 +32,19 @@
       }
     }
     if (!SW.Input.keys['Escape']) SW._escHeld = false;
+    // HANDBUCH: [H] toggle, [←/→] navigieren
+    if (SW.Manual) {
+      if (SW.Manual.isOpen) {
+        if (SW.Input.keys['KeyH'] && !SW._hHeld) { SW._hHeld = true; SW.Manual.close(); }
+        if (SW.Input.keys['ArrowRight'] && !SW._hR) { SW._hR = true; SW.Manual.next(); }
+        if (SW.Input.keys['ArrowLeft'] && !SW._hL) { SW._hL = true; SW.Manual.prev(); }
+        if (!SW.Input.keys['ArrowRight']) SW._hR = false;
+        if (!SW.Input.keys['ArrowLeft']) SW._hL = false;
+      } else {
+        if (SW.Input.keys['KeyH'] && !SW._hHeld) { SW._hHeld = true; SW.Manual.open(); }
+      }
+      if (!SW.Input.keys['KeyH']) SW._hHeld = false;
+    }
 
     // MENÜ-Optionen
     if (SW.Game.state === 'MENU') {
@@ -198,56 +213,38 @@
     SW.Input.pollGamepad();
     handleInput();
     const state=SW.Game.state;
-
-    // VGA: scale(2,2) → 320×200 virtuell, 640×400 real
     ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(SW.VGA_SCALE, SW.VGA_SCALE);
-
-    if (state==='MENU') { SW.Game.renderMenu(ctx); return; }
-    if (state==='CHEAT_MAP') { SW.Ship.renderCheatMap(ctx); return; }
-    if (state==='INTRO') { SW.Intro.update(SW.Game.frame); SW.Intro.render(ctx); return; }
-    if (state==='AKADEMIE') { SW.Akademie.update(); SW.Game.renderAkademie(ctx); return; }
-    if (state==='BAR') { SW.Game.renderBar(ctx); return; }
-    if (state==='SHIP') { SW.Ship.update();SW.Ship.render(ctx); return; }
-    if (state==='BRIEFING_BOARD') { SW.BriefingBoard.update(); SW.Game.renderBriefingBoard(ctx); return; }
-if (state==='JUMP') {
-  SW.Game.updateJump();
-  SW.Game.renderJump(ctx);
-  return;
-}
-    if (state==='BRIEFING') { SW.Briefing.update();SW.Game.renderBriefing(ctx); return; }
-    if (state==='TAKEOFF'||state==='LANDING') {
-      SW.Flight.update();SW.Engine.updateStars();
-      state==='TAKEOFF'?SW.Game.renderTakeoff(ctx):SW.Game.renderLanding(ctx);
-      return;
+    if (state==='MENU') { SW.Game.renderMenu(ctx); }
+    else if (state==='CHEAT_MAP') { SW.Ship.renderCheatMap(ctx); }
+    else if (state==='INTRO') { SW.Intro.update(SW.Game.frame); SW.Intro.render(ctx); }
+    else if (state==='AKADEMIE') { SW.Akademie.update(); SW.Game.renderAkademie(ctx); }
+    else if (state==='BAR') { SW.Game.renderBar(ctx); }
+    else if (state==='SHIP') { SW.Ship.update(); SW.Ship.render(ctx); }
+    else if (state==='BRIEFING_BOARD') { SW.BriefingBoard.update(); SW.Game.renderBriefingBoard(ctx); }
+    else if (state==='JUMP') { SW.Game.updateJump(); SW.Game.renderJump(ctx); }
+    else if (state==='BRIEFING') { SW.Briefing.update(); SW.Game.renderBriefing(ctx); }
+    else if (state==='TAKEOFF') { SW.Flight.update(); SW.Engine.updateStars(); SW.Game.renderTakeoff(ctx); }
+    else if (state==='LANDING') { SW.Flight.update(); SW.Engine.updateStars(); SW.Game.renderLanding(ctx); }
+    else if (state==='HANGAR') { SW.Game._hangarTimer=(SW.Game._hangarTimer||0)+1; SW.Game.renderHangar(ctx); }
+    else if (state==='ARRIVAL') { SW.Game._arrivalT=(SW.Game._arrivalT||0)+1; SW.Engine.updateStars(); SW.Game.renderArrival(ctx); }
+    else if (state==='INFO') { SW.Game.renderInfo(ctx); }
+    else if (state==='DEBRIEFING') { SW.Game.renderDebriefing(ctx); }
+    else {
+      SW.Player.update(SW.Game.frame); SW.Engine.updateStars();
+      SW.Enemies.update(SW.Game.frame); SW.Projectiles.update();
+      SW.Collision.check(SW.Game.frame); SW.Explosions.update();
+      SW.Comm.update(); SW.Autopilot.update(); SW.Game.renderCockpit(ctx);
     }
-    if (state==='HANGAR') {
-      SW.Game._hangarTimer = (SW.Game._hangarTimer||0)+1;
-      SW.Game.renderHangar(ctx); return;
-    }
-    if (state==='ARRIVAL') {
-      SW.Game._arrivalT = (SW.Game._arrivalT||0)+1;
-      SW.Engine.updateStars();
-      SW.Game.renderArrival(ctx); return;
-    }
-    if (state==='INFO') { SW.Game.renderInfo(ctx); return; }
-    if (state==='DEBRIEFING') { SW.Game.renderDebriefing(ctx); return; }
-
-    // COCKPIT
-    SW.Player.update(SW.Game.frame);
-    SW.Engine.updateStars();
-    SW.Enemies.update(SW.Game.frame);
-    SW.Projectiles.update();
-    SW.Collision.check(SW.Game.frame);
-    SW.Explosions.update();
-    SW.Comm.update();
-    SW.Autopilot.update();
-    SW.Game.renderCockpit(ctx);
+    // Handbuch-Overlay (wenn offen) — NACH jedem State-Render
+    if (SW.Manual && SW.Manual.isOpen) SW.Manual.render(ctx);
   }
 
   SW.Sprites.init();
   SW.Engine.initStars();
   SW.Input.init(canvas);
+  SW.TTS.init(); // Vorab init — Intro-TTS braucht es bei 1800ms (vor erstem Klick)
+  SW.Audio.init();
   SW.Quests.init();
   SW.Quests.onNewQuest = (q) => { console.log('[QUEST] Neu:', q.titel); };
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
