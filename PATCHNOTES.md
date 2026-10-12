@@ -56,6 +56,21 @@
 - **Smoke-Test:** 72/72 OK (10 neue Checks: m4-Abdeckung 11×Sieg/11×Tod, A/B-Gates,
   noteMission, Bridges, Script-Tags).
 
+### Launch-Tube & Kamera-System (2026-10-12)
+- **Launch-Tube-Cinematic (TAKEOFF):** Startsequenz ersetzt. WC-Stil: Röhren-Rippen
+  (12 Ringe) + Streben + Lichterketten (48 Lichter) entstehen am Fluchtpunkt in der
+  Mitte und fließen beschleunigt an die Bildschirmränder (Z-Achse-Skalierung, 1/z).
+  Schiff zentriert, Triebwerk-Wackeln + Glow; Phase B = Freigang (Sterne + Träger),
+  am Ende weißer Exit-Flash. Dauer 180 → 210 Frames. (`js/systems.js → SW.Flight.renderTube`)
+- **Kamera-System (Taste [V] im COCKPIT):** zentraler ViewMode-State in
+  `SW.Engine.view` — 'cockpit' (1. Person, wie bisher), 'chase' (3. Person: Schiff im
+  unteren Drittel, Rückenansicht, weiter Winkel, rollt mit), 'topdown' (Arcade:
+  Z-Achse auf Y-Achse, flache 2D-Ebene, eigenes Top-Down-Sprite, Aim = Maus relativ
+  zum Schiff, vorne = +z). `SW.Engine.screenPos()` ist der einzige view-aware
+  Projections-Einstiegspunkt — Physik und Kollision bleiben unangetastet.
+  Mini-HUD (Schild, Score, Radar, [V]-Anzeige) für chase/topdown.
+- **Smoke-Test:** 84/84 OK (12 neue Checks: View-Cycling, Top-Down-Aim, Tube-Durchlauf).
+
 ## v0.6.9-rc — "Handbuch & Website" (Release Candidate, 2026-10-10)
 
 ### Neue Features

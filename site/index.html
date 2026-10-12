@@ -43,7 +43,7 @@
 <div class="card">
 <h3>Version 0.6.9-rc — "Musik, Optik, Katalog & Website" (dev: Wiederherstellung abgeschlossen)</h3>
 <p>Ingame-Handbuch [H] (6 Kapitel, progressiv), externes HTML-Handbuch, Website im neuen Corporate Design, Game↔Website-Bridge, Switch-Prep. Darunter: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. <b>Release Candidate.</b></p>
-<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Schreib-Block 2b drin: m4-Kältekammer-Klimax, alle 11 NPCs (Sieg + Tod), Dialog- und Zeitung-Engine endlich eingebunden. Smoke-Test 72/72 grün. Der Träger fliegt. Die Kältekammer atmet. Zweimal pro Minute.</p>
+<p>Stand 2026-10-12: <b>ui.js-/npc.js-Dateischaden behoben</b> (Details: Captain's Log unten + PATCHNOTES.md). Schreib-Block 2b drin: m4-Kältekammer-Klimax, alle 11 NPCs (Sieg + Tod). Launch-Tube-Cinematic (Startsequenz) + Kamera-System: Taste [V] wechselt zwischen Cockpit, Verfolgung und Top-Down. Smoke-Test 84/84 grün. Der Träger fliegt. Die Kältekammer atmet. Zweimal pro Minute.</p>
 <p><span class="tag new">NEU</span> <span class="tag arch">RC</span></p>
 <p><a href="../index.html">→ Spiel starten (index.html)</a></p>
 </div>
@@ -175,6 +175,19 @@
 </div>
 
 <h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Die Röhre und die drei Kameraleute (Launch-Tube + [V])</div>
+<div class="body">
+<p><b>Status:</b> Launch-Tube-Cinematic und Kamera-System drin. Startsequenz: Röhren-Rippen, Streben, Lichterketten, Exit-Flash. Taste [V] im Cockpit: Cockpit → Verfolgung → Top-Down. Smoke-Test 84/84.</p>
+<p><b>Blocker:</b> Keine. Die Röhre ist rund. Die Vogelschau ist flach. Beides ist gleichzeitig wahr.</p>
+<p><b>Was wurde gebaut:</b> Der Takeoff ist keine Träger-Postkarte mehr, sondern ein Startrohr: 12 Rippen und 48 Lichter fließen vom Fluchtpunkt an die Bildschirmränder, mit Beschleunigung (Z-Skalierung), das Schiff wackelt zentriert im Triebwerks-Glow, im Freigang erscheint der Träger, am Ende blitzt der Bildschirm auf. Die Ansichten hängen zentral in <code>SW.Engine.view</code>; <code>screenPos()</code> ist der einzige view-aware Projections-Einstiegspunkt — Physik und Kollision unangetastet. Top-Down: Z-Achse auf Y-Achse, eigenes Top-Down-Sprite, Aim = Maus relativ zum Schiff.</p>
+<p><b>Was lief gut:</b> Ein Projektions-Einstiegspunkt statt drei Render-Pfade. Der Smoke-Test fliegt die Röhre selbst durch (211 Frames) und kommt raus.</p>
+<p><b>Was lief nicht:</b> Der alte Test-Loop war auf 200 Frames gehärtet. Die Röhre dauert 210. Neun rote Tests, ein Ursache: die Röhre. Behoben.</p>
+<p><b>Besonders erwähnenswert:</b> SYSTEM: Ansicht: VOGEL. Formular 77-V ausgefüllt. (Formular 77-V existierte nicht. Es existiert jetzt.)</p>
+<p><b>Nächster Schritt:</b> Playtest: Top-Down-Balancing. Danach nach Plan: Schreib-Block 3 (Quest-Dialoge), Musik, Schiffskatalog.</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2026-10-12</div>
 <div class="title">Captain's Log: v0.6.9-dev — Die Kältekammer atmet (Schreib-Block 2b)</div>

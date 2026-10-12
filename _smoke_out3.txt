@@ -1,5 +1,5 @@
 ﻿Lade 28 Skripte ...
-[SOLO WING 1990] Engine geladen. Version 0.6.9-dev (Handbuch, Smart Dialogues, Schiffszeitung-Engine)
+[SOLO WING 1990] Engine geladen. Version 0.6.9-dev (Handbuch, Smart Dialogues, Schiffszeitung, Launch-Tube & Kamera)
   OK   SW namespace existiert
   OK   Start-State ist INTRO
   OK   INTRO laeuft ohne Fehler

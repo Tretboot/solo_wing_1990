@@ -316,6 +316,27 @@ FRONTLAGE: Stabil. Piraten zurückgedrängt.
    Missionsdesign verändert — nicht mehr ein Patch, sondern ein neues Spiel
    auf derselben Basis.
 
+## Launch-Tube & Kamera-System (v0.6.9-dev, 2026-10-12)
+> Idee: Das Spiel soll sich nicht nur Wing-Commander-artig spielen lassen —
+> Top-Down-Anhänger und 3rd-Person-Anhänger sollen es auch fliegen können.
+### Launch-Tube (Startsequenz)
+- WC-Klassiker: Startrohr statt statischer Abhebe-Animation.
+- Röhren-Rippen (Ringe) + Streben + Lichterketten: Canvas-Vektoren, entstehen am
+  zentralen Fluchtpunkt, fließen beschleunigt an die Bildschirmränder, wachsen auf
+  der Z-Achse (Perspektiven-Skalierung 1/z).
+- Schiff zentriert, Triebwerk-Wackeln; am Ende Exit-Flash ins offene All,
+  Träger wird im Freigang sichtbar.
+### ViewMode-System (Taste [V])
+- Zentraler State in `SW.Engine.view`, drei Modi:
+  - **Cockpit** (1. Person): eigenes Schiff unsichtbar, HUD + Fadenkreuz.
+  - **Verfolgung** (3. Person): Schiff unten (Rückenansicht), weiter Winkel, rollt mit.
+  - **Top-Down** (Arcade): flache 2D-Ebene, Z auf Y (vorn = oben), klassischer
+    Top-Down-Shooter für die andere Spielergruppe.
+- Architektur: `SW.Engine.screenPos(x,y,z)` = einziger view-aware
+  Projections-Einstiegspunkt; Physik/Kollision bleiben identisch, nur die
+  Projektion wechselt. Aim-Mapping pro Modus (Top-Down: Maus relativ zum Schiff).
+- Status: umgesetzt, Smoke-Test grün. Offen: Top-Down-Balancing im Playtest.
+
 ## Versionierungs-Regel (ab sofort)
 - **Keine Major-Bumps mehr.** Wir bleiben bewusst "weiter zurück".
 - v0.6.0 → v0.6.1 → v0.6.2 ... (Minor-Patches)

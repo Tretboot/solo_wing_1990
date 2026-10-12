@@ -74,6 +74,15 @@
 - [ ] **Full Story-Test:** m1→m2→m3 durchspielen, Deck + Dialoge unterscheiden sich
 - [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb)
 
+## v0.6.9-dev — "Launch-Tube & Kamera-System" (2026-10-12)
+- [x] **Launch-Tube-Cinematic** (TAKEOFF: Rippen, Streben, Lichterketten, Triebwerk-Wackeln, Exit-Flash)
+- [x] **ViewMode-System** (Taste [V] im COCKPIT, zentral in `SW.Engine.view`): cockpit / chase / topdown
+- [x] **Top-Down-Projektion** (Z→Y, flache 2D-Ebene) + eigenes Top-Down-Sprite + Aim-Mapping
+- [x] **Mini-HUD** (chase/topdown: Schild, Score, Radar, [V]-Anzeige)
+- [x] Handbuch: [V] im Steuerungs-Kapitel
+- [ ] **Playtest:** Top-Down-Balancing (Aim-Feeling, Radar-Abgleich, Feind-Skalierung)
+- [ ] **Playtest:** Launch-Tube-Timing (210 Frames) + Whoosh-Sound beim Freigang?
+
 ## v0.6.9 — "Musik, Optik, Katalog & Website"
 - [x] **Ingame Handbuch** (Taste [H], 6 Kapitel, progressiv freigeschaltet)
 - [x] **Externes Handbuch** (HTML, 6 Kapitel, verknüpft mit Ingame-Inhalten)

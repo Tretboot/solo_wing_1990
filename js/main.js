@@ -256,5 +256,5 @@
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.6.9-dev (Handbuch, Smart Dialogues, Schiffszeitung-Engine)');
+  console.log('[SOLO WING 1990] Engine geladen. Version 0.6.9-dev (Handbuch, Smart Dialogues, Schiffszeitung, Launch-Tube & Kamera)');
 })();
