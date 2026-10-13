@@ -39,12 +39,11 @@ Distanz/Drohung. **Zwei Ebenen: Mission (was) → Taktik (wie).** Wir haben das
 flach (nur `pattern`). Wir bauen die zweite Ebene.
 
 ### C. DETERMINATION (KI-Schwierigkeit)
-```c
-#define DETERMINATION (70 - max(0, min(fanatical, pilot_level[obj]))*20)
-```
-Je höher das Pilot-Level, desto **niedriger** der DETERMINATION-Wert → die KI
-greift **früher** an (wenn `evaluate_damage > DETERMINATION`). **Das ist der
-Knob für Schwierigkeit.** Wir haben feste `fireMin/fireMax`. Wir machen daraus
+Im Original wird DETERMINATION als Makro berechnet: Startwert 70, abzüglich
+20 pro Pilot-Level (auf 3 Level gedeckelt). Je höher das Pilot-Level, desto
+niedriger der DETERMINATION-Wert → die KI greift **früher** an (wenn der
+Schadens-Wert die Schwelle überschreitet). **Das ist der Knob für
+Schwierigkeit.** Wir haben feste `fireMin/fireMax`. Wir machen daraus
 `DETERMINATION` pro Schiffstyp.
 
 ---
@@ -52,58 +51,47 @@ Knob für Schwierigkeit.** Wir haben feste `fireMin/fireMax`. Wir machen daraus
 ## 3. DIE 5 TRICKS (die wir konkret bauen)
 
 ### 1. "Kilrathi flee straight down" (Rout)
-```c
-// All Kilrathi flee straight down.
-vec.y = 1;  if (obj&1) vec.y = -vec.y;
-point_ship(obj,0,&vec);
-if (normal_speed(obj) && random(100)<5) fire_afterburner(obj,STD_BURN*2);
-```
-Beim Verlieren fliehen die Feinde **gerade nach unten** (mit Afterburner-Salven).
+Im Originalcode: das Zielflugvektor wird auf "gerade nach unten" gesetzt
+(mit einem Bit als Vorzeichen-Umkehr für die andere Bildhälfte), das Schiff
+wird in diese Richtung gedreht, und mit 5-prozentiger Chance pro Frame wird
+ein doppelter Afterburner-Schub ausgelöst.
+Beim Verlieren fliehen die Feinde also **gerade nach unten** (mit Afterburner-Salven).
 **Für uns:** Wenn der Spieler fast gewinnt (wenige Feinde übrig), fliehen die
 Piraten "straight down" — visuell klar, dass sie verlieren. Deadpan: "Die
 Piraten fliehen gerade nach unten. Das ist kein Bug. Das ist Physik."
 
-### 2. Formation-Burst (Angriff aus der Formation)
-```c
-void formation_burst(obj) {
-  approach_full_speed(obj);
-  if (++ship_count[obj] > BURST_TIMER)
-    engage(obj, ship_target[obj], destroy_ship);
-}
-```
+Im Originalcode: ein eigener Zähler pro Schiff wird jeden Frame hochgezählt
+und mit Vollgas zum Ziel angenähert; sobald der Burst-Timer überschritten
+ist, greift das Schiff an (Ziel: Zerstören).
+Die Formation hält also, bis ein Timer abläuft → dann **alle gleichzeitig angreifen**.
 Die Formation hält, bis ein Timer abläuft → dann **alle gleichzeitig angreifen**.
 **Für uns:** Piraten kommen in Wellen. Welle hält Formation → Burst → Angriff.
 Das machen wir schon (waves), aber der Burst-Timer macht es **visuell** (alle
 drehen sich gleichzeitig zum Ziel).
 
-### 3. Escort-Logik (unser Frachter!)
-```c
-void escort_mission(obj) {
-  if (in_danger(buddy)) if (target_range < ESCORT_DANGER) engage(...);
-  if (distance_from_object(obj,buddy) > ESCORT_DRIFT) reset_objective(home_base);
-}
-```
+Im Originalcode: ist der Eskorten-Partner in Gefahr und der Gegner näher
+als die Eskorten-Gefahren-Distanz, wechselt der Pilot in den Angriffsmodus;
+ist die Distanz zum Partner größer als die Eskorten-Drift-Grenze, wird das
+Ziel auf "Heimbasis" zurückgesetzt (Kehrt machen).
 Der Eskorten-Pilot greift an, wenn der Buddy in Gefahr ist, und kehrt zurück,
+wenn er zu weit weg ist. **Für uns:** Der Frachter (Kiste 47) ist der "buddy".
 wenn er zu weit weg ist. **Für uns:** Der Frachter (Kiste 47) ist der "buddy".
 Unsere KI (oder ein NPC-Wingman) schützt ihn. Das ist Mission m4 "DER FRACHTER".
 
 ### 4. Heat-Seeking-Missile (Waffen-Upgrade)
-```c
-// Heat seekers need enemy to be facing away...
-if (target_range < MISSILE_SCAN_RANGE && target_facing < 0)
-  lock onto closest "hottest" target (exhaust heat);
-```
+Im Originalcode: innerhalb des Scan-Bereichs wird nur gelockt, wenn das
+Ziel "wegsieht" (Facing-Wert negativ) — die Rakete richtet sich auf den
+nächsten "heißesten" Ziel (Abgas-Wärme).
 Hitzesuchende Raketen locken auf **Abgas** (Ziel muss wegsehen). **Für uns:**
 Waffen-Upgrade "Hitzesuchend" — lockt auf den Triebwerk-Flammen des Ziels.
 Das ist das "mit besseren Waffen kann man mehr Zielen" aus der Nutzer-Answer.
 
 ### 5. Futurion ("Velveteen Rabbit")
-```c
-// holds off an object from taking on its true class until your_ship is nearby
-if (++action_count[un_obj] > MUST_ARRIVE || (target_range < 7000 && facing > 80))
-  if (one_in(8)) class[un_obj] = object_counter[un_obj];  // become a REAL class
-```
-Ein Schiff ist **unsichtbar**, bis man nah dran ist und hinschaut → dann wird es
+Im Originalcode: ein Zähler pro Objekt wird hochgezählt; erst nach einer
+Mindest-Anwesenheits-Zeit ODER wenn der Spieler nah (unter 7000 Einheiten)
+und fast frontal (Richtung über 80) ist, wechselt das Objekt mit 1-in-8-Chance
+pro Frame in seine echte Schiffsklasse — vorher bleibt es "unbekannt".
+Ein Schiff ist also **unsichtbar**, bis man nah dran ist und hinschaut → dann wird es
 ein echtes Schiff. **Für uns:** Das eingefrorene Alien / das Audit — es "wird
 real", wenn man es sieht. "Es atmet. Das ist kein Formular. Das ist ein Atemzug."
 
