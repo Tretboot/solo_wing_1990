@@ -152,6 +152,8 @@ SW.Audio = {
     this.music = music;
   },
   stopMusic() {
+    // Stille (Menü/Dialog): ALLE Musik-Systeme stoppen, auch Intro-Musik
+    this.stopIntroMusic();
     if (!this.music) return;
     const m = this.music;
     this.music = null;
@@ -163,5 +165,77 @@ SW.Audio = {
       } catch (e) {}
       setTimeout(function () { try { m.gain.disconnect(); } catch (e) {} }, 350);
     }
+  },
+
+  // ===== INTRO-MUSIK (prozeduraler Loop, Platzhalter) =====
+  // sanfte, melodische Sequenz (C-E-G-C-G-E-C) über 12 Takte
+  introMusicOscillator: null,
+  introMusicGain: null,
+  introMusicStarted: false,
+
+  playIntroMusic() {
+    if (!this.ready || !this.enabled || this.introMusicStarted) return;
+    this.introMusicStarted = true;
+    this._startIntroMusicSeq();
+  },
+
+  // Interne Sequenz (ohne Gate): der ended-Handler ruft sie für den Loop auf.
+  // (Früher rief der Loop playIntroMusic() erneut auf, das early-returnete,
+  //  weil introMusicStarted noch true war → Musik spielte nur einmal.)
+  _startIntroMusicSeq() {
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    this.introMusicGain = ctx.createGain();
+    this.introMusicGain.gain.setValueAtTime(0.3, t);
+    this.introMusicGain.connect(this.masterGain);
+
+    // Melodie: C4 -> E4 -> G4 -> C5 -> G4 -> E4 -> C4
+    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63];
+    const durations = [0.5, 0.5, 1.0, 2.0, 1.0, 0.5, 1.0]; // in Sekunden
+
+    this.introMusicOscillator = ctx.createOscillator();
+    this.introMusicOscillator.type = 'triangle';
+    this.introMusicOscillator.connect(this.introMusicGain);
+
+    let next = t;
+    for (let i = 0; i < notes.length; i++) {
+      this.introMusicOscillator.frequency.setValueAtTime(notes[i], next);
+      next += durations[i];
+    }
+    // sanfter Ausklang, dann loop
+    this.introMusicOscillator.frequency.setValueAtTime(261.63, next);
+    this.introMusicGain.gain.setValueAtTime(0.3, next);
+    this.introMusicGain.gain.exponentialRampToValueAtTime(0.001, next + 2);
+    this.introMusicOscillator.start(t);
+    this.introMusicOscillator.stop(next + 2);
+
+    // Nach Ende der Sequenz neu starten (Loop)
+    this.introMusicOscillator.addEventListener('ended', () => {
+      if (this.introMusicStarted) this._startIntroMusicSeq();
+    });
+  },
+
+  stopIntroMusic() {
+    if (!this.introMusicStarted) return;
+    this.introMusicStarted = false;
+    if (this.introMusicOscillator) {
+      try { this.introMusicOscillator.stop(); } catch (e) {}
+      this.introMusicOscillator = null;
+    }
+    if (this.introMusicGain) {
+      try { this.introMusicGain.disconnect(); } catch (e) {}
+      this.introMusicGain = null;
+    }
+  },
+
+  toggleMusic() {
+    if (!this.ready || !this.enabled) return false;
+    // ALLE Musik-Systeme betrachten (State-Musik + Intro-Musik)
+    if (this.music || this.introMusicStarted) {
+      this.stopMusic();
+      return false;
+    }
+    this.playIntroMusic();
+    return true;
   }
 };
