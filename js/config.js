@@ -30,6 +30,16 @@ SW.AUTOPILOT_SPEED = 2.5; SW.AUTOPILOT_TOLERANCE = 3;
 // Flight
 SW.FLIGHT_SPEED = 4; SW.CARRIER_Z = 80; SW.CARRIER_X = 0; SW.CARRIER_Y = 10;
 
+// IM RAUM (v0.75-dev): Vorschub + Nachbrenner [SHIFT]
+// Speed-Gefühl: Sternenfeld-Flow hängt an der Vorschub-Geschwindigkeit,
+// Sternengleit beim Driften, Banken (Wankwinkel) an der Seitengeschwindigkeit.
+SW.FORWARD_BASE = 2.2;      // Cruise (px/Frame)
+SW.FORWARD_BURN = 5.5;      // Nachbrenner
+SW.FORWARD_ACCEL = 0.05;    // Glättung hin zur Zielgeschwindigkeit
+SW.STAR_LATERAL = 1.0;      // Sternengleit beim Driften (Parallax-Faktor)
+SW.BANK_FACTOR = 0.05;      // Blick wankt mit der Seitengeschwindigkeit
+SW.CARRIER_FIELD_Z = 420;   // Träger im Feld nach dem Takeoff (relatives z)
+
 // Roll (Q/E) — reine Sicht-Rotation im Cockpit
 SW.ROLL_SPEED = 0.06; SW.ROLL_MAX = 0.7; SW.ROLL_DECAY = 0.9;
 

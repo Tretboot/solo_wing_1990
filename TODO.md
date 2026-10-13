@@ -1,10 +1,49 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.70-dev (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
+> Stand: v0.75-dev (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + IM RAUM + Freies Universum).
 
 ---
 
-## v0.70-dev — "Enden & Papierkram" (in Arbeit, seit 2026-10-13)
+## v0.75-dev — "IM RAUM" (Flugmodell & Kampfspür, in Arbeit, seit 2026-10-13)
+> **Priorität: KRITISCH** (Pilot-Playtest 2026-10-13: "Wir fliegen, aber nicht
+> so wirklich gefühlt — immer gradeaus, mal etwas links/rechts. Keine
+> wirklichen Gegner, keine anderen Schiffe auf der Karte.")
+> Konzept + Recherche: KONZEPTE.md → "v0.75 — IM RAUM" (wc1-re/wc2-re/
+> OpenReliant/FreeSpace Open).
+- [x] **Recherche:** Open-Source-WC-Clones analysiert — wc1-re (WC1-Quellrekonstruktion:
+      3D-Flugmodell, brains-Manöver-Vokabular, Formation/Wingman, Autopilot)
+      → Konzept + Prinzipien in KONZEPTE.md
+- [x] **M1 Flug-Gefühl:** Vorschub + Nachbrenner [SHIFT] (Sternen-Flow = Speed,
+      Sternengleit beim Driften, Motor-Sound mit Tonhöhe = Speed), relative
+      Projektion (Kamera am Spieler — Welt rutscht mit), Banken (Blick wankt
+      mit Seitengeschwindigkeit), VORW-Anzeige (KT + Burn-Balken im Cockpit,
+      V: im Mini-HUD), "FEIND NAH"-Warnung (WC1 "Enemy Near")
+- [x] **M2 Feind-Brains:** WC1-Style State-Machine — `approach → strafe → break`
+      (Jäger/Piraten halten Distanz, Wabbel-Zucken), Drohnen gradeaus
+      (Selbstmörder), Kreuzer/Kapitän auf großer Distanz, Vorhaltschuss
+      (Interpunkt + Drift), Salven (burst). Niemand fliegt mehr "durch".
+- [x] **M3 Andere Schiffe + Funk:** Wingman **SECHS** (Formation vorn-links,
+      Deckungsfeuer, IFF-blau, Funk: Start/Treffer/erster Kill/Idle/
+      "Funkstille" bei Tod), Träger im Feld (nach Takeoff vorne, rückt davon),
+      Idle-Funkzeilen in `dialogues.js` (wingmanIdle)
+- [x] **Version-Banner → 0.75-dev** (Intro, console.log, Savegame, Credits,
+      README, Wiki)
+- [x] **Smoke-Test:** +14 IM-RAUM-Checks (Vorschub, Burn, relative Projektion,
+      Sternen-Flow, Brains-Distanz, Wingman-Formation, Träger-Feld) — ALLE TESTS OK
+- [ ] **M4 Missionen & Balance:** Wellen-Design für Brains (gemischte Typen,
+      gestaffelte Spawns), Schwierigkeitskurve, Autopilot unter 3D-Bedingung,
+      Damage/HP/Fire-Rate-Balance
+- [ ] **M5 Polish:** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
+      Ereignis (Radar + Nachruf), Träger-Funk im Feld, Burn-Flash, Handbuch-
+      Kapitel "Fliegen", Top-Down-Balancing mit Brains
+- [ ] **Playtest im Browser:** Speed-Gefühl, Nachbrenner, Brains, Wingman,
+      Funk, Träger im Feld, alle drei Ansichten
+- [ ] **RC-Paket v0.75-rc** (inkl. offener v0.70-Punkte, siehe unten)
+
+## v0.70-dev — "Enden & Papierkram" (weitestgehend fertig, Rest → v0.75-rc, seit 2026-10-13)
+- [x] **Playtest (Pilot, 2026-10-13):** SPINDE besichtigt, Save/Load-Runde
+      (Speichern → Neuladen → Laden, alter Name wieder da) OK, Musik [P] im
+      Menü funktioniert
 - [x] **Credits/Abspann:** neuer `CREDITS`-State nach dem Sieg-Debriefing — rollender Abspann (1990-Style) über Sternenfeld, Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot), Pilotenname aus dem Intro, Produktions-Credits, [LEER] = Weiterspulen / am Ende zum Träger, [ESC] = schließen, nach 5 s automatisch weiter. Tod → ohne Abspann direkt zum Träger. Debriefing-Prompt: "[ ZUM ABSANN ]"
 - [x] **GitHub:** Repo `tretboot/solo_wing_1990` angelegt, Push + Tag `v0.6.9-final` (2026-10-13)
 - [x] **Version-Banner → 0.70-dev** (Intro-Titel, console.log, Savegame-Feld)
@@ -26,7 +65,7 @@
 - [x] **Repo-Cleanup für GitHub:** 12 Temp-Dateien + `Last Changes/` entfernt, `WC1_PCI_ANALYSE.md` → C-Auszüge durch Beschreibungstext ersetzt
 - [x] **Doku:** README v0.6.9-final, PATCHNOTES, KONZEPTE, Wiki-Hub (`site/wiki.html`) + Nav-Link
 - [x] **Smoke-Test:** ALLE TESTS OK (13 Räume, SPINDE, Save/Load-API)
-- [ ] **Playtest im Browser:** SPINDE-Besuch + Save/Load-Runde (Speichern → Neuladen → Laden)
+- [x] **Playtest im Browser:** SPINDE-Besuch + Save/Load-Runde (Speichern → Neuladen → Laden) (Pilot, 2026-10-13: OK)
 - [x] **GitHub-Push:** Repo angelegt + Push + Tag `v0.6.9-final` (2026-10-13)
 
 ## WIEDERHERSTELLUNG (2026-10-12, nach Unterbrechung)
@@ -155,18 +194,20 @@
 - [ ] **Externes Handbuch** (HTML + PDF, 12 Kapitel + Crew-Zitate)
 - [ ] **RC-Paket v0.70-rc**
 
-## v0.75 → v0.80 — "Freies Universum" (Major-Overhaul, Pläne stehen)
-> Eigene Versionsserie. Details: KONZEPTE.md → "v0.75 → v0.80".
-- [ ] **v0.75 Eigenes Schiff:** Schiffs-Markt (12 Modelle), Kaufsystem, Schiffswechsel,
+## v0.76 → v0.81 — "Freies Universum" (Major-Overhaul, Pläne stehen)
+> Eigene Versionsserie. Details: KONZEPTE.md → "v0.76 → v0.81".
+> (Renommage 2026-10-13: v0.75 ist jetzt "IM RAUM" — die Serie rückt um eine
+> Version nach rechts.)
+- [ ] **v0.76 Eigenes Schiff:** Schiffs-Markt (12 Modelle), Kaufsystem, Schiffswechsel,
       Stats → Flugphysik
-- [ ] **v0.76 Universum wächst:** 3 → 20 Systeme, Jump-Gates (Treibstoff),
+- [ ] **v0.77 Universum wächst:** 3 → 20 Systeme, Jump-Gates (Treibstoff),
       Zufalls-Encounter
-- [ ] **v0.77 Fraktionen:** Reputation 0–100 (Sternenkorps, Piraten, Audit, Siedler,
+- [ ] **v0.78 Fraktionen:** Reputation 0–100 (Sternenkorps, Piraten, Audit, Siedler,
       Optimierer), Fraktions-Missionen, Reputation steuert Preise/Dialoge
-- [ ] **v0.78 Mission Generator:** prozedurale Missionen, Missionsbrett, Kopfgeld,
+- [ ] **v0.79 Mission Generator:** prozedurale Missionen, Missionsbrett, Kopfgeld,
       Zufalls-Events
-- [ ] **v0.79 Ökonomie:** Credits, Schiffs-Markt, Upgrade-Shop, Wartungskosten
-- [ ] **v0.80 Komplett:** NPC-Rivalen im Freiflug (Sechs/Neun/Zwo), Subplot-Fortsetzung,
+- [ ] **v0.80 Ökonomie:** Credits, Schiffs-Markt, Upgrade-Shop, Wartungskosten
+- [ ] **v0.81 Komplett:** NPC-Rivalen im Freiflug (Sechs/Neun/Zwo), Subplot-Fortsetzung,
       Zufalls-Lore, mehrere Enden
 
 ## BACKLOG (später, unverändert)

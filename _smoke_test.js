@@ -153,6 +153,36 @@ check('Roll federt zurueck zu 0', SW.Player.rollAngle === 0);
 SW.Player.rollAngle = 0.4; pump(3);
 check('Cockpit mit Roll rendert', SW.Game.state === 'COCKPIT');
 
+// --- 6b. IM RAUM (v0.75-dev): Vorschub, relative Projektion, Brains, Wingman ---
+check('IM RAUM: Cruise-Speed gesetzt', Math.abs(SW.Player.speed - SW.FORWARD_BASE) < 0.01);
+SW.Input.keys['ShiftLeft'] = true;
+for (let i = 0; i < 200; i++) SW.Player.update(i);
+check('IM RAUM: Nachbrenner [SHIFT] hebt Speed', SW.Player.speed > SW.FORWARD_BASE + 1.5 && SW.Player.burning === true);
+check('IM RAUM: Spieler fliegt vorwärts (z wächst)', SW.Player.z > 300);
+SW.Input.keys['ShiftLeft'] = false;
+const fp = SW.Engine.project(SW.Player.x, SW.Player.y, SW.Player.z + 100);
+check('IM RAUM: Projektion relativ (geradeaus = Bildschirmmitte)', fp && Math.abs(fp.sx - SW.CX) < 2 && Math.abs(fp.sy - SW.CY) < 2);
+const star0 = SW.Engine.stars.find(s => s.z > 5);
+const starZ0 = star0.z;
+SW.Engine.updateStars();
+check('IM RAUM: Sterne fließen mit dem Vorschub', star0.z < starZ0);
+// Brains + Wingman: frische Mission (Takeoff → COCKPIT)
+SW.Game.startMission('m1');
+SW.Game.setState('TAKEOFF');
+for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
+check('IM RAUM: Takeoff → COCKPIT', SW.Game.state === 'COCKPIT');
+check('IM RAUM: Träger steht im Feld (sichtbar, vorne)', SW.Carrier.visible === true && SW.Carrier.z > SW.Player.z);
+check('IM RAUM: Wingman Sechs aktiv', SW.Wingman.active === true);
+const fighter = { x: SW.Player.x, y: SW.Player.y, z: SW.Player.z + 250, hp: 30, fireTimer: 9999, speed: 2.5, damage: 8, fireMin: 9999, fireMax: 9999, pattern: 'strafe', strafeAmp: 0, strafeFreq: 0, shipId: 'Jäger', alive: true, state: 'approach', t: 0, strafeDir: 1, wab: 0, range: 90, burst: 2 };
+SW.Enemies.list.push(fighter);
+for (let i = 0; i < 400; i++) { SW.Player.update(i); SW.Enemies.update(i); SW.Engine.updateStars(); }
+const frz = fighter.z - SW.Player.z;
+check('IM RAUM: Brains hält Distanz (15..160)', fighter.alive && frz > 15 && frz < 160);
+check('IM RAUM: Brains hat State gewechselt (strafe/break)', fighter.state === 'strafe' || fighter.state === 'break');
+for (let i = 0; i < 60; i++) SW.Wingman.update(i);
+check('IM RAUM: Wingman folgt Formation (z ± 20)', Math.abs((SW.Wingman.z - SW.Player.z) - SW.Wingman.offZ) < 20);
+check('IM RAUM: Sechs-Idle-Funkzeilen vorhanden', Array.isArray(SW.Dialogues.wingmanIdle) && SW.Dialogues.wingmanIdle.length >= 3);
+
 // --- 7. LANDING -> HANGAR -> DEBRIEFING (Sieg) -> CREDITS -> SHIP ---
 SW.Game.setState('LANDING');
 for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
@@ -326,7 +356,7 @@ let tubeFrames = 0;
 while (SW.Game.state === 'TAKEOFF' && tubeFrames < 400) { pump(1); tubeFrames++; }
 check('Tube: Takeoff -> COCKPIT (' + tubeFrames + ' Frames)', SW.Game.state === 'COCKPIT' && tubeFrames <= 230);
 check('Tube: Fokal wiederhergestellt', SW.Engine.view.focal === SW.FOCAL);
-check('Tube: Carrier danach unsichtbar', SW.Carrier.visible === false);
+check('Tube: Träger steht im Feld (IM RAUM: sichtbar, vorne)', SW.Carrier.visible === true && SW.Carrier.z > SW.Player.z);
 
 // --- 15. Theme-System (Terminal/Corporate, Website) ---
 check('style-fancy.css existiert', fs.existsSync(path.join(root, 'site', 'style-fancy.css')));

@@ -203,7 +203,7 @@ SW.Intro = {
     ctx.fillStyle = '#0f0'; ctx.font = 'bold 16px monospace';
     ctx.fillText('SOLO WING 1990', SW.CX, 55);
     ctx.fillStyle = '#0af'; ctx.font = '8px monospace';
-    ctx.fillText('v0.70-dev — STERNENKORPS / TRÄGER FAX-TRAGÖDIE', SW.CX, 75);
+    ctx.fillText('v0.75-dev — STERNENKORPS / TRÄGER FAX-TRAGÖDIE', SW.CX, 75);
     ctx.fillStyle = '#888'; ctx.font = '7px monospace';
     ctx.fillText('Viele Grafiken und Sounds sind Platzhalter.', SW.CX, 105);
     ctx.fillText('Spielen auf eigene Gefahr. Formular 77-A deckt den Rest ab.', SW.CX, 117);

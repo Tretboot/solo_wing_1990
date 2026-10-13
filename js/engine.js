@@ -37,10 +37,15 @@ SW.Engine = {
   },
 
   // ===== PROJEKTION =====
+  // IM RAUM (v0.75-dev): Die Kamera steht am Spieler — Perspektiven-Modi
+  // projizieren RELATIV (die Welt rutscht beim Driften nach hinten).
+  // Topdown projiziert ohnehin relativ (projectTop).
   project(x, y, z) {
-    if (z <= 0.1) return null;
+    const p = SW.Player;
+    const rx = x - (p ? p.x : 0), ry = y - (p ? p.y : 0), rz = z - (p ? p.z : 0);
+    if (rz <= 0.1) return null;
     const f = this.view.focal;
-    return { sx: (x/z)*f + SW.CX, sy: (y/z)*f + SW.CY, scale: f/z };
+    return { sx: (rx/rz)*f + SW.CX, sy: (ry/rz)*f + SW.CY, scale: f/rz };
   },
   // Top-Down: Z → Y (Distanz = hoch im Bild), X → X, Y als Fein-Offset
   projectTop(x, y, z) {
@@ -68,10 +73,21 @@ SW.Engine = {
       this.topStars.push({ x: Math.random()*SW.W, y: Math.random()*SW.H, s: Math.random() < 0.3 ? 2 : 1 });
     }
   },
+  // IM RAUM (v0.75-dev): Sternen-Flow = Vorschub des Spielers (Speed-Gefühl),
+  // lateral: Sterne gleiten in die Gegenrichtung des Drifts (Parallax:
+  // nah = stärker, weit = schwächer).
   updateStars() {
+    const p = SW.Player;
+    const fwd = (p && p.speed) ? p.speed : SW.STAR_SPEED;
+    const vx = (p && p.vx) || 0, vy = (p && p.vy) || 0;
     for (const s of this.stars) {
-      s.z -= SW.STAR_SPEED;
+      s.z -= fwd;
+      const par = 0.25 + (s.z/500)*0.75;
+      s.x -= vx * SW.STAR_LATERAL * par;
+      s.y -= vy * SW.STAR_LATERAL * par;
       if (s.z < 1) { s.z = 500; s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*600; }
+      if (s.x > 550) s.x -= 1100; else if (s.x < -550) s.x += 1100;
+      if (s.y > 350) s.y -= 700; else if (s.y < -350) s.y += 700;
     }
   },
   renderStars(ctx, playerX, playerY) {

@@ -2,6 +2,68 @@
 
 > **Team-Note (Flotten-Commander):** Die Iteration ist superschnell geworden. v0.1 → v0.6.5-beta in Rekordzeit. Das Dorf lebt jetzt. 7 neue NPCs. Die Wandkarte hängt an der Wand. Das Team (Commander, Lead Story, No Thinking, Code Review) liefert. Lob an alle. Weiter so.
 
+## v0.75-dev — "IM RAUM" (Flugmodell & Kampfspür, in Arbeit, 2026-10-13)
+
+> **Auslöser (Pilot-Playtest 2026-10-13):** "Der Main-Gameloop funktioniert nicht
+> so wirklich. Wir fliegen, aber nicht so wirklich gefühlt — immer gradeaus, mal
+> etwas links/rechts. Und es gibt gar keine wirklichen Gegner und keine anderen
+> Schiffe auf der Karte." → v0.75 = Flugmodell & Kampfspür. Die "Freies
+> Universum"-Serie rückt um eine Version nach rechts (v0.76–v0.81).
+>
+> **Recherche (Open-Source-Referenzen):** `neuromancer/wc1-re` (WC1-Quell-
+> Rekonstruktion, C/SDL2 — 1.472 Funktionen: 3D-Vektor-Flugmodell, brains-
+> Manöver-Vokabular `Mfull_ahead`/`Mwabbel`/`Mchill`/`Mtail_fire`, Formation/
+> Wingman via `position_relative_ijk`, Autopilot), `neuromancer/wc2-re`,
+> `OpenReliant/openreliant` (StarLancer-Engine, Zig/SDL3), FreeSpace Open.
+> Details + Prinzipien: KONZEPTE.md → "v0.75 — IM RAUM".
+
+### Neue Features (M1–M3)
+- **Flug-Gefühl (M1):** Vorschub (Cruise) + **Nachbrenner [SHIFT]** — das
+  Sternenfeld fließt mit der Speed, Sterne gleiten seitlich beim Driften
+  (Parallax), der Blick **bankt** mit der Seitengeschwindigkeit, VORW-Anzeige
+  (Knoten + Burn-Balken) im Cockpit, "V:"-Anzeige im Mini-HUD, Motor-Sound
+  (WebAudio, Tonhöhe/Lautstärke = Speed), "FEIND NAH"-Warnung (WC1 "Enemy Near").
+- **Relative Projektion:** Die Kamera steht jetzt am Spieler
+  (`SW.Engine.project` subtrahiert die Spielerposition) — die Welt rutscht beim
+  Driften mit, Gegner/Schiffe/Träger stehen in Weltkoordinaten. Projektile und
+  Gegner-Culling laufen relativ (Welt-z wächst mit dem Vorschub).
+- **Feind-Brains (M2):** WC1-Style-Manöver als State-Machine —
+  `approach → strafe → break`: Jäger/Piraten fliegen heran, halten dann ihre
+  Distanz (gleichen den Vorschub aus), streifen seitlich mit gelegentlichem
+  "Wabbel"-Zucken und reißen zu nahem Kontakt ab, um neu anzugreifen.
+  Drohnen (d_b) bleiben Selbstmörder, Kreuzer/Kapitän halten große Distanz.
+  Vorhaltschuss (Interpunkt auf Spielerposition + Drift), Salven (burst).
+  Niemand fliegt mehr gradeaus "durch".
+- **Wingman "SECHS" (M3):** Fliegt in Formation vorn-links (verzögertes
+  Nachführen), feuert Deckung auf den nächsten Gegner (freundlich, zählte
+  Kills), IFF-Markierung blau. Funk über `SW.Comm` (gleicher Kanal wie
+  Commander): Missionstart, Treffer, erster Kill, Idle-Funk
+  (`Dialogues.wingmanIdle`), "…Funkstille." bei Pilotentod. Akademie-Sim
+  bekommt keinen Wingman.
+- **Träger im Feld:** Nach dem Takeoff steht die FAX-TRAGÖDIE vorne (relatives
+  z = 420) und rückt davon, während man sich entfernt. Landungs-Cinematic
+  läuft in Weltkoordinaten.
+- **Steuerung/Doku:** [SHIFT] in Ingame-Menü, Handbuch [H] (Kapitel 02) und
+  externem Handbuch (chapter2). Version-Banner → 0.75-dev (Intro, console.log,
+  Savegame-Feld, Credits, README, Wiki).
+
+### Smoke-Test
+- +14 IM-RAUM-Checks (Cruise/Nachbrenner, z-Wachstum, relative Projektion,
+  Sternen-Flow, Brains-Distanz 15..160, State-Wechsel, Wingman-Formation,
+  Träger-Feld, Idle-Funk) — **ALLE TESTS OK**, kein Regression.
+
+### Offene Punkte (M4/M5)
+- M4 Missionen & Balance (gestaffelte Wellen, Schwierigkeitskurve, Autopilot
+  unter 3D-Bedingung, Balance-Playtest).
+- M5 Polish (Ziel-Markierung, Wingman-Tod als Ereignis, Träger-Funk im Feld,
+  Burn-Flash, Handbuch-Kapitel "Fliegen", Top-Down-Balancing).
+- Offene v0.70-Punkte (3 Enden, Fax-Drucker UI, Aktenschrank, Optimierer-
+  Erscheinen, externes Handbuch 12 Kapitel) wandern in den **v0.75-rc**.
+
+### Playtest-Feedback v0.70-dev (Pilot, 2026-10-13)
+- Musik [P] im Menü: funktioniert, reicht für jetzt.
+- SPINDE + Save/Load: Speichern → Neuladen → Laden, alter Name wieder da. OK.
+
 ## v0.70-dev — "Enden & Papierkram" (in Arbeit, 2026-10-13)
 
 ### Neue Features

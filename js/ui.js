@@ -47,6 +47,16 @@ SW.UI = {
     ctx.fillStyle = SW.Player.rearShield>30?'#0f0':'#f00';
     ctx.fillRect(30, 109, rw, 5);
 
+    // IM RAUM: Vorschub (VORW) + Nachbrenner-Balken [SHIFT]
+    ctx.fillStyle = '#666'; ctx.font = '5px monospace';
+    ctx.fillText('VORW', 5, 126);
+    const vFrac = Math.max(0, Math.min(1, (SW.Player.speed - SW.FORWARD_BASE) / (SW.FORWARD_BURN - SW.FORWARD_BASE)));
+    ctx.fillStyle = '#222'; ctx.fillRect(30, 121, 17, 5);
+    ctx.fillStyle = SW.Player.burning ? '#ff8800' : '#0f0';
+    ctx.fillRect(30, 121, vFrac * 17, 5);
+    ctx.fillStyle = SW.Player.burning ? '#ff8800' : '#888';
+    ctx.fillText(String(Math.round(SW.Player.speed * 12)).padStart(3, '0') + 'KT', 5, 134);
+
     // Score (rechte Tafel, unten)
     ctx.fillStyle = '#0f0'; ctx.font = '7px monospace';
     ctx.fillText('SCORE', SW.W-47, 150);
@@ -67,6 +77,10 @@ SW.UI = {
     ctx.fillStyle='rgba(10,10,16,0.75)';
     ctx.fillRect(0,0,SW.W,14);              // Balken oben
     ctx.fillRect(0,SW.H-12,SW.W,12);        // Balken unten
+    // IM RAUM: Geschwindigkeit + Nachbrenner-Indikator
+    ctx.fillStyle = SW.Player.burning ? '#ff8800' : '#0f0';
+    ctx.font = '6px monospace';
+    ctx.fillText('V:' + Math.round(SW.Player.speed * 12) + (SW.Player.burning ? ' [AB]' : ''), SW.W - 58, 10);
     ctx.fillStyle='#14141a';
     ctx.fillRect(2,16,48,24);               // Schild-Panel
     ctx.fillRect(SW.W-50,16,48,24);         // Score-Panel

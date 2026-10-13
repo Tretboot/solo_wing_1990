@@ -323,32 +323,107 @@ FRONTLAGE: Stabil. Piraten zurückgedrängt.
 - [ ] Schiffskatalog: 12. Raum, X-Wing-Style
 - [ ] JUMP-Polish: Quell-System schrumpft, Ziel wächst
 
-### v0.75 → v0.80 — "Freies Universum" (das große Um- und Auf)
+### v0.75 — "IM RAUM" (Flugmodell & Kampfspür, in Arbeit seit 2026-10-13)
+
+> **Playtest-Befund (2026-10-13, Pilot):** "Wir fliegen, aber nicht so wirklich
+> gefühlt — immer gradeaus, mal etwas links/rechts. Und es gibt gar keine
+> wirklichen Gegner und keine anderen Schiffe auf der Karte." Der Main-Game-Loop
+> muss sich wie echter Raumkampf anfühlen: Fliegen, Funk untereinander und zum
+> Schiff, Bewegung im Raum.
+
+**Recherche (Open-Source-Referenzen, 2026-10-13):**
+- **`neuromancer/wc1-re`** (GitHub, C/SDL2): vollständige Quell-Rekonstruktion von
+  **Wing Commander 1** (1.472 Funktionen, binärverifiziert) — die direkte
+  Referenz unserer Epoche.
+  - *Flight (`ship.c`):* echtes 3D-Vektor-Modell — Position, **Velocity**,
+    Ausrichtung (pitch/yaw/roll), pro Schifftyp Drehraten
+    (`rollRate/yawRate/pitchRate`), veränderbare Vorschub-Geschwindigkeit
+    (`set_speed` → `fix_velocity`).
+  - *AI (`brains.c`):* Manöver-Vokabular als State-Machines — `Mfull_ahead`
+    (Volldampf), `Mwabbel` (zufälliges Yaw/Pitch/Roll-Zucken), `Mchill`
+    (Interpunkt-Anflug via `get_front_spot(target, 900)`), `Mtail_fire`,
+    `Mdrop_a_mine`; Entscheidungen über Reichweiten-/Winkel-Checks
+    (`nTargetRange`, `nTargetFacing`, `nFacingToTarget`).
+  - *Wingman (`auto.c`):* Formation-Slots in Schiff-Koordinaten
+    (`aShipFormationOffset`, `position_relative_ijk`, lateral ±650, forward
+    −1800 pro Slot), Funkzeilen bei Kills.
+  - *Autopilot (`auto.c`):* Nav-Punkte, Abfliegen bei Ziel < 1000 / Schiff
+    < 4000 / Hazard.
+- **`neuromancer/wc2-re`** (WC2, SDL2-Port), **`OpenReliant/openreliant`**
+  (StarLancer-Engine in Zig/SDL3, Vulkan), **FreeSpace Open** (C++,
+  Flugmodell als Daten pro Schiff).
+
+**Was existierte (v0.70-dev):** 1/z-Perspektive, drei Ansichten [V], Roll [Q/E]
+(rein visuell), inertiales Driften (W/S/D/Pfeile), Wellen-Gegner fliegen
+gradeaus **durch** den Spieler, Funk + Cockpit-Video + TTS, Autopilot.
+
+**Was fehlte (Pilot-Befund):** Speed-Gefühl (Sternenfeld lief konstant, kein
+Throttle), Kamera nicht am Spieler (Welt rutschte nicht mit), Gegner wie
+"Selbstmörder-Raketen", keine anderen Schiffe (kein Wingman, kein Träger im
+Feld), kein Motor-Sound.
+
+**Pakete (Milestones):**
+1. **M1 Flug-Gefühl (DONE, 2026-10-13):** Vorschub + Nachbrenner [SHIFT]
+   (Sternen-Flow = Speed, Sternengleit beim Driften, Banken an der
+   Seitengeschwindigkeit), relative Projektion (Kamera am Spieler), VORW-Anzeige
+   (KT + Burn-Balken), "FEIND NAH"-Warnung, Motor-Sound (WebAudio, Tonhöhe =
+   Speed).
+2. **M2 Feind-Brains (DONE, 2026-10-13):** WC1-Manöver als State-Machine —
+   `approach → strafe → break` (Jäger/Piraten), Drohnen gradeaus (Selbstmörder),
+   Kreuzer/Kapitän auf großer Distanz, Vorhaltschuss (Interpunkt + Drift),
+   Salven (burst). Niemand fliegt mehr "durch".
+3. **M3 Andere Schiffe (DONE, 2026-10-13):** Wingman **SECHS** (Formation
+   vorn-links, Deckungsfeuer, IFF-Markierung blau, Funkzeilen: Start, Treffer,
+   erster Kill, Idle, Funkstille bei Tod), Träger im Feld (nach Takeoff sichtbar
+   vor einem, rückt davon), Funk untereinander über `SW.Comm` +
+   `Dialogues.wingmanIdle`.
+4. **M4 Missionen & Balance (OFFEN):** Wellen-Design für die Brains (gemischte
+   Typen, gestaffelte Spawns), Schwierigkeitskurve, Autopilot unter 3D-Bedingung,
+   Damage/HP/Fire-Rate-Balance (Playtest).
+5. **M5 Polish (OFFEN):** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
+   Ereignis, Träger-Funk ("FAX-TRAGÖDIE") im Feld, Burn-Flash/Sound-Akzent,
+   Handbuch-Kapitel "Fliegen", Top-Down-Balancing mit Brains.
+
+**Prinzipien (aus der Recherche):**
+- **Gefühl > Simulation:** Geschwindigkeit wird GEZEIGT (Sternen-Flow, Sound,
+  HUD), nicht nur berechnet. WC1 fliegt sich schnell, weil das Sternenfeld und
+  der HUD lügen, nicht weil die Physik komplex ist.
+- **Gegner sind Piloten:** halten Distanz, reißen ab, greifen neu an. Manöver
+  statt Flugbahnen; zufälliges Zucken ("Wabbel") macht Bewegung organisch.
+- **Funk ist Gameplay:** jedes Ereignis (Kill, Treffer, Welle, Tod) bekommt eine
+  Funkzeile — Kommunikation ist der halbe Wing Commander.
+- **WC1-Steuerung bleibt:** 4-Achsen + Roll + Nachbrenner; Maus-Aim bleibt.
+  Neue Mechaniken werden HINZUGEFÜGT, nichts wird umgelernt.
+
+### v0.76 → v0.81 — "Freies Universum" (das große Um- und Auf)
 
 > Nach der Kampagne (m1–m4) bekommt der Spieler **sein eigenes Schiff** und das
 > Universum wird offen: selbst wählen, wo man hinfliegt. Totaler Major-Overhaul —
 > daher eigene Versionsserie. Pläne stehen IM VORAUS, damit die Architektur (Engine,
 > Ökonomie, Missionsdesign, Fraktionen) nicht nachträglich verbogen werden muss.
 
-- **v0.75 — Eigenes Schiff:**
+> (Renommage 2026-10-13: v0.75 ist jetzt "IM RAUM" — die Serie rückt um eine
+> Version nach rechts.)
+
+- **v0.76 — Eigenes Schiff:**
   - Schiffskatalog wird **Schiffs-Markt** (12 Modelle, Stats, Preise in Credits).
   - Kaufsystem: Credits, Bestätigung, Eigentum in `SW.World.ownShip`.
   - Schiffswechsel: Träger-Jäger ↔ eigenes Schiff, Flugphysik von Stats abhängig.
-- **v0.76 — Universum wächst:**
+- **v0.77 — Universum wächst:**
   - 3 → 20 Systeme (Station, Planet, Anomalie, leer, Siedler-Kolonie).
   - Jump-Gates: Treibstoff-Kosten, Reisezeit, neue JUMP-Phasen pro Systemtyp.
   - Zufalls-Encounter während des Flugs (Kontakt, Frachter, Stille).
-- **v0.77 — Fraktionen:**
+- **v0.78 — Fraktionen:**
   - Reputations-Tracking 0–100: Sternenkorps, Piraten, Audit, Siedler, Optimierer.
   - Fraktions-Missionen, Konflikt-/Neutral-/Freundschafts-Encounter.
   - Reputation steuert Preise, Missionsangebote, Dialog-Varianten (Smart Dialogues).
-- **v0.78 — Mission Generator:**
+- **v0.79 — Mission Generator:**
   - Prozedurale Missions-Generierung (Kontakt, Eskort, Abfang, Anomalie).
   - Missionsbrett in Stationen; Kopfgeld-System; Zufalls-Events (Notruf, Handel).
-- **v0.79 — Ökonomie:**
+- **v0.80 — Ökonomie:**
   - Credit-System (verdienen, ausgeben, speichern); Wartung (Treibstoff, Reparaturen).
   - Upgrade-Shop: Waffen, Schild, Antrieb, Cockpit-Optionen.
-- **v0.80 — Freies Universum komplett:**
+- **v0.81 — Freies Universum komplett:**
   - NPC-Erscheinen im Freiflug: Sechs, Neun, Zwo fliegen eigene Posten (Rivalen).
   - Subplot-Fortsetzung (Alien, Audit, Optimierer) jenseits der Kampagne.
   - Zufalls-Lore (Logs, Nachrichten, Fundstücke); mehrere Enden (Wahl + Reputation).
@@ -367,7 +442,10 @@ FRONTLAGE: Stabil. Piraten zurückgedrängt.
    Abhängigkeits-Chaos mit Story. 0.6.9 kann Optik UND Klang haben.
 5. **0.70:** Die verbliebenen Story-Schnitte (Enden, Papierkram) — dann ist die
    Kampagne komplett und das freie Universum kann angegangen werden.
-6. **0.75–0.80:** Freies Universum. Eigene Serie, weil es Engine, Ökonomie und
+6. **0.75 (IM RAUM, 2026-10-13):** Vor dem freien Universum muss der Main-Loop
+   sich anfühlen wie Raumkampf — sonst kauft niemand ein zweites Schiff, das
+   gradeaus driftet. Deshalb vorgezogen und vor der "Freies Universum"-Serie.
+7. **0.76–0.81:** Freies Universum. Eigene Serie, weil es Engine, Ökonomie und
    Missionsdesign verändert — nicht mehr ein Patch, sondern ein neues Spiel
    auf derselben Basis.
 

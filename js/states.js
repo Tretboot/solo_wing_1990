@@ -23,6 +23,7 @@ SW.Game = {
     SW.Collision.reset();SW.Enemies.init(this.mission);
     SW.Autopilot.init(this.mission.navPoints||[]);
     SW.Carrier.init();
+    if (SW.Wingman) SW.Wingman.reset();  // IM RAUM: Sechs startet erst nach dem Takeoff
     SW.Ship.init(this.mission.id);
     this.setState('SHIP');
   },
@@ -52,6 +53,7 @@ SW.Game = {
         }
         if (SW.SmartDialogues && this.mission) SW.SmartDialogues.noteMission(this.mission.id, 'tod');
         if (SW.Quests) SW.Quests.tick({typ:'mission', ergebnis:'tod'});
+        if (SW.Wingman) SW.Wingman.onDeath();  // IM RAUM: ...Funkstille.
         this.setState('DEBRIEFING');
       }
     },2000);
@@ -412,6 +414,7 @@ SW.Game = {
     ctx.font = '7px monospace';
     const controls = [
       'WASD + Pfeile   :  Bewegen (Drift)',
+      'SHIFT           :  Nachbrenner',
       'Q / E           :  Rollen',
       'Maus            :  Zielen',
       'LEERTASTE       :  Feuer',
@@ -584,25 +587,42 @@ SW.Game = {
     const vm = SW.Engine.view.mode;
     if (vm === 'topdown') { this.renderCockpitTopDown(ctx); return; }
     // ===== PERSPEKTIVE (cockpit + chase) =====
-    // Roll: rotiere Weltraum-Ansicht (Sterne, Feinde, Projektile)
-    if (Math.abs(SW.Player.rollAngle) > 0.005) {
+    // IM RAUM: Roll + Bank — der Blick wankt mit der Seitengeschwindigkeit
+    const bank = Math.max(-0.3, Math.min(0.3, SW.Player.vx * SW.BANK_FACTOR));
+    const rot = SW.Player.rollAngle + bank;
+    if (Math.abs(rot) > 0.005) {
       ctx.save();
       ctx.translate(SW.CX, SW.CY);
-      ctx.rotate(SW.Player.rollAngle);
+      ctx.rotate(rot);
       ctx.translate(-SW.CX, -SW.CY);
     }
-    SW.Engine.renderStars(ctx,SW.Player.x,SW.Player.y);
+    // IM RAUM: Sterne sind in Kamera-Space (Flow = Vorschub, Gleiten = Drift)
+    SW.Engine.renderStars(ctx, 0, 0);
+    SW.Carrier.render(ctx);   // IM RAUM: Träger im Feld (rückt davon, je weiter man fliegt)
     SW.Enemies.render(ctx);
+    if (SW.Wingman) SW.Wingman.render(ctx);  // IM RAUM: Sechs in Formation
     SW.Projectiles.render(ctx);
     SW.Explosions.render(ctx);
-    if (Math.abs(SW.Player.rollAngle) > 0.005) ctx.restore();
+    if (Math.abs(rot) > 0.005) ctx.restore();
+    // IM RAUM: "FEIND NAH"-Warnung (WC1 "Enemy Near")
+    let nearZ = 1e9;
+    for (const e of SW.Enemies.list) {
+      if (!e.alive) continue;
+      const rz = e.z - SW.Player.z;
+      if (rz > 5 && rz < nearZ) nearZ = rz;
+    }
+    if (nearZ < 45 && (SW.Game.frame>>3)%2 === 0) {
+      ctx.fillStyle = '#ff3333'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('FEIND NAH', SW.CX, 26);
+      ctx.textAlign = 'left';
+    }
     if (vm === 'chase') {
-      // Chase-Cam: Schiff im unteren Drittel (Rückenansicht), rollt mit
+      // Chase-Cam: Schiff im unteren Drittel (Rückenansicht), rollt und bankt mit
       const shX = SW.CX + SW.Player.vx * 1.2;
       const shY = SW.H - 40 + SW.Player.vy * 0.4;
       ctx.save();
       ctx.translate(shX, shY);
-      ctx.rotate(SW.Player.rollAngle);
+      ctx.rotate(rot);
       SW.Sprites.draw(ctx, SW.Sprites.playerShip, 0, 0, 1.5);
       ctx.fillStyle = (SW.Game.frame % 6 < 3) ? '#ff6600' : '#ffaa00';
       ctx.fillRect(-5, 8, 3, 5); ctx.fillRect(2, 8, 3, 5);  // Triebwerke
@@ -630,6 +650,7 @@ SW.Game = {
   renderCockpitTopDown(ctx) {
     SW.Engine.renderStarsTopDown(ctx);
     SW.Enemies.render(ctx);
+    if (SW.Wingman) SW.Wingman.render(ctx);  // IM RAUM: Sechs (oben = vorne)
     SW.Projectiles.render(ctx);
     SW.Explosions.render(ctx);
     // Spieler: Top-Down-Sprite unten Mitte (Rollen angedeutet)
@@ -801,7 +822,7 @@ SW.Game = {
     line('Keine Katzen wurden bei der Entwicklung verletzt.', '8px monospace', '#fff', 4);
     line('Die Katze bestritt den Vorfall dennoch nicht.', '8px monospace', '#fff', 18);
     line('ENDE', 'bold 14px monospace', '#fff', 10);
-    line('v0.70-dev · STERNENKORPS', '6px monospace', '#666');
+    line('v0.75-dev · STERNENKORPS', '6px monospace', '#666');
     // Layout: ln.y = kumulierte y (0..Inhalthöhe), maxScroll = kompletter
     // Text läuft über die Bildschirmtop-Kante hinaus (Einlauf von unten).
     let y = 0;

@@ -298,8 +298,12 @@
       SW.Player.update(SW.Game.frame); SW.Engine.updateStars();
       SW.Enemies.update(SW.Game.frame); SW.Projectiles.update();
       SW.Collision.check(SW.Game.frame); SW.Explosions.update();
-      SW.Comm.update(); SW.Autopilot.update(); SW.Game.renderCockpit(ctx);
+      SW.Comm.update(); SW.Autopilot.update();
+      if (SW.Wingman) SW.Wingman.update(SW.Game.frame);  // IM RAUM: Sechs
+      SW.Game.renderCockpit(ctx);
     }
+    // IM RAUM: Motor-Sound (nur im COCKPIT, Tonhöhe folgt dem Vorschub)
+    if (SW.Audio && SW.Audio.ready) SW.Audio.setEngine(state==='COCKPIT' ? (SW.Player.speed||0) : 0);
     // Handbuch-Overlay (wenn offen) — NACH jedem State-Render
     if (SW.Manual && SW.Manual.isOpen) SW.Manual.render(ctx);
   }
@@ -313,5 +317,5 @@
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.70-dev (Abspann/Credits, SPINDE/Save-Load, Intro-Musik, Handbuch, Launch-Tube & Kamera)');
+  console.log('[SOLO WING 1990] Engine geladen. Version 0.75-dev (IM RAUM: Flugmodell & Kampfspür, Wingman Sechs, Nachbrenner, Abspann, SPINDE, Handbuch)');
 })();

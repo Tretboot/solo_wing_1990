@@ -126,6 +126,16 @@ SW.Dialogues = {
     "Die Wand mit den Piloten ist voll. Wir suchen eine neue Wand. Seit 1985. Die neue Wand ist auch schon voll."
   ],
 
+  // WINGMAN "SECHS" — Idle-Funk (IM RAUM, v0.75-dev)
+  wingmanIdle: [
+    "Immer noch da. Gut.",
+    "Ich würde 'bleib am Leben' sagen, aber Formular 83-B geht davon schon aus.",
+    "Der Kaffee auf dem Träger ist wieder kalt. Irgendeiner schuld. Wahrscheinlich Sie.",
+    "Wenn ich nächsten Monat noch fliege, gibt es eine Beförderung. Formular 9-E, Teil C.",
+    "Sie fliegen wie ein Formular. Immer gradeaus. Aber es funktioniert.",
+    "Der Radar zeigt drei Kontakte. Zwei sind Sie und ich. Das sind keine Feinde."
+  ],
+
   // RAUM-DIALOGE (Ship-Interior, Phase 6.1)
   rooms: {
     bar: [

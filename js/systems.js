@@ -17,7 +17,11 @@ SW.Collision = {
             if (e.hp<=0) {
               e.alive=false; SW.Game.score+=100;
               SW.Explosions.add(e.x,e.y,e.z);
-              if (!this.firstKillDone) { this.firstKillDone=true; SW.Comm.add("COMMANDER: Erster Abschuss. Angemerktes Notat."); }
+              if (!this.firstKillDone) {
+                this.firstKillDone=true;
+                SW.Comm.add("COMMANDER: Erster Abschuss. Angemerktes Notat.");
+                if (SW.Wingman) SW.Wingman.onFirstKill();
+              }
             }
             break;
           }
@@ -27,6 +31,7 @@ SW.Collision = {
         if (dx*dx+dy*dy+dz*dz<SW.COLLISION_DIST*SW.COLLISION_DIST) {
           projs.splice(i,1);
           SW.Player.takeHit(p.damage||SW.ENEMY_LASER_DAMAGE,p.z>0,frame);
+          if (SW.Wingman) SW.Wingman.onPlayerHit(frame);
           if (!this.shieldLowWarned&&(SW.Player.frontShield<30||SW.Player.rearShield<30)) {
             this.shieldLowWarned=true;
             SW.Comm.add("COMMANDER: Abschirmladung unter dreißig. Wir drücken die Daumen.");
@@ -91,6 +96,8 @@ SW.Flight = {
     this.mode=mode; this.progress=0;
     this._savedFocal=SW.Engine.view.focal;
     SW.Engine.view.focal=SW.FOCAL;  // Cinematic: Standard-Perspektive
+    // IM RAUM: Cinematic aus der Weltmitte heraus (relative Projektion)
+    SW.Player.x=0; SW.Player.y=0;
     SW.Carrier.visible=true;
     if (mode==='takeoff') {
       this.carrierStartZ=80; this.carrierEndZ=300;
@@ -120,8 +127,8 @@ SW.Flight = {
     if (this.progress>=1) { this.progress=1; this.complete(); return; }
     // Ease in/out
     const t=this.progress<0.5?2*this.progress*this.progress:1-Math.pow(-2*this.progress+2,2)/2;
-    // Carrier moves
-    SW.Carrier.z=this.carrierStartZ+(this.carrierEndZ-this.carrierStartZ)*t;
+    // Carrier moves (IM RAUM: als Weltkoordinate relativ zum Spieler)
+    SW.Carrier.z=SW.Player.z+this.carrierStartZ+(this.carrierEndZ-this.carrierStartZ)*t;
     SW.Carrier.x=0; SW.Carrier.y=10;
     // Röhre: Ringe + Lichter fließen zur Kamera, mit Beschleunigung (+ Freigang-Burst)
     if (this.mode==='takeoff') {
@@ -137,7 +144,14 @@ SW.Flight = {
     SW.Carrier.visible=false;
     SW.Player.z=0; SW.Player.x=0; SW.Player.y=0;
     if (this._savedFocal) { SW.Engine.view.focal=this._savedFocal; this._savedFocal=null; }
-    if (wasTakeoff) SW.Game.setState('COCKPIT');
+    if (wasTakeoff) {
+      // IM RAUM: Der Träger steht noch vor einem im Feld — er wird
+      // kleiner, während man sich entfernt. Sechs schließt auf.
+      SW.Carrier.visible=true;
+      SW.Carrier.x=0; SW.Carrier.y=10; SW.Carrier.z=SW.Player.z+SW.CARRIER_FIELD_Z;
+      if (SW.Wingman) SW.Wingman.init();
+      SW.Game.setState('COCKPIT');
+    }
     else SW.Game.startHangar();  // Landung → Hangar (Bolt kommentiert) → Träger
   },
 

@@ -15,7 +15,7 @@ SW.SaveGame = {
   // ===== SPEICHERN =====
   save() {
     const data = {
-      version: '0.70-dev',
+      version: '0.75-dev',
       timestamp: Date.now(),
       world: SW.World ? {
         pilotName: SW.World.pilotName || null,

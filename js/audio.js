@@ -73,6 +73,37 @@ SW.Audio = {
     osc.connect(gain).connect(this.masterGain);
     osc.start(t); osc.stop(t + 0.3);
   },
+  // ===== MOTOR-SOUND (IM RAUM, v0.75-dev): kontinuierlicher Summton,
+  // Tonhöhe + Lautstärke folgen der Vorschub-Geschwindigkeit (Cruise → Burn).
+  engineOsc: null, engineOsc2: null, engineGain: null, engineFilt: null,
+  setEngine(speed) {
+    if (!this.ready) return;
+    if (speed <= 0 || !this.enabled) { this._stopEngine(); return; }
+    if (!this.engineOsc) {
+      const t = this.ctx.currentTime;
+      this.engineOsc = this.ctx.createOscillator(); this.engineOsc.type = 'sawtooth';
+      this.engineOsc2 = this.ctx.createOscillator(); this.engineOsc2.type = 'triangle';
+      this.engineFilt = this.ctx.createBiquadFilter();
+      this.engineFilt.type = 'lowpass'; this.engineFilt.frequency.value = 320;
+      this.engineGain = this.ctx.createGain(); this.engineGain.gain.value = 0.0001;
+      this.engineOsc.connect(this.engineFilt); this.engineOsc2.connect(this.engineFilt);
+      this.engineFilt.connect(this.engineGain); this.engineGain.connect(this.masterGain);
+      this.engineOsc.start(t); this.engineOsc2.start(t);
+    }
+    const t = this.ctx.currentTime;
+    const s = Math.max(0, Math.min(1, (speed - SW.FORWARD_BASE) / (SW.FORWARD_BURN - SW.FORWARD_BASE)));
+    const f = 40 + s * 34;
+    this.engineOsc.frequency.setTargetAtTime(f, t, 0.12);
+    this.engineOsc2.frequency.setTargetAtTime(f * 0.5, t, 0.12);
+    this.engineGain.gain.setTargetAtTime(0.02 + 0.04 * s, t, 0.2);
+  },
+  _stopEngine() {
+    if (!this.engineOsc) return;
+    const o1 = this.engineOsc, o2 = this.engineOsc2, g = this.engineGain;
+    this.engineOsc = null; this.engineOsc2 = null; this.engineGain = null; this.engineFilt = null;
+    try { g.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.12); } catch (e) {}
+    setTimeout(() => { try { o1.stop(); o2.stop(); g.disconnect(); } catch (e) {} }, 500);
+  },
   // JUMP-Sprungsound: Noise-Sweep (Bandpass 150→2500→200 Hz) + tiefer Thump
   playJumpWhoosh() {
     if (!this.ready || !this.enabled) return;
