@@ -272,6 +272,53 @@ SW.NPC = {
     return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
   },
 
+  // Raum-Gesicht Renderer (für Bar-Szene & andere Räume):
+  // npcId: Registry-Key ODER Name, x/y: Position, size: Größe, showBody: Jacke anzeigen, showUniform: Uniform anzeigen
+  renderRoomFace(ctx, npcId, x, y, size, { showBody = true, showUniform = true, pose = 'standing' } = {}) {
+    const npc = this.registry[this.resolve(npcId) || npcId];
+    if (!npc) { ctx.fillStyle = '#555'; ctx.font = '6px monospace'; ctx.fillText('?', x, y); return; }
+    ctx.save();
+    ctx.fillStyle = npc.skin || '#f0d5a8';
+    ctx.beginPath();
+    ctx.ellipse(x, y, size * 0.45, size * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = npc.uniform || '#335577';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Haare
+    if (npc.hair && npc.hairStyle && npc.hairStyle !== 'none') {
+      this._drawHair(ctx, x, y, size, npc.hair, npc.hairStyle);
+    }
+    // Augen
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(x - size * 0.1, y - size * 0.05, size * 0.12, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.1, y - size * 0.05, size * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    // Pupillen
+    ctx.fillStyle = npc.features?.includes('wide-eyes') ? '#888' : '#000';
+    ctx.beginPath();
+    ctx.arc(x - size * 0.1, y - size * 0.05, size * 0.08, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.1, y - size * 0.05, size * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    // Mund
+    ctx.fillStyle = npc.personality === 'grumpy' ? '#666' : '#555';
+    ctx.beginPath();
+    ctx.arc(x, y + size * 0.15, size * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    // Jacke/Uniform (falls gewünscht)
+    if (showBody && npc.uniform) {
+      ctx.fillStyle = npc.uniform;
+      ctx.fillRect(x - size * 0.3, y + size * 0.4, size * 0.6, size * 0.3);
+    }
+    // Namenslabel (klein)
+    ctx.fillStyle = npc.uniform || '#335577';
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(this.resolve(npcId) || npcId, x, y + size * 0.55);
+    ctx.restore();
+  },
+
   // Cockpit-Video Renderer (280×160): Porträt + Sprechblase + TTS-Indikator.
   // npcId: Registry-Key ODER Display-Name (wird über resolve() aufgelöst).
   renderCockpitVideo(ctx, npcId, text, frame) {

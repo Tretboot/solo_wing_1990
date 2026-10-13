@@ -26,6 +26,8 @@
         SW.Manual.close();
       } else if (SW.Game.state === 'MENU') {
         SW.Game.setState(SW.Game._menuReturn || 'COCKPIT');
+      } else if (SW.Game.state === 'SHIP' && SW.Ship && SW.Ship.savePanelOpen) {
+        SW.Ship.savePanelOpen = false; // ESC schließt zuerst das Save-Panel
       } else if (['COCKPIT','SHIP','BRIEFING_BOARD','JUMP','TAKEOFF','LANDING','BRIEFING'].includes(SW.Game.state)) {
         SW.Game._menuReturn = SW.Game.state;
         SW.Game.state = 'MENU';
@@ -151,6 +153,21 @@
       if (!anyKey) SW._infoHeld = false;
     }
     if (SW.Game.state==='SHIP') {
+      // Save/Load-Panel (SPINDE): [1]-[5] bedienen, ESC schließt (global oben)
+      if (SW.Ship.savePanelOpen) {
+        const SK = SW.Input.keys;
+        if (SK['Digit1'] && !SW._sp1) { SW._sp1 = true; SW.Ship.saveAction('1'); }
+        if (SK['Digit2'] && !SW._sp2) { SW._sp2 = true; SW.Ship.saveAction('2'); }
+        if (SK['Digit3'] && !SW._sp3) { SW._sp3 = true; SW.Ship.saveAction('3'); }
+        if (SK['Digit4'] && !SW._sp4) { SW._sp4 = true; SW.Ship.saveAction('4'); }
+        if ((SK['Digit5'] || SK['Space']) && !SW._sp5) { SW._sp5 = true; SW.Ship.saveAction('5'); }
+        if (!SK['Digit1']) SW._sp1 = false;
+        if (!SK['Digit2']) SW._sp2 = false;
+        if (!SK['Digit3']) SW._sp3 = false;
+        if (!SK['Digit4']) SW._sp4 = false;
+        if (!(SK['Digit5'] || SK['Space'])) SW._sp5 = false;
+        return; // Panel offen: keine anderen SHIP-Eingaben
+      }
       if (SW.Input.mouseDown) {
         SW.Input.mouseDown = false;
         SW.Ship.handleClick(SW.Input.mouseX, SW.Input.mouseY);
@@ -271,5 +288,5 @@
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.6.9-dev (Handbuch, Smart Dialogues, Schiffszeitung, Launch-Tube & Kamera)');
+  console.log('[SOLO WING 1990] Engine geladen. Version 0.6.9-final (SPINDE/Save-Load, Intro-Musik, Handbuch, Launch-Tube & Kamera)');
 })();

@@ -2,8 +2,8 @@
 // Lädt alle Skripte in index.html-Reihenfolge in einer Node-VM (DOM-Stubs)
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
 // COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → SHIP.
-// Skript-Liste AMT 28 Dateien = index.html (2026-10-12 synchronisiert:
-// js/npc.js + js/manual.js + js/dialogue.js + js/newspaper.js ergänzt).
+// Skript-Liste AMT 29 Dateien = index.html (2026-10-13 synchronisiert:
+// + js/savegame.js (SPINDE/Save-Load, v0.6.9-final).
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -62,7 +62,7 @@ const scripts = [
   'data/crew.js', 'data/rooms.js', 'data/lore.js', 'data/ships.js',
   'data/quests.js', 'data/akademie.js',
   'js/audio.js', 'js/tts.js', 'js/npc.js', 'js/input.js', 'js/engine.js', 'js/sprites.js',
-  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js', 'js/dialogue.js',
+  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js', 'js/dialogue.js', 'js/savegame.js',
   'js/newspaper.js', 'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js',
   'js/manual.js', 'js/main.js'
 ];
@@ -94,7 +94,7 @@ check('BAR laeuft ohne Fehler', SW.Game.state === 'BAR');
 SW.Game.setState('SHIP'); pump(3);
 check('SHIP laeuft ohne Fehler', SW.Game.state === 'SHIP');
 const roomsWithNpcs = SW.Rooms.filter(r => r.npcs.length >= 1).length;
-check('alle 12 Raeume haben NPCs (' + roomsWithNpcs + '/12)', roomsWithNpcs === 12);
+check('alle 12 besetzten Raeume haben NPCs, SPINDE ist Spielerraum (' + roomsWithNpcs + '/12)', roomsWithNpcs === 12);
 for (const n of ['Archiv','Löffel','Stille','Mutters','Spiegel','Rohr','Nadel']) {
   check('RoomNPCs: ' + n, !!SW.RoomNPCs[n]);
 }
@@ -103,14 +103,21 @@ SW.Ship.startDialogue(); pump(3);
 const kantineLines = SW.Dialogues.rooms.kantine.map(l => l.npc).join(',');
 check('Kantine-Dialog hat LÖFFEL', kantineLines.includes('LÖFFEL'));
 check('Beobachtung hat NPC (Spiegel)', SW.World.npcInRoom('beobachtung').length >= 1);
-check('Schulraum ZWEIG ist der 12. Raum', SW.Rooms.length === 12 && !!SW.Rooms.find(r => r.id === 'schule'));
+check('Schulraum ZWEIG ist der 12. Raum', !!SW.Rooms.find(r => r.id === 'schule'));
+check('SPINDE (Bunker) ist der 13. Raum', SW.Rooms.length === 13 && !!SW.Rooms.find(r => r.id === 'spinde'));
+check('SPINDE: Toer zu Kantine (beidseitig)', (() => { const s = SW.Rooms.find(r => r.id === 'spinde'), k = SW.Rooms.find(r => r.id === 'kantine'); return s.toren.includes('kantine') && k.toren.includes('spinde'); })());
+check('Save/Load: SW.SaveGame existiert', !!SW.SaveGame);
+check('Save/Load: API komplett', ['save','load','export','delete','hasSave','lastSaveTime'].every(k => typeof SW.SaveGame[k] === 'function'));
+check('Save/Load: leerer Start (kein Save)', SW.SaveGame.hasSave() === false);
+check('Ship: Save-Panel-Funktionen vorhanden', ['renderSavePanel','saveAction','handleSavePanelClick','artSpinde'].every(k => typeof SW.Ship[k] === 'function'));
+check('index.html: js/savegame.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/savegame.js'));
 check('Schulraum: Git-Tutorial-Dialog (9 Zeilen)', (SW.Dialogues.rooms.schule || []).length === 9);
 check('Schulraum: Toere nach Maschinenraum/Buero/Bar', ['maschinenraum','buerro','bar'].every(t => SW.Rooms.find(r => r.id === t).toren.includes('schule')));
 check('Schulraum: NPCs Diskettens + Archiv', SW.World.npcInRoom('schule').length >= 2);
 
 // --- 4. CHEAT_MAP (Wandkarte) ---
 SW.Game.state = 'CHEAT_MAP'; pump(3);
-check('Cheat-Map rendert, 12 Klick-Regionen', SW.Ship._cheatMapRects.length === 12);
+check('Cheat-Map rendert, 13 Klick-Regionen', SW.Ship._cheatMapRects.length === 13);
 const first = SW.Ship._cheatMapRects[0];
 SW.Ship.handleCheatMapClick(first.x + 5, first.y + 5);
 check('Klick auf Raum -> SHIP', SW.Game.state === 'SHIP' && SW.Ship.currentRoom === SW.Rooms[0].id);

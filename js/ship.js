@@ -94,12 +94,16 @@ SW.Ship = {
   _frame: 0,
   _doorRects: [],
   _npcRects: [],
+  savePanelOpen: false,  // Save/Load-Panel (SPINDE)
+  _bunkerRect: null,     // Bunker-Tür (SPINDE)
+  _saveRects: [],        // Panel-Optionen
 
   init(systemId) {
     this.currentRoom = 'bar';
     this._frame = 0;
     this.dialogueActive = false;
     this.talkingNPC = null;
+    this.savePanelOpen = false; // Raumwechsel schließt das Save-Panel
     // World-State initialisieren (Seed = Mission-Id + Zeit)
     const seed = (SW.Game.mission?.id || 'm1').charCodeAt(1) * 1000 + Math.floor(Date.now()/100000) % 1000;
     SW.World.init(systemId, seed);
@@ -169,6 +173,17 @@ SW.Ship = {
 
   // ===== KLIK-BEHANDLUNG =====
   handleClick(mx, my) {
+    // Save/Load-Panel (SPINDE): Overlay hat Vorrang
+    if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
+    // Bunker-Tuer (SPINDE): Klick = Save/Load-Panel oeffnen
+    if (this.currentRoom === 'spinde' && this._bunkerRect) {
+      const b = this._bunkerRect;
+      if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+        this.savePanelOpen = true;
+        SW.Audio.playCommBeep();
+        return;
+      }
+    }
     // Wandkarte (Minimap) geklickt → Fullscreen-Karte
     if (this._mapRect) {
       const m = this._mapRect;
@@ -239,12 +254,15 @@ SW.Ship = {
     // Dialog-Box
     if (this.dialogueActive) this.renderDialogue(ctx, room);
     else this.renderHint(ctx, room);
+    // Save/Load-Panel (SPINDE) — oberstes Overlay
+    if (this.savePanelOpen) this.renderSavePanel(ctx, room);
   },
 
   // ===== PROZEDURALER ARTSTYLE PRO RAUM =====
   renderArt(ctx, room) {
     switch (room.art) {
       case 'bar': this.artBar(ctx, room); break;
+      case 'spinde': this.artSpinde(ctx, room); break;
       case 'flugdeck': this.artFlugdeck(ctx, room); break;
       case 'buerro': this.artBuerro(ctx, room); break;
       case 'kantine': this.artKantine(ctx, room); break;
@@ -660,8 +678,8 @@ SW.Ship = {
     ctx.strokeStyle = room.akzent;
     ctx.lineWidth = 1;
     ctx.strokeRect(mx, my, mw, mh);
-    // Räume als Punkte (5x2 Grid)
-    const cols = 5, rows = 2;
+    // Räume als Punkte (Grid auto: 13 Räume = 7x2)
+    const cols = Math.ceil(SW.Rooms.length / 2), rows = 2;
     const cw = mw/cols, ch = mh/rows;
     for (let i=0; i<SW.Rooms.length; i++) {
       const r = SW.Rooms[i];
@@ -684,6 +702,152 @@ SW.Ship = {
     ctx.textAlign = 'left';
     // Klick-Region (Wandkarte → Fullscreen)
     this._mapRect = { x: mx, y: my, w: mw, h: mh };
+  },
+
+  // ===== SPINDE (Bunker) — v0.6.9-final: Save/Load-Kammer =====
+  // Eigene Kabine: Spindwand, eigener Spind mit Namensschild (Pilotenname
+  // aus dem Intro), Lagerbett, Plakat und die Bunker-Tür (Klick = Save/Load).
+  artSpinde(ctx, room) {
+    const name = ((SW.World && SW.World.pilotName) || 'PILOT').toUpperCase();
+    // Spindwand (2 Reihen graue Metallschränke)
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 6; c++) {
+        const x = 14 + c * 26, y = 32 + r * 40;
+        ctx.fillStyle = '#2c2c34';
+        ctx.fillRect(x, y, 22, 36);
+        ctx.strokeStyle = '#4a4a56';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, 22, 36);
+        ctx.fillStyle = '#666';
+        ctx.fillRect(x + 17, y + 16, 2, 5); // Griff
+        ctx.fillStyle = '#20202a';
+        ctx.fillRect(x + 4, y + 6, 14, 1);
+        ctx.fillRect(x + 4, y + 10, 14, 1); // Belüftung
+      }
+    }
+    // Eigener Spind (rechts, Akzentfarbe, Namensschild)
+    const bx = 232, by = 32;
+    ctx.fillStyle = '#14141c';
+    ctx.fillRect(bx, by, 74, 76);
+    ctx.strokeStyle = room.akzent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, 74, 76);
+    ctx.fillStyle = room.akzent;
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, bx + 37, by + 16);
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#999';
+    ctx.fillText('FORMULAR 83-D', bx + 37, by + 26);
+    ctx.fillStyle = '#3a3a44';
+    ctx.fillRect(bx + 12, by + 36, 50, 30); // Fach
+    // Lagerbett (unten links)
+    ctx.fillStyle = '#2a2a30';
+    ctx.fillRect(14, 134, 120, 8);
+    ctx.fillStyle = '#3a4a5a';
+    ctx.fillRect(16, 128, 116, 6); // Decke
+    ctx.fillStyle = '#444';
+    ctx.fillRect(20, 142, 4, 20);
+    ctx.fillRect(126, 142, 4, 20); // Beine
+    // Plakat
+    ctx.fillStyle = '#101014';
+    ctx.fillRect(146, 128, 72, 32);
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(146, 128, 72, 32);
+    ctx.fillStyle = '#888';
+    ctx.font = '5px monospace';
+    ctx.fillText('SAVE/LOAD', 182, 138);
+    ctx.fillText('SPINDE-EINGANG', 182, 146);
+    ctx.fillStyle = '#555';
+    ctx.font = '4px monospace';
+    ctx.fillText('Kontakt: niemand', 182, 155);
+    // BUNKER-TÜR (Klick = Save/Load-Panel)
+    const dx = 232, dy = 124, dw = 74, dh = 44;
+    ctx.fillStyle = '#0a0a10';
+    ctx.fillRect(dx, dy, dw, dh);
+    ctx.strokeStyle = room.akzent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx, dy, dw, dh);
+    ctx.fillStyle = room.akzent;
+    ctx.font = 'bold 6px monospace';
+    ctx.fillText('TÜR: ' + name, dx + dw/2, dy + 12);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '5px monospace';
+    ctx.fillText('[KLICK: SAVE/LOAD]', dx + dw/2, dy + 24);
+    ctx.fillStyle = (SW.Game.frame % 60 < 30) ? room.akzent : '#444';
+    ctx.fillText('>>', dx + dw/2, dy + 36);
+    ctx.textAlign = 'left';
+    this._bunkerRect = { x: dx, y: dy, w: dw, h: dh };
+  },
+
+  // ===== SAVE/LOAD-PANEL (SPINDE) =====
+  renderSavePanel(ctx, room) {
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.fillRect(0, 0, SW.W, SW.H);
+    const px = 55, py = 38, pw = SW.W - 110, ph = 124;
+    ctx.fillStyle = 'rgba(10,10,16,0.98)';
+    ctx.fillRect(px, py, pw, ph);
+    ctx.strokeStyle = room.akzent;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.fillStyle = room.akzent;
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('SPINDE — SAVE/LOAD', SW.CX, py + 14);
+    ctx.font = '5px monospace';
+    ctx.fillStyle = '#888';
+    ctx.fillText('Barraken. Spinde. Formular 83-D. Hier ist niemand.', SW.CX, py + 25);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#666';
+    ctx.font = '5px monospace';
+    ctx.fillText('Sie haben bisher ohne Savegame überlebt. Respekt.', px + 12, py + 38);
+    const t = SW.SaveGame ? SW.SaveGame.lastSaveTime() : null;
+    ctx.fillStyle = '#555';
+    ctx.fillText(t ? ('Letzter Save: ' + new Date(t).toLocaleString()) : 'Kein Save. Die Spinde ist leer.', px + 12, py + 48);
+    // Optionen (Klick oder Taste)
+    this._saveRects = [];
+    const opts = [
+      ['1', 'SPEICHERN', 'Formular 83-D ablegen'],
+      ['2', 'LADEN', 'Zurück zu dem Moment, wo es noch lief'],
+      ['3', 'EXPORT', 'JSON auf Datenträger (Fax-Archiv +1)'],
+      ['4', 'LÖSCHEN', 'Die Spinde ist wieder leer. Wie immer.'],
+      ['5', 'SCHLIESSEN', '']
+    ];
+    for (let i = 0; i < opts.length; i++) {
+      const y = py + 60 + i * 11;
+      ctx.fillStyle = '#0f0';
+      ctx.font = '6px monospace';
+      ctx.fillText('[' + opts[i][0] + '] ' + opts[i][1], px + 14, y);
+      ctx.fillStyle = '#555';
+      ctx.font = '5px monospace';
+      ctx.fillText(opts[i][2], px + 88, y);
+      this._saveRects.push({ x: px + 8, y: y - 8, w: pw - 16, h: 10, action: opts[i][0] });
+    }
+    // Feedback-Zeile
+    if (SW.SaveGame && SW.SaveGame.lastMessage) {
+      ctx.fillStyle = room.akzent;
+      ctx.font = 'bold 5px monospace';
+      ctx.fillText(SW.SaveGame.lastMessage, px + 14, py + ph - 6);
+    }
+  },
+
+  handleSavePanelClick(mx, my) {
+    for (const r of this._saveRects) {
+      if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+        this.saveAction(r.action);
+        return;
+      }
+    }
+  },
+
+  saveAction(action) {
+    if (action === '1') SW.SaveGame.save();
+    else if (action === '2') SW.SaveGame.load();
+    else if (action === '3') SW.SaveGame.export();
+    else if (action === '4') SW.SaveGame.delete();
+    else if (action === '5') this.savePanelOpen = false;
+    SW.Audio.playCommBeep();
   },
 
   // ===== DIALOG BOX =====
@@ -810,12 +974,12 @@ SW.Ship = {
     // Nase (vorn)
     ctx.beginPath(); ctx.moveTo(290, 100); ctx.lineTo(305, 110); ctx.lineTo(290, 140); ctx.stroke();
 
-    // Räume als Boxen (2 Reihen × 5-6)
+    // Räume als Boxen (3 Reihen × 5, für 13 Räume)
     this._cheatMapRects = [];
     const rooms = SW.Rooms;
-    const cols = 4, rows = 3;
-    const bw = 68, bh = 42, gap = 8;
-    const startX = 25, startY = 35;
+    const cols = 5, rows = 3;
+    const bw = 52, bh = 42, gap = 5;
+    const startX = 20, startY = 32;
     for (let i = 0; i < rooms.length; i++) {
       const r = rooms[i];
       const col = i % cols, row = Math.floor(i / cols);

@@ -412,24 +412,24 @@ SW.BarScene = {
     if (this.dialogueActive) {
       const line = this.dialogueLines[this.dialogueIndex];
       const displayText = this.typing ? line.text.substring(0, this.charIndex) : line.text;
-      // Box
+      // Box (height increased from 38 to 60px)
       ctx.fillStyle = 'rgba(0,0,0,0.9)';
-      ctx.fillRect(15, SW.H-85, SW.W-30, 38);
+      ctx.fillRect(15, SW.H-85, SW.W-30, 60);
       ctx.strokeStyle = sys.farbe;
       ctx.lineWidth = 1;
-      ctx.strokeRect(15, SW.H-85, SW.W-30, 38);
+      ctx.strokeRect(15, SW.H-85, SW.W-30, 60);
       // Unscharfes Gesicht
       this.renderBlurryFace(ctx, 22, SW.H-78, sys.farbe);
       // NPC Name
       ctx.fillStyle = sys.farbe;
       ctx.font = 'bold 7px monospace';
       ctx.fillText(line.npc, 42, SW.H-72);
-      // Text
+      // Text (wrapped to max 65 characters per line)
       ctx.fillStyle = '#0f0';
       ctx.font = '7px monospace';
       const words = displayText.split(' ');
       let l=''; const lines=[];
-      for (const w of words) { if((l+w).length>40){lines.push(l);l=w+' ';}else{l+=w+' ';} }
+      for (const w of words) { if((l+w).length>65){lines.push(l);l=w+' ';}else{l+=w+' ';} }
       lines.push(l);
       for (let i=0;i<Math.min(lines.length,2);i++) ctx.fillText(lines[i].trim(), 42, SW.H-62+i*9);
       // Weiter-Prompt

@@ -1,5 +1,6 @@
 // ===== SOLO WING 1990 — RÄUME (Phase 6.1) =====
-// Der Träger als "fliegendes Dorf". 12 statische Räume.
+// Der Träger als "fliegendes Dorf". 13 statische Räume.
+// v0.6.9-final: + SPINDE (Bunker) — eigene Kabine, Save/Load.
 // Jeder Raum: Artstyle (prozedural), NPCs, Türen (Nachbarn), Zweck.
 // Konferenz: No Thinking + Lead Story Writer, 2 Runden.
 
@@ -29,7 +30,7 @@ SW.Rooms = [
     id: 'kantine', name: 'KANTINE', zweck: 'Essen, Klatsch, Missionsbriefing mit Resten',
     farbe: '#4a3a2a', akzent: '#ff6644',
     npcs: ['Ragnhild','Löffel'],
-    toren: ['bar','buerro','krankenstation'],
+    toren: ['bar','buerro','krankenstation','spinde'],
     art: 'kantine' // prozedural: Tische, Neon, Speisekarte
   },
   {
@@ -87,6 +88,13 @@ SW.Rooms = [
     npcs: ['Diskettens','Archiv'],
     toren: ['maschinenraum','buerro','bar'],
     art: 'schule' // prozedural: Tafel mit Git-Tree, Schülertische, Formular-14-C-Poster, Katze am Fenster
+  },
+  {
+    id: 'spinde', name: 'SPINDE', zweck: 'Eigene Kabine. Save/Load. Hier kommen keine rein.',
+    farbe: '#3a3a4a', akzent: '#ffaa00',
+    npcs: [],
+    toren: ['kantine'],
+    art: 'spinde' // prozedural: Spindwand, eigener Spind mit Namensschild, Lagerbett, Bunker-Tür
   }
 ];
 
