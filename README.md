@@ -29,7 +29,7 @@ Kein Server nötig. Kein Internet. Kein Tracking. Nur Fax.
 | M | TTS ein/aus |
 | O | Sound ein/aus |
 | ESC | Menü |
-| Klick (im Träger) | Türen / NPCs / START / Wandkarte |
+| Klick (im Träger) | Türen / NPCs / START / Wandkarte / Spinde-Tür |
 
 > **Multi-Input:** Jedes aktive Gerät = +1 Laser-Slot (max 3).
 > Wer mehr hat, der kann mehr. Das ist kein Bug. Das ist Physik.
@@ -55,7 +55,8 @@ Tod:     COCKPIT → DEBRIEFING (KONTAKT VERLOREN) → SHIP
 - **INTRO:** Asteroidenfeld (Drift + Ausweichen, nicht tot) → Pilotenname → Zuordnung
 - **AKADEMIE:** Tutorial (Steuerung in der Story erklärt), Sim-Flug
 - **BAR:** Scoreboard, Crew-Dialoge
-- **SHIP:** 11 Räume (Tür-Klick, Minimap, NPC-Dialoge)
+- **SHIP:** 13 Räume (12 besetzt + SPINDE, Tür-Klick, Minimap, NPC-Dialoge)
+- **SPINDE:** Eigene Kabine (13. Raum) — Bunker-Tür öffnet das Save/Load-Panel
 - **COCKPIT:** WC1-Style, Radar, Shields, Score, Weapon/Target
 
 ---
@@ -71,17 +72,19 @@ solo_wing_1990/
 ├── TIMELINE.md         ← Story-Timeline (für die Bible)
 ├── TODO.md             ← Todo-Liste
 ├── WC1_PCI_ANALYSE.md  ← WC1 NPC-KI Referenz
-├── js/ (19 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests,
-│                         Akademie, Intro, NPC, Dialogue, Newspaper, Manual
+├── js/ (21 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests,
+│                         Akademie, Intro, NPC, Dialogue, Savegame, Newspaper, Manual
 ├── data/ (9 Dateien)   ← Missions, Dialogues, Systeme, Crew, Räume, Lore, Schiffe, Quests, Akademie
+├── _smoke_test.js      ← Test (node _smoke_test.js)
 ├── sprites/            ← (leer, für PNG-Sprites)
 └── site/               ← Projekt-Website
     ├── index.html      ← Start + Evaluation
     ├── design.html     ← Design-Bibel
     ├── team.html       ← Team
     ├── crew.html       ← Crew (18 Charaktere)
-    ├── raeume.html     ← Räume (11)
+    ├── raeume.html     ← Räume (13)
     ├── konzepte.html   ← Konzepte
+    ├── wiki.html       ← Wiki-Hub (organische Sammlung)
     ├── agent_benchmarks.html ← Agenten-Orchestrierung (Sideprojekt)
     ├── ethikrat.html   ← Blog: Ethikrat A/B-Test
     └── style.css       ← Gemeinsames CSS
@@ -100,9 +103,11 @@ solo_wing_1990/
 | `js/sprites.js` | Prozedurale Pixel-Art (Schiffe, Carrier, Cockpit-Frame) |
 | `js/entities.js` | Player, ShipRegistry, Enemies, Projectiles, Explosions, Carrier |
 | `js/systems.js` | Collision, Autopilot, Flight, Briefing, Comm |
-| `js/ship.js` | Träger-Interior (11 Räume, Tür-Klick, NPC-Dialoge) |
+| `js/ship.js` | Träger-Interior (13 Räume, Tür-Klick, NPC-Dialoge, Save/Load-Panel) |
 | `js/ui.js` | Cockpit-Overlay, Radar, Space Map, Comm, Briefing Board |
 | `js/states.js` | State Machine (Game), Rendering pro State |
+| `js/world.js` | World-State (Seed, System, Nachrufe, NPC-Placements) |
+| `js/savegame.js` | Save/Load (localStorage, Export, Delete — SPINDE-Panel) |
 | `js/quests.js` | Quest-System (Overlay, Event-basiert) |
 | `js/akademie.js` | Tutorial (Sim-Flug, Pro-forma) |
 | `js/intro.js` | Intro (Asteroidenfeld, Name, Zuordnung) |
@@ -122,7 +127,7 @@ solo_wing_1990/
 | `data/dialogues.js` | NPC-Dialoge (Bar, Räume, Briefings, Funkstörungs) |
 | `data/systems.js` | 3 Sektoren (Sektor 7, 9, 12) |
 | `data/crew.js` | 18 Crew-Charaktere + 5 Piloten |
-| `data/rooms.js` | 11 Räume (Artstyle, NPCs, Türen) |
+| `data/rooms.js` | 13 Räume (Artstyle, NPCs, Türen) |
 | `data/lore.js` | Worldbuilding (Audit, Piraten, Optimierer, KLO, Alien) |
 | `data/ships.js` | 4 Schiffsklassen, 3 Cockpit-Layouts |
 | `data/quests.js` | 5 Quests (Fax-basiert) |
@@ -192,7 +197,7 @@ Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
 
 ## VERSION
 
-**v0.6.9-rc** — Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Darunter die Engine-Generation 0.6.6–0.6.8: JUMP-Cinematic, Briefing-Szene mit echten Gesichtern, Cockpit-Video, Smart-Dialogue-Engine, Quest-Trigger, Schiffszeitung-Engine. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.9 Musik & Optik, 0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum).
+**v0.6.9-final** — SPINDE (13. Raum, Bunker) mit Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub. Darunter: Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum).
 
 **v0.6.5-rc** — Cheatmenü + Wandkarte + 7 neue NPCs + Transfer-Zwischenszene + Hangar→Debriefing + Rollen (Q/E) + Nav-Karte (N) + Info-Panel + MIT-Lizenz.
 

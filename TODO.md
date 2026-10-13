@@ -1,8 +1,20 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.6.9-dev (2026-10-12). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
+> Stand: v0.6.9-final (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
 
 ---
+
+## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
+- [x] **SPINDE (13. Raum, Bunker):** Daten (Kantine angebaut, `npcs: []`) + prozedurale Art (Spindwand, eigener Spind mit Pilotennamen, Lagerbett, Plakat) + Bunker-Tür (Name, blinkt)
+- [x] **Save/Load-Panel:** [1] Speichern / [2] Laden / [3] Export / [4] Löschen / [5] Schließen (Klick + Tasten), ESC schließt zuerst das Panel, `js/savegame.js` eingebunden (29 Skripte)
+- [x] **Audio-Fix:** Intro-Musik-Loop (ended → interne Sequenz), `stopMusic()` = volle Stille (alle Systeme), `[P]`/`toggleMusic()` für beide Systeme
+- [x] **Dialog-Box (Bar):** Höhe 60px, Umbruch 65 Zeichen, `SW.NPC.renderRoomFace()`
+- [x] **Minimap + Cheat-Map:** 13 Räume (Grids auto)
+- [x] **Repo-Cleanup für GitHub:** 12 Temp-Dateien + `Last Changes/` entfernt, `WC1_PCI_ANALYSE.md` → C-Auszüge durch Beschreibungstext ersetzt
+- [x] **Doku:** README v0.6.9-final, PATCHNOTES, KONZEPTE, Wiki-Hub (`site/wiki.html`) + Nav-Link
+- [x] **Smoke-Test:** ALLE TESTS OK (13 Räume, SPINDE, Save/Load-API)
+- [ ] **Playtest im Browser:** SPINDE-Besuch + Save/Load-Runde (Speichern → Neuladen → Laden)
+- [ ] **GitHub-Push:** `github.com/tretboot/solo_wing_1990` anlegen + Push (Guide in der Session-Historie)
 
 ## WIEDERHERSTELLUNG (2026-10-12, nach Unterbrechung)
 > Der Spieler hatte eine Shell-Operation geflogen, die `js/ui.js` in eine
@@ -23,6 +35,8 @@
 5. **v0.6.7 Cooldown-Tuning** im Playtest
 6. **v0.6.8** — Flug-Trigger `SW.Quests.flight()` (⚠ Code fehlt, s. unten), Zeitungs-Artikel
    (40+), Zeitungs-Raum, 50+ Quests, Missionsbaum, Quest-Log-UI
+7. **GitHub** — Repo `tretboot/solo_wing_1990` anlegen, Push, Tags v0.6.5-rc + v0.6.9-rc
+8. **v0.70** — Credits/Abspann (aus v0.6.9-final ausgeschieden, Scope-Entscheidung 2026-10-13)
 
 ## v0.6.6 — "Sprung & Dialog" (fertig)
 - [x] JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story-Zeilen mit TTS, LEER=skip)
@@ -121,6 +135,7 @@
 
 ## v0.70 — "Enden & Papierkram"
 - [ ] **3 Enden** (Sieg / Tod / Geheim)
+- [ ] **Credits/Abspann** (aus v0.6.9-final verschoben)
 - [ ] **Fax-Drucker UI** (Quest-Feedback als animiertes Fax)
 - [ ] **Aktenschrank** (Büro: 5 Akten lesen → Flag → neuer Dialog)
 - [ ] **Optimierer-Erscheinen** (nach m4, Bar, Dialog)
@@ -150,7 +165,7 @@
 - [ ] **Beerdigungs-Event** (Kapelle nach Tod, Kerzen zünden) — Klein
 - [ ] **Carrier-Interaktion** (3-Treffer-Warnung, One-Hit-Kill) — Klein
 - [ ] **Romantik-System**, **Waffenausbau**, **Formation-Burst**, **Determination-Knob**,
-      **Rout-Logik**, **Escort-Logik**, **Mehr Systeme**, **Save/Load**
+      **Rout-Logik**, **Escort-Logik**, **Mehr Systeme**
 
 ---
 

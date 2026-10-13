@@ -2,6 +2,59 @@
 
 > **Team-Note (Flotten-Commander):** Die Iteration ist superschnell geworden. v0.1 → v0.6.5-beta in Rekordzeit. Das Dorf lebt jetzt. 7 neue NPCs. Die Wandkarte hängt an der Wand. Das Team (Commander, Lead Story, No Thinking, Code Review) liefert. Lob an alle. Weiter so.
 
+## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
+
+### Neue Features
+- **SPINDE (13. Raum, Bunker):** NPC-freie eigene Kabine, an die Kantine
+  angebaut. Spindwand, eigener Spind mit Namensschild (Pilotenname aus dem
+  Intro), Lagerbett, Plakat ("Kontakt: niemand") und die Bunker-Tür.
+  Die Tür trägt den Pilotennamen — `TÜR: <NAME>` — und blinkt.
+- **Save/Load-Panel (SPINDE):** Klick auf die Bunker-Tür öffnet das Panel
+  ([1] SPEICHERN, [2] LADEN, [3] EXPORT, [4] LÖSCHEN, [5] SCHLIESSEN).
+  `js/savegame.js` (localStorage-Key `sw1990_save`) war fertig, aber nie
+  eingebunden — jetzt in `index.html` (29 Skripte im Smoke-Test) und an
+  das Panel gekoppelt. Sarcastischer Platzhalter: "Sie haben bisher ohne
+  Savegame überlebt. Respekt."
+- **Dialog-Box (Bar):** Höhe 38→60px, Umbruch 40→65 Zeichen, neue
+  `SW.NPC.renderRoomFace()`-API (Gesichter in Raumszenen, nutzt die
+  bestehende `drawFace`-Bausteine).
+- **Wiki-Hub** (`site/wiki.html`): organische Sammlung statt Zweite-Welt-
+  Doku-Tree — verlinkt auf die existierenden Seiten (Konzepte, Team, Crew,
+  Räume, Ethikrat, Entwicklung, Agent-Benchmarks, Agenten-Reports).
+
+### Bugfixes
+- **Intro-Musik-Loop:** Der `ended`-Handler rief `playIntroMusic()` erneut
+  auf, das early-returnete (`introMusicStarted` war noch true) → die Musik
+  lief einmal durch und blieb für immer still. Jetzt ruft der Loop die
+  interne `_startIntroMusicSeq()` auf. `startMusic('intro')` bleibt der
+  kanonische Weg.
+- **stopMusic()/toggleMusic():** Stoppten nur das State-Musik-System, die
+  Intro-Musik lief weiter. Jetzt stoppt `stopMusic()` beides (Menü/Dialog
+  = volle Stille), `toggleMusic()`/`[P]` betrachtet beide Systeme.
+- **Minimap-Grid:** 5×2-Fix für 10 Räume — jetzt auto (13 Räume = 7×2),
+  kein Punkt mehr außerhalb des Kastens. Cheat-Map: 4×3→5×3-Grid
+  (13 Boxen passen ins 640×400-Bild).
+
+### Architektur-Entscheidungen
+| Entscheidung | Begründung |
+|---|---|
+| SPINDE = 13. Raum, an Kantine angebaut | Logische Nachbarschaft (Barracken/Speisewagen), NPC-frei, eigener Akzent (#ffaa00). |
+| Save-Slot: EIN Slot (localStorage) | Konzept v0.6.9. Multi-Slot in v0.70+ (Fax-Archiv). |
+| Export = JSON-Datei-Download | "Auf einen Datenträger schreiben (Fax-Archiv +1)." |
+| ESC schließt zuerst das Panel, dann Menü | Erwartung: ESC geht immer einen Schritt zurück. |
+| Wiki = Hub-Seite, kein Zweiter Baum | Organic: verlinkt die existierenden Seiten, dupliziert nichts. |
+| WC1_PCI_ANALYSE.md: C-Auszüge → Beschreibung | Kein externer Code im Repo. Konzepte bleiben, Blöcke werden Prosa. |
+
+### Bekannte Limitationen
+- Save ist ein Slot (kein Multi-Slot), Export ist Datei-Download (keine
+  Share-Features).
+ - Credits/Abspann: **aus v0.6.9-final ausgeschlossen** (Scope-Entscheidung),
+  offen für v0.70.
+- Observationsdeck-Licht (Sektorenfarbe auf dem Deck): konzeptionell
+  dokumentiert, Implementation aufgeschoben (s. KONZEPTE.md).
+- Smoke-Test: **ALLE TESTS OK** (29 Skripte, 13 Räume, SPINDE + Save/Load
+  neu abgedeckt).
+
 ## v0.6.9-dev — "Wiederherstellung & Doku" (2026-10-12)
 
 ### Bugfixes

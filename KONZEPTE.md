@@ -1,5 +1,48 @@
 # SOLO WING 1990 — Konzepte & Design-Überlegungen
 
+## v0.6.9-final: SPINDE, Save/Load, Audio & Wiki (2026-10-13)
+
+> Entscheidungen der Final-Session: SPINDE als 13. Raum, Save/Load-Integration,
+> Audio-Fixes, Repo-Cleanup für GitHub, organische Wiki-Hub-Seite.
+
+### SPINDE (Bunker)
+- 13. Raum, **NPC-frei**, logisch an die Kantine angebaut (Barracken neben
+  Speisewagen). Zweck: "Eigene Kabine. Save/Load. Hier kommen keine rein."
+- Eigenes Art: Spindwand (2 Reihen Metallschränke), **eigener Spind mit
+  Namensschild** (Pilotenname aus dem Intro), Lagerbett, Plakat
+  ("SAVE/LOAD / SPINDE-EINGANG / Kontakt: niemand"), Bunker-Tür.
+- Die Tür trägt den Pilotennamen (`TÜR: <NAME>`, blinkend) — das ist der
+  Spieler-Spot im Träger. Klick → Save/Load-Panel.
+- Panel: [1] SPEICHERN, [2] LADEN, [3] EXPORT (JSON-Download),
+  [4] LÖSCHEN, [5] SCHLIESSEN. Tasten + Klick, ESC schließt zuerst das
+  Panel (dann erst das Menü). Feedback-Zeile + letzter Save-Zeitstempel.
+- Save-Slot: **EIN** Slot (localStorage `sw1990_save`). Multi-Slot gehört
+  in v0.70+ (Formular 83-D-Archiv / Fax-Archiv).
+
+### Audio (final)
+- `startMusic('intro')` bleibt der kanonische Intro-Weg (INTRO-Start).
+- **Loop-Fix:** Der `ended`-Handler rief `playIntroMusic()` erneut auf,
+  das early-returnete (Gate `introMusicStarted`) → Musik lief einmal und
+  war dann still. Jetzt ruft der Loop die interne `_startIntroMusicSeq()`
+  auf (ohne Gate).
+- **Stille-Regel:** Menü/Dialog = volle Stille. `stopMusic()` stoppt jetzt
+  ALLE Systeme (State-Musik + Intro-Musik).
+- **[P]/`toggleMusic()`:** betrachtet beide Systeme; an wenn beide aus,
+  aus wenn eins an.
+
+### Wiki (organisch)
+- Eine Hub-Seite (`site/wiki.html`), **kein** Zweiter-Doku-Baum. Sie
+  verlinkt die existierenden Seiten (Konzepte, Team, Crew, Räume, Ethikrat,
+  Entwicklung, Agent-Benchmarks, Agenten-Reports, Handbuch, Design-Bibel).
+  Neue Doku landet erst in den Stammdateien, die Wiki verlinkt nach.
+
+### Observationsdeck-Licht (Konzept, aufgeschoben)
+- Idee: Das Observationsdeck bekommt seine eigene, pro Sektor variierende
+  Lichtstimmung (über das bestehende Sektoren-Licht hinaus).
+- **Status: aufgeschoben.** Kein harsches Spec; wenn später, dann:
+  Deck-Akzentfarbe pro Sektor + eine Hinweiszeile ("Sektor 7. Es ist dunkel
+  draußen. Es ist immer dunkel draußen.").
+
 ## v0.6.6-CYCLE: Sprung, Story, Musik, Optik (Plan, 2026-10)
 
 > Feedback (Flotten-Commander): öfter Sprung von System X nach Y mit Backdrop + Story
