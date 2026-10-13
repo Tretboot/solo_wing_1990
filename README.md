@@ -44,12 +44,12 @@ INTRO → AKADEMIE → COCKPIT (Sim) → AKADEMIE (Ergebnis) → ARRIVAL → BAR
   │         └── Sim-Flug (bestanden / nicht bestanden, Pro forma)      └── [ Taste ] → SHIP
   └── Asteroidenfeld → Pilotenname → Zuordnung
 
-Mission: SHIP → … → TAKEOFF → COCKPIT → LANDING → HANGAR → DEBRIEFING (Sieg) → SHIP
+Mission: SHIP → … → TAKEOFF → COCKPIT → LANDING → HANGAR → DEBRIEFING (Sieg) → CREDITS → SHIP
 Tod:     COCKPIT → DEBRIEFING (KONTAKT VERLOREN) → SHIP
 ```
 
 - **ARRIVAL:** Zwischenszene nach der Akademie — Träger kommt näher, "Willkommen an Bord", dann in die Räume.
-- **HANGAR:** Nach Landung. Bolt geht zum Schiff, kommentiert (je nach Schaden) → Sieg-Debriefing → Träger.
+- **HANGAR:** Nach Landung. Bolt geht zum Schiff, kommentiert (je nach Schaden) → Sieg-Debriefing → Abspann (CREDITS) → Träger.
 - **INFO:** Kleines Panel ([I] im Menü) — Version, MIT-Lizenz, Credits.
 
 - **INTRO:** Asteroidenfeld (Drift + Ausweichen, nicht tot) → Pilotenname → Zuordnung
@@ -72,7 +72,7 @@ solo_wing_1990/
 ├── TIMELINE.md         ← Story-Timeline (für die Bible)
 ├── TODO.md             ← Todo-Liste
 ├── WC1_PCI_ANALYSE.md  ← WC1 NPC-KI Referenz
-├── js/ (21 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests,
+├── js/ (20 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests,
 │                         Akademie, Intro, NPC, Dialogue, Savegame, Newspaper, Manual
 ├── data/ (9 Dateien)   ← Missions, Dialogues, Systeme, Crew, Räume, Lore, Schiffe, Quests, Akademie
 ├── _smoke_test.js      ← Test (node _smoke_test.js)
@@ -196,6 +196,8 @@ Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
 ---
 
 ## VERSION
+
+**v0.70-dev** — Abspann/Credits: Nach dem Sieg-Debriefing läuft der rollende Abspann (1990-Style) — Crew-Liste aus `SW.Crew`, Pilotenname, Produktions-Credits; [LEER] = Weiterspulen, [ESC] = schließen. Tod geht ohne Abspann direkt zum Träger. GitHub-Repo ist live: `tretboot/solo_wing_1990` (Push + Tag `v0.6.9-final`).
 
 **v0.6.9-final** — SPINDE (13. Raum, Bunker) mit Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub. Darunter: Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum).
 

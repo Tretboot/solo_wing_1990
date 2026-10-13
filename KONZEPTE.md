@@ -1,5 +1,15 @@
 # SOLO WING 1990 — Konzepte & Design-Überlegungen
 
+## v0.70-dev: Abspann (2026-10-13)
+
+- [x] **Credits/Abspann als eigener State (CREDITS):** Nach Sieg: HANGAR →
+      DEBRIEFING → CREDITS → SHIP. Tod (KONTAKT VERLOREN): DEBRIEFING → SHIP
+      (kein Abspann — die Trauerfeier hat keine Credits verdient).
+      Rollender Text (1990-Style) über Sternenfeld, [LEER] = Weiterspulen /
+      am Ende: zum Träger, [ESC] = schließen, nach 5 s am Ende automatisch
+      weiter. Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot),
+      Pilotenname aus dem Intro. Musik: Stille wie in Menüs.
+
 ## v0.6.9-final: SPINDE, Save/Load, Audio & Wiki (2026-10-13)
 
 > Entscheidungen der Final-Session: SPINDE als 13. Raum, Save/Load-Integration,
@@ -290,17 +300,19 @@ FRONTLAGE: Stabil. Piraten zurückgedrängt.
       Krater, Atmosphäre in System-Farbe), **Sternenbasis** (SEKTOR 7) als Silhouette.
 - [ ] **Neuer Raum: SCHIFFSKATALOG** (X-Wing-/TIE-Stil): alle Modelle aus `data/ships.js`
       groß + prozedural gezeichnet, Klick → Info-Panel (Rolle, Waffen, Formulare).
-      12. Raum → Minimap-Grid + Cheat-Map-Layout + Tür-Anbindung (Flugdeck).
-- [ ] **Beobachtungsdeck:** Planet in System-Farbe + System-Name (steht seit v0.6.4 offen).
+       12. Raum → Minimap-Grid + Cheat-Map-Layout + Tür-Anbindung (Flugdeck).
+- [x] **Beobachtungsdeck:** Planet in System-Farbe + System-Name + Sektoren-Licht
+      (seit v0.6.9-rc implementiert; Code-Check 2026-10-12 — die Checkbox war Wunschdenken).
 
 ### v0.70 — "Enden & Papierkram"
 - [ ] **3 Enden** (Sieg / Tod / Geheim)
+- [x] **Credits/Abspann:** CREDITS-State nach Sieg-Debriefing (2026-10-13, v0.70-dev)
 - [ ] **Fax-Drucker UI** (Quest-Feedback), **Aktenschrank** (5 Akten → Flag),
       **Optimierer-Erscheinen** (nach m4, Bar)
 - [ ] **Handbuch-Erweiterung:** 6 → 12 Kapitel (Universum, Fortgeschritten, Geheimnisse)
 - [ ] **RC-Paket v0.70-rc** + Doku-Pass
 
-### v0.6.9 — "Musik, Optik, Katalog & Website" (AKTUELL)
+### v0.6.9 — "Musik, Optik, Katalog & Website" (final, offene Punkte im Backlog)
 - [x] **Ingame Handbuch [H]:** 6 Kapitel, progressiv freigeschaltet
 - [x] **Externes Handbuch:** site/manual/ mit Corporate Design
 - [x] **Website-Überarbeitung:** Sternenkorps-Standard, Handbuch-Links

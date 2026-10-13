@@ -1,7 +1,7 @@
 // ===== SOLO WING 1990 — SMOKE TEST (temporär, wird gelöscht) =====
 // Lädt alle Skripte in index.html-Reihenfolge in einer Node-VM (DOM-Stubs)
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
-// COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → SHIP.
+// COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → DEBRIEFING → CREDITS → SHIP.
 // Skript-Liste AMT 29 Dateien = index.html (2026-10-13 synchronisiert:
 // + js/savegame.js (SPINDE/Save-Load, v0.6.9-final).
 const fs = require('fs');
@@ -153,7 +153,7 @@ check('Roll federt zurueck zu 0', SW.Player.rollAngle === 0);
 SW.Player.rollAngle = 0.4; pump(3);
 check('Cockpit mit Roll rendert', SW.Game.state === 'COCKPIT');
 
-// --- 7. LANDING -> HANGAR -> DEBRIEFING (Sieg) -> SHIP ---
+// --- 7. LANDING -> HANGAR -> DEBRIEFING (Sieg) -> CREDITS -> SHIP ---
 SW.Game.setState('LANDING');
 for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
 check('Landing -> HANGAR', SW.Game.state === 'HANGAR');
@@ -168,8 +168,23 @@ check('Sieg-Flag fuer Debriefing', SW.Game.victory === true);
 pump(2);
 check('Debriefing rendert', SW.Game.state === 'DEBRIEFING');
 SW.Input.keys['Space'] = true; pump(1);
-SW.Input.keys['Space'] = false;
-check('Debriefing -> SHIP (Taste)', SW.Game.state === 'SHIP');
+SW.Input.keys['Space'] = false; pump(1);
+check('Debriefing(Sieg) -> CREDITS (Taste)', SW.Game.state === 'CREDITS');
+check('CREDITS: Abspann-Text gebaut (Crew-Liste inkl.)', SW.Game._credits && SW.Game._credits.lines.length > 25);
+pump(10);
+check('CREDITS: scroll laeuft', SW.Game._credits.scroll > 0 && !SW.Game._credits.done);
+SW.Input.keys['Space'] = true; pump(1);
+SW.Input.keys['Space'] = false; pump(1);
+check('CREDITS: Space skippt zum Ende', SW.Game._credits.done === true);
+SW.Input.keys['Space'] = true; pump(1);
+SW.Input.keys['Space'] = false; pump(1);
+check('CREDITS -> SHIP (Taste)', SW.Game.state === 'SHIP');
+// Tod: Debriefing (KONTAKT VERLOREN) ohne Abspann, direkt zum Träger
+SW.Game.victory = false; SW._debHeld = false;
+SW.Game.setState('DEBRIEFING'); pump(1);
+SW.Input.keys['Space'] = true; pump(1);
+SW.Input.keys['Space'] = false; pump(1);
+check('Debriefing(Tod) -> SHIP (keine Credits)', SW.Game.state === 'SHIP');
 
 // --- 8. Schadensdialog ---
 SW.Player.frontShield = 20; SW.Player.rearShield = 90;

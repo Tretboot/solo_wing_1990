@@ -2,6 +2,33 @@
 
 > **Team-Note (Flotten-Commander):** Die Iteration ist superschnell geworden. v0.1 → v0.6.5-beta in Rekordzeit. Das Dorf lebt jetzt. 7 neue NPCs. Die Wandkarte hängt an der Wand. Das Team (Commander, Lead Story, No Thinking, Code Review) liefert. Lob an alle. Weiter so.
 
+## v0.70-dev — "Enden & Papierkram" (in Arbeit, 2026-10-13)
+
+### Neue Features
+- **Credits/Abspann (neuer State CREDITS):** Nach dem Sieg: Debriefing →
+  rollender Abspann (1990-Style) über Sternenfeld → Träger. Tod (KONTAKT
+  VERLOREN) geht ohne Abspann direkt zum Träger. Inhalt: Titel (FAX-TRAGÖDIE,
+  Formular 77-V), Pilotenname aus dem Intro + Beförderung, vollständige
+  Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot), Produktions-
+  Credits (Web Audio, Canvas, TTS, Physik, Save), Dank (GitHub "endlich"),
+  Schlusssatz: "Keine Katzen wurden bei der Entwicklung verletzt. Die Katze
+  bestritt den Vorfall dennoch nicht." Steuerung: [LEER] = Weiterspulen,
+  am Ende = zum Träger, [ESC] = schließen, nach 5 s am Ende automatisch
+  weiter. Debriefing-Prompt bei Sieg: "[ ZUM ABSANN ]". Edge-Detect verhindert
+  Klick-Through (die Taste, die den Wechsel ausgelöst hat, muss erst losgelassen
+  werden — dasselbe Muster wie in Hangar/Debriefing).
+- **GitHub:** Repo `tretboot/solo_wing_1990` live (Push + Tag `v0.6.9-final`).
+
+### Doku
+- Version-Banner → 0.70-dev (Intro-Titel, console.log, Savegame-Feld).
+- **Korrektur:** "Bekannte Limitation" Beobachtungsdeck-Licht war falsch —
+  das Sektoren-Licht (Fenster + Deck) ist seit v0.6.9-rc implementiert.
+  KONZEPTE-Checkbox + dieser Eintrag waren Wunschdenken.
+
+### Bekannte Limitationen
+- Abspann nur nach Sieg (Todes-/Geheim-Ende: v0.70 "3 Enden").
+- Scroll-Geschwindigkeit fest (0.55 px/Frame), kein Regler.
+
 ## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
 
 ### Neue Features
@@ -49,9 +76,9 @@
 - Save ist ein Slot (kein Multi-Slot), Export ist Datei-Download (keine
   Share-Features).
  - Credits/Abspann: **aus v0.6.9-final ausgeschlossen** (Scope-Entscheidung),
-  offen für v0.70.
-- Observationsdeck-Licht (Sektorenfarbe auf dem Deck): konzeptionell
-  dokumentiert, Implementation aufgeschoben (s. KONZEPTE.md).
+   seit v0.70-dev umgesetzt (CREDITS-State).
+- [korrigiert v0.70-dev] Beobachtungsdeck-Licht: war bereits seit v0.6.9-rc
+  implementiert (Sektoren-Farbe in Fenster + Deck) — Eintrag war Wunschdenken.
 - Smoke-Test: **ALLE TESTS OK** (29 Skripte, 13 Räume, SPINDE + Save/Load
   neu abgedeckt).
 

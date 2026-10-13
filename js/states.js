@@ -755,7 +755,99 @@ SW.Game = {
     ctx.fillText('EINSATZBEWERTUNG: '+this.score,SW.CX,120);
     const blink=Math.floor(Date.now()/500)%2===0;
     ctx.fillStyle=blink?'#fff':'#888';ctx.font='9px monospace';
-    ctx.fillText('[ ZURÜCK ZUM TRÄGER ]',SW.CX,150);
+    ctx.fillText(this.victory ? '[ ZUM ABSANN ]' : '[ ZURÜCK ZUM TRÄGER ]',SW.CX,150);
     ctx.textAlign='left';
+  },
+  // ===== CREDITS / ABSANN (v0.70) =====
+  // Nach dem Sieg: Debriefing → rollender Abspann (1990-Style) → Träger.
+  // Tod (KONTAKT VERLOREN) geht ohne Abspann direkt zum Träger.
+  // [LEER] = weiterspulen (am Ende: zum Träger), [ESC] = schließen,
+  // nach 5 s am Ende automatisch zum Träger.
+  startCredits() {
+    this._credits = this._buildCredits();
+    this.setState('CREDITS');
+  },
+  _buildCredits() {
+    const n = ((SW.World && SW.World.pilotName) || 'FLUG DREI').toUpperCase();
+    const L = [];
+    const line = (t, f, c, gap) => L.push({ t: t, f: f || '8px monospace', c: c || '#ccc', gap: gap || 0 });
+    line('FAX-TRAGÖDIE', 'bold 18px monospace', '#ffcc00', 12);
+    line('SOLO WING 1990', '10px monospace', '#fff', 6);
+    line('STERNENKORPS — EINSATZBERICHT ABGESCHLOSSEN — FORMULAR 77-V: AUSGEFÜLLT', '6px monospace', '#666', 18);
+    line('SOLO WING 1990', 'bold 10px monospace', '#0f0', 6);
+    line('Pilot: ' + n, '10px monospace', '#0f0', 4);
+    line('Beförderung: Gefreiter (per Fax)', '7px monospace', '#888', 18);
+    line('CREW DES FAX-TRAGÖDIE', 'bold 10px monospace', '#ffcc00', 8);
+    (SW.Crew || []).forEach((m) => {
+      let s = '';
+      if (m.status === 'gefallen') s = '  [ GEFALLEN IM DIENST ]';
+      else if (m.status === 'defekt') s = '  [ DEFEKT ]';
+      else if (m.status === 'urlaub') s = '  [ URLAUB ]';
+      line(m.name.toUpperCase() + ' — ' + m.posten + s, '7px monospace', m.status === 'gefallen' ? '#ff5555' : '#ccc', s ? 4 : 0);
+    });
+    line('', '8px monospace', '#ccc', 14);
+    line('HERGESTELLT VON', 'bold 10px monospace', '#ffcc00', 6);
+    line('tretboot — Konzept, Code, Design, Musik, Formulare', '7px monospace', '#ccc', 14);
+    line('MUSIK — Web Audio API (1 Melodie, 7 Instrumentierungen)', '7px monospace', '#aaa', 2);
+    line('GRAFIK — Canvas 640×400, vollständig prozedural', '7px monospace', '#aaa', 2);
+    line('STIMMEN — Speech Synthesis (14 Profile, Mikro-Variation)', '7px monospace', '#aaa', 2);
+    line('PHYSIK — Drift, Trägheit, Kältekammer', '7px monospace', '#aaa', 2);
+    line('SPEICHERSTELLE — localStorage, 1 Slot, Fax-Export', '7px monospace', '#aaa', 14);
+    line('DANK AN', 'bold 10px monospace', '#ffcc00', 6);
+    line('GitHub (endlich)', '7px monospace', '#aaa', 2);
+    line('Die Crew, die gestempelt hat', '7px monospace', '#aaa', 2);
+    line('Das Audit (es schaut immer)', '7px monospace', '#aaa', 2);
+    line('Die Katze (Unfall-Protokoll: README, GIT)', '7px monospace', '#aaa', 14);
+    line('Keine Katzen wurden bei der Entwicklung verletzt.', '8px monospace', '#fff', 4);
+    line('Die Katze bestritt den Vorfall dennoch nicht.', '8px monospace', '#fff', 18);
+    line('ENDE', 'bold 14px monospace', '#fff', 10);
+    line('v0.70-dev · STERNENKORPS', '6px monospace', '#666');
+    // Layout: ln.y = kumulierte y (0..Inhalthöhe), maxScroll = kompletter
+    // Text läuft über die Bildschirmtop-Kante hinaus (Einlauf von unten).
+    let y = 0;
+    L.forEach((ln) => {
+      const m = /(\d+)px/.exec(ln.f);
+      const s = m ? parseInt(m[1], 10) : 8;
+      ln.y = y;
+      y += s * 1.7 + ln.gap;
+    });
+    return { lines: L, scroll: 0, speed: 0.55, maxScroll: y + SW.H + 40, done: false, endWait: 0 };
+  },
+  updateCredits() {
+    const c = this._credits;
+    if (!c) return;
+    if (c.done) {
+      c.endWait++;
+      if (c.endWait > 300) this.setState('SHIP'); // nach 5 s am Ende: zum Träger
+      return;
+    }
+    c.scroll += c.speed;
+    if (c.scroll >= c.maxScroll) { c.scroll = c.maxScroll; c.done = true; }
+  },
+  renderCredits(ctx) {
+    const c = this._credits;
+    if (!c) return;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, SW.W, SW.H);
+    SW.Engine.renderStars(ctx, 0, 0); // 1990-Style: Sternenfeld hinter dem Abspann
+    ctx.textAlign = 'center';
+    for (const ln of c.lines) {
+      const y = SW.H + ln.y - c.scroll; // Text wandert nach oben: läuft unten rein, oben raus
+      if (ln.t && y > -16 && y < SW.H + 16) {
+        ctx.fillStyle = ln.c; ctx.font = ln.f;
+        ctx.fillText(ln.t, SW.CX, y);
+      }
+    }
+    ctx.textAlign = 'left';
+    const blink = Math.floor(Date.now() / 500) % 2 === 0;
+    if (c.done) {
+      ctx.fillStyle = blink ? '#fff' : '#666'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('[ LEERTASTE: ZUM TRÄGER ]', SW.CX, SW.H - 12);
+      ctx.fillStyle = '#666'; ctx.font = '6px monospace';
+      ctx.fillText('[ ESC ] SCHLIESSEN', SW.CX, SW.H - 26);
+    } else {
+      ctx.fillStyle = '#444'; ctx.font = '6px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('[ LEER ] WEITERSPULEN', SW.CX, SW.H - 8);
+    }
+    ctx.textAlign = 'left';
   }
 };

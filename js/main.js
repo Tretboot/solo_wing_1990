@@ -231,7 +231,7 @@
       if (t > 60 + lines.length*120 && anyKey && !SW._hangarHeld) {
         SW._hangarHeld = true;
         SW.Game._hangarTimer=0;
-          // Landung → Hangar → Debriefing (Sieg) → Träger
+          // Landung → Hangar → Debriefing (Sieg) → Abspann → Träger
         SW.Game.victory = true;
         SW.Game.setState('DEBRIEFING');
       }
@@ -241,8 +241,32 @@
       // Edge-Detect: Debriefing nicht überspringen, wenn die Taste aus dem Hangar/Tod noch gehalten wird
       const anyKey = SW.Input.getFirePressed()||SW.Input.getAnyKeyPressed();
       if (SW._debHeld === undefined) SW._debHeld = anyKey;
-      if (anyKey && !SW._debHeld) { SW._debHeld = true; SW.Game.setState('SHIP'); }
+      if (anyKey && !SW._debHeld) {
+        SW._debHeld = true;
+        // Sieg → Abspann (CREDITS), Tod → direkt zum Träger
+        if (SW.Game.victory) SW.Game.startCredits(); else SW.Game.setState('SHIP');
+      }
       if (!anyKey) SW._debHeld = false;
+    }
+    // CREDITS (Abspann): [LEER] = weiterspulen / am Ende: zum Träger, [ESC] = schließen
+    if (SW.Game.state==='CREDITS') {
+      // Edge-Detect: die Taste, die den Debriefing→CREDITS-Wechsel ausgelöst
+      // hat (im selben Frame!), muss erst losgelassen werden.
+      const crSpace = SW.Input.keys['Space'];
+      if (SW._crHeld === undefined) SW._crHeld = crSpace;
+      if (crSpace && !SW._crHeld) {
+        SW._crHeld = true;
+        const c = SW.Game._credits;
+        if (c && !c.done) { c.scroll = c.maxScroll; c.done = true; }
+        else SW.Game.setState('SHIP');
+      }
+      if (!crSpace) SW._crHeld = false;
+      if (SW._crEscHeld === undefined) SW._crEscHeld = SW.Input.keys['Escape'];
+      if (SW.Input.keys['Escape'] && !SW._crEscHeld) {
+        SW._crEscHeld = true;
+        SW.Game.setState('SHIP');
+      }
+      if (!SW.Input.keys['Escape']) SW._crEscHeld = false;
     }
   }
 
@@ -269,6 +293,7 @@
     else if (state==='ARRIVAL') { SW.Game._arrivalT=(SW.Game._arrivalT||0)+1; SW.Engine.updateStars(); SW.Game.renderArrival(ctx); }
     else if (state==='INFO') { SW.Game.renderInfo(ctx); }
     else if (state==='DEBRIEFING') { SW.Game.renderDebriefing(ctx); }
+    else if (state==='CREDITS') { SW.Game.updateCredits(); SW.Game.renderCredits(ctx); }
     else {
       SW.Player.update(SW.Game.frame); SW.Engine.updateStars();
       SW.Enemies.update(SW.Game.frame); SW.Projectiles.update();
@@ -288,5 +313,5 @@
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.6.9-final (SPINDE/Save-Load, Intro-Musik, Handbuch, Launch-Tube & Kamera)');
+  console.log('[SOLO WING 1990] Engine geladen. Version 0.70-dev (Abspann/Credits, SPINDE/Save-Load, Intro-Musik, Handbuch, Launch-Tube & Kamera)');
 })();

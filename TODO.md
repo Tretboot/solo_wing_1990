@@ -1,8 +1,21 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.6.9-final (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
+> Stand: v0.70-dev (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + Freies Universum).
 
 ---
+
+## v0.70-dev — "Enden & Papierkram" (in Arbeit, seit 2026-10-13)
+- [x] **Credits/Abspann:** neuer `CREDITS`-State nach dem Sieg-Debriefing — rollender Abspann (1990-Style) über Sternenfeld, Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot), Pilotenname aus dem Intro, Produktions-Credits, [LEER] = Weiterspulen / am Ende zum Träger, [ESC] = schließen, nach 5 s automatisch weiter. Tod → ohne Abspann direkt zum Träger. Debriefing-Prompt: "[ ZUM ABSANN ]"
+- [x] **GitHub:** Repo `tretboot/solo_wing_1990` angelegt, Push + Tag `v0.6.9-final` (2026-10-13)
+- [x] **Version-Banner → 0.70-dev** (Intro-Titel, console.log, Savegame-Feld)
+- [x] **Doku-Korrektur:** Beobachtungsdeck-Licht ist seit v0.6.9-rc implementiert (Sektoren-Licht in Fenster + Deck) — KONZEPTE-Checkbox + PATCHNOTES-Limitation waren Wunschdenken
+- [x] **Screenshot-Pipeline verifiziert** (Agent-Chat, für den künftigen Grafik-Overhaul)
+- [ ] **3 Enden** (Sieg / Tod / Geheim)
+- [ ] **Fax-Drucker UI** (Quest-Feedback als animiertes Fax)
+- [ ] **Aktenschrank** (Büro: 5 Akten lesen → Flag → neuer Dialog)
+- [ ] **Optimierer-Erscheinen** (nach m4, Bar, Dialog)
+- [ ] **Externes Handbuch:** 6 → 12 Kapitel
+- [ ] **RC-Paket v0.70-rc**
 
 ## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
 - [x] **SPINDE (13. Raum, Bunker):** Daten (Kantine angebaut, `npcs: []`) + prozedurale Art (Spindwand, eigener Spind mit Pilotennamen, Lagerbett, Plakat) + Bunker-Tür (Name, blinkt)
@@ -14,7 +27,7 @@
 - [x] **Doku:** README v0.6.9-final, PATCHNOTES, KONZEPTE, Wiki-Hub (`site/wiki.html`) + Nav-Link
 - [x] **Smoke-Test:** ALLE TESTS OK (13 Räume, SPINDE, Save/Load-API)
 - [ ] **Playtest im Browser:** SPINDE-Besuch + Save/Load-Runde (Speichern → Neuladen → Laden)
-- [ ] **GitHub-Push:** `github.com/tretboot/solo_wing_1990` anlegen + Push (Guide in der Session-Historie)
+- [x] **GitHub-Push:** Repo angelegt + Push + Tag `v0.6.9-final` (2026-10-13)
 
 ## WIEDERHERSTELLUNG (2026-10-12, nach Unterbrechung)
 > Der Spieler hatte eine Shell-Operation geflogen, die `js/ui.js` in eine
@@ -35,8 +48,8 @@
 5. **v0.6.7 Cooldown-Tuning** im Playtest
 6. **v0.6.8** — Flug-Trigger `SW.Quests.flight()` (⚠ Code fehlt, s. unten), Zeitungs-Artikel
    (40+), Zeitungs-Raum, 50+ Quests, Missionsbaum, Quest-Log-UI
-7. **GitHub** — Repo `tretboot/solo_wing_1990` anlegen, Push, Tags v0.6.5-rc + v0.6.9-rc
-8. **v0.70** — Credits/Abspann (aus v0.6.9-final ausgeschieden, Scope-Entscheidung 2026-10-13)
+7. **GitHub** — ✅ Repo angelegt + Push + Tag v0.6.9-final (2026-10-13); Tags v0.6.5-rc/v0.6.9-rc noch offen
+8. **v0.70** — ✅ Credits/Abspann (v0.70-dev, 2026-10-13); Rest: 3 Enden, Fax-UI, Aktenschrank, Optimierer
 
 ## v0.6.6 — "Sprung & Dialog" (fertig)
 - [x] JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story-Zeilen mit TTS, LEER=skip)
@@ -135,7 +148,7 @@
 
 ## v0.70 — "Enden & Papierkram"
 - [ ] **3 Enden** (Sieg / Tod / Geheim)
-- [ ] **Credits/Abspann** (aus v0.6.9-final verschoben)
+- [x] **Credits/Abspann** (in v0.70-dev umgesetzt, 2026-10-13: CREDITS-State nach Sieg)
 - [ ] **Fax-Drucker UI** (Quest-Feedback als animiertes Fax)
 - [ ] **Aktenschrank** (Büro: 5 Akten lesen → Flag → neuer Dialog)
 - [ ] **Optimierer-Erscheinen** (nach m4, Bar, Dialog)
