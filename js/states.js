@@ -93,7 +93,7 @@ SW.Game = {
     this._arrivalT = 0;
     SW.Engine.initStars();
     const n = (SW.World && SW.World.pilotName) || 'FLUG DREI';
-    if (SW.TTS) SW.TTS.speak('Willkommen an Bord, ' + n + '. Die Spinde ist frei. Der Aufzug zum Stab ist in Arbeit. Sie steigen die Treppe.', 'COMMANDER');
+    if (SW.TTS) SW.TTS.speak('Willkommen an Bord, ' + n + '. Der Aufzug zum Stab ist in Arbeit defekt. Bitte nehmen sie die Treppe.', 'COMMANDER');
     this.state = 'ARRIVAL';
   },
   renderArrival(ctx) {
@@ -134,8 +134,8 @@ SW.Game = {
     }
     if (t > 150) {
       ctx.fillStyle='#aaa';ctx.font='7px monospace';
-      ctx.fillText('Spinde 14 ist frei. Schlüssel liegt bei Sechs.',SW.CX,120);
-      ctx.fillText('Der Aufzug zum Stab ist in Arbeit. Sie steigen die Treppe.',SW.CX,133);
+      ctx.fillText('Quartier 14 ist frei. Schlüssel liegt bei Sechs.',SW.CX,120);
+      ctx.fillText('Der Aufzug zum Stab ist in Arbeit leider defekt. Nehmen sie die Treppe.',SW.CX,133);
     }
     if (t > 90) {
       const blink=Math.floor(Date.now()/500)%2===0;
@@ -823,7 +823,7 @@ SW.Game = {
     });
     line('', '8px monospace', '#ccc', 14);
     line('HERGESTELLT VON', 'bold 10px monospace', '#ffcc00', 6);
-    line('tretboot — Konzept, Code, Design, Musik, Formulare', '7px monospace', '#ccc', 14);
+    line('Tretboot — Konzept, Code, Design, Musik, Formulare', '7px monospace', '#ccc', 14);
     line('MUSIK — Web Audio API (1 Melodie, 7 Instrumentierungen)', '7px monospace', '#aaa', 2);
     line('GRAFIK — Canvas 640×400, vollständig prozedural', '7px monospace', '#aaa', 2);
     line('STIMMEN — Speech Synthesis (14 Profile, Mikro-Variation)', '7px monospace', '#aaa', 2);

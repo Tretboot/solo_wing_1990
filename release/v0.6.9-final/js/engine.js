@@ -78,10 +78,12 @@ SW.Engine = {
   // nah = stärker, weit = schwächer).
   updateStars() {
     const p = SW.Player;
-    const fwd = (p && p.speed) ? p.speed : SW.STAR_SPEED;
+    const rawFwd = (p && Number.isFinite(p.speed)) ? p.speed : 0;
+    const fwd = Math.max(SW.STAR_SPEED, rawFwd);
+    const flow = Math.min(fwd, 12);
     const vx = (p && p.vx) || 0, vy = (p && p.vy) || 0;
     for (const s of this.stars) {
-      s.z -= fwd;
+      s.z -= flow;
       const par = 0.25 + (s.z/500)*0.75;
       s.x -= vx * SW.STAR_LATERAL * par;
       s.y -= vy * SW.STAR_LATERAL * par;

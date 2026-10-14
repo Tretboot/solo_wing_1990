@@ -120,14 +120,17 @@
 - Abspann nur nach Sieg (Todes-/Geheim-Ende: v0.70 "3 Enden").
 - Scroll-Geschwindigkeit fest (0.55 px/Frame), kein Regler.
 
-## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
+## v0.6.9-final — "Quartiere, Save/Load & Audio-Fix" (2026-10-13)
 
 ### Neue Features
-- **SPINDE (13. Raum, Bunker):** NPC-freie eigene Kabine, an die Kantine
-  angebaut. Spindwand, eigener Spind mit Namensschild (Pilotenname aus dem
-  Intro), Lagerbett, Plakat ("Kontakt: niemand") und die Bunker-Tür.
-  Die Tür trägt den Pilotennamen — `TÜR: <NAME>` — und blinkt.
-- **Save/Load-Panel (SPINDE):** Klick auf die Bunker-Tür öffnet das Panel
+- **Quartiere statt Spinde:** Der Träger bekommt ein echtes Quartier-System.
+  Jeder Charakter erhält seinen eigenen Raum, inklusive NPCs. Die Räume
+  dienen als persönliche Nische, Arbeitsplatz, Schlafplatz oder Ort der
+  Spurensammlung; das ist die erste klare Behausungslogik für das Schiff.
+  Das Ziel ist nicht bloß ein dekorativer Nebenraum, sondern ein eigenes
+  Lebens- und Story-Subsystem auf dem Träger.
+- **Save/Load-Panel (Quartier-Interface):** Im persönlichen Raum wird ein
+  kleines Panel für Speichern, Laden, Export und Löschen geöffnet
   ([1] SPEICHERN, [2] LADEN, [3] EXPORT, [4] LÖSCHEN, [5] SCHLIESSEN).
   `js/savegame.js` (localStorage-Key `sw1990_save`) war fertig, aber nie
   eingebunden — jetzt in `index.html` (29 Skripte im Smoke-Test) und an
@@ -139,6 +142,13 @@
 - **Wiki-Hub** (`site/wiki.html`): organische Sammlung statt Zweite-Welt-
   Doku-Tree — verlinkt auf die existierenden Seiten (Konzepte, Team, Crew,
   Räume, Ethikrat, Entwicklung, Agent-Benchmarks, Agenten-Reports).
+
+### Release-Absicht
+- Ab hier wird die Struktur deutlich besser, die Räume werden nicht mehr
+  bloß als Kulisse dienen, sondern als echte Spielräume mit Persönlichkeit.
+  Das nächste Ziel ist kein bloßes Polieren, sondern ein realistischer
+  Sprung in Spielbarkeit: klarer, konsistener und irgendwann wirklich
+  spielbar.
 
 ### Bugfixes
 - **Intro-Musik-Loop:** Der `ended`-Handler rief `playIntroMusic()` erneut

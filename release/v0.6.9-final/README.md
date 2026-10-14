@@ -201,7 +201,7 @@ Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
 
 **v0.70-dev** — Abspann/Credits: Nach dem Sieg-Debriefing läuft der rollende Abspann (1990-Style) — Crew-Liste aus `SW.Crew`, Pilotenname, Produktions-Credits; [LEER] = Weiterspulen, [ESC] = schließen. Tod geht ohne Abspann direkt zum Träger. GitHub-Repo ist live: `tretboot/solo_wing_1990` (Push + Tag `v0.6.9-final`).
 
-**v0.6.9-final** — SPINDE (13. Raum, Bunker) mit Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub. Darunter: Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum).
+**v0.6.9-final** — Quartiere auf dem Träger: Jeder Charakter bekommt einen eigenen Raum, inklusive NPCs; Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub. Darunter: Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum). Ab hier wird die Struktur besser, der Spielfluss klarer und die Spielbarkeit ernsthaft angestrebt.
 
 **v0.6.5-rc** — Cheatmenü + Wandkarte + 7 neue NPCs + Transfer-Zwischenszene + Hangar→Debriefing + Rollen (Q/E) + Nav-Karte (N) + Info-Panel + MIT-Lizenz.
 

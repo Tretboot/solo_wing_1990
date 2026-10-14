@@ -1,6 +1,6 @@
 # SOLO WING 1990 — FINAL RELEASE NOTES
 
-## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix"
+## v0.6.9-final — "Quartiere, Save/Load & Audio-Fix"
 
 **Final Release** | Sternenkorps Internes Netzwerk | GitHub-Ready
 
@@ -8,14 +8,14 @@
 
 ### ✨ NEUE FEATURES
 
-#### SPINDE (Raum 13 / Bunker)
-- Eigener Bunker-Raum an der Kantine angebaut
-- Spindwand, eigenes Namensschild, Lagerbett, Tür-Animation
-- Der Bunker trägt den Pilotennamen als `TÜR: <NAME>`
-- Reiner Fokus auf persönliche Gegenstände, Pflege und Atmosphäre
+#### QUARTIERE AUF DEM TRÄGER
+- Jeder Charakter bekommt einen eigenen Raum
+- Auch NPCs erhalten individuelle Quartiere auf dem Schiff
+- Die Räume dienen als persönliche Nische, Schlaf-, Arbeits- und Story-Orte
+- Damit wird die Schiffsstruktur von bloßer Kulisse zu einem echten Lebensraum
 
 #### SAVE / LOAD PANEL
-- Save/Load/Export/Delete in der SPINDE implementiert
+- Save/Load/Export/Delete im Quartier-Interface implementiert
 - localStorage-Storage mit einem Slot, passend zur v0.6.9-Architektur
 - Export als JSON-Datei für manuelles Backup oder Archivierung
 - Direkte Integration in `index.html` und `js/savegame.js`
@@ -91,11 +91,13 @@ Wenn der Remote bereits konfiguriert ist, kann der Release direkt als GitHub Rel
 ### 📋 KURZFASSUNG
 
 Dieser Release schließt die v0.6.9-Phase ab:
-- SPINDE + Bunker-Atmosphäre
+- Quartiere mit persönlichem Raum für Crew und NPCs
 - Save/Load-Workflow
 - Musik-/Audio-Konsistenz
 - Dialog-/Gesichtsfunktionen
 - Doku- und Website-Integrationen
 - Smoke-Test grün
+
+Ab hier wird die Struktur deutlich besser, die Räume werden ernsthaft Teil des Spiels, und das Ziel ist klar: mehr Spielbarkeit, konsistenteres Design und irgendwann wirklich spielbar.
 
 *"Wir fliegen allein. Wir fliegen zusammen."*

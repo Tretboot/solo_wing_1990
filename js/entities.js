@@ -317,7 +317,7 @@ SW.Wingman = {
   },
   onFirstKill() {
     if (!this.active) return;
-    SW.Comm.add("SECHS: Einer weniger. Guter Schuss. Das Formular sagt 'abgeschlossen', nicht 'abgeknallt'.");
+    SW.Comm.add("SECHS: Einer weniger. Guter Schuss. Das Formular sagt 'abgeschossen', nicht 'abgeknallt'.");
   },
   onDeath() {
     if (!this.active) return;
