@@ -640,6 +640,21 @@ SW.Game = {
       ctx.fillStyle='#00aaff';ctx.font='6px monospace';ctx.textAlign='center';
       ctx.fillText('◈ AUTOPILOT ◈',SW.CX,12);ctx.textAlign='left';
     }
+    // IM RAUM (NAV): Distanz zum nächsten Nav-Punkt (WC1-Nav-Anzeige).
+    // Die Gegnergruppen stehen an den WPs — der Pfeil zeigt, wo es laut.
+    {
+      const nps=SW.Autopilot.navPoints;
+      let np=null, nIdx=-1;
+      if (SW.Autopilot.active&&SW.Autopilot.target) { np=SW.Autopilot.target; nIdx=SW.Autopilot.currentNavIndex-1; }
+      else { for (let i=0;i<nps.length;i++) { if (nps[i].z===undefined||SW.Player.z<nps[i].z+150) { np=nps[i]; nIdx=i; break; } } }
+      if (np&&np.z!==undefined&&np.z-SW.Player.z>0) {
+        const d=Math.round(np.z-SW.Player.z);
+        const lat=(np.x||0)-SW.Player.x;
+        const arrow=Math.abs(lat)<30?'  ':(lat<0?'◀ ':'▶ ');
+        ctx.fillStyle='#0af';ctx.font='6px monospace';ctx.textAlign='center';
+        ctx.fillText(arrow+'NAV WP'+(nIdx+1)+'  D:'+d,SW.CX,SW.H-16);ctx.textAlign='left';
+      }
+    }
     // Nav-Hinweis
     if (SW.UI.navMapVisible) {
       ctx.fillStyle='#0af';ctx.font='5px monospace';ctx.textAlign='center';

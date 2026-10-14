@@ -30,9 +30,18 @@
       README, Wiki)
 - [x] **Smoke-Test:** +14 IM-RAUM-Checks (Vorschub, Burn, relative Projektion,
       Sternen-Flow, Brains-Distanz, Wingman-Formation, Träger-Feld) — ALLE TESTS OK
-- [ ] **M4 Missionen & Balance:** Wellen-Design für Brains (gemischte Typen,
-      gestaffelte Spawns), Schwierigkeitskurve, Autopilot unter 3D-Bedingung,
-      Damage/HP/Fire-Rate-Balance
+- [x] **M4a NAV & Flyby (2026-10-13):** Nav-Punkte mit Welt-z (Route ab
+      Takeoff), Welle i am WP i (Gegner an den Waypoints), Autopilot [T] mit
+      z-Ebenen-Passage + WP-Handover + Funk, Flyby-Burn auf der Ausstreckung,
+      Nav-Karte (Route, Distanz, nächster WP), NAV-HUD (Distanz + Pfeil),
+      Radar/Space-Map spieler-relativ, [A]-Fix (WASD) — +9 Smoke-Checks OK
+- [x] **Spec-Sheet WC1-Flugmodell:** `SPEC-FLUGMODELL.md` (Ist/Ziel/Phasen
+      P1–P5, Mathematik, Konstanten, Akzeptanzkriterien, Datei-Map).
+      P1 (NAV) steht; P2 = Vektor-Flugmodell (vel + yaw/pitch + Trägheit),
+      P4 = Bewegung auf der Karte (Sektor-Geometrie)
+- [ ] **M4 Missionen & Balance (Rest):** Wellen an den WPs feintunen
+      (Typen-Mix pro WP, Stagger), Schwierigkeitskurve,
+      Damage/HP/Fire-Rate-Balance (Playtest)
 - [ ] **M5 Polish:** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
       Ereignis (Radar + Nachruf), Träger-Funk im Feld, Burn-Flash, Handbuch-
       Kapitel "Fliegen", Top-Down-Balancing mit Brains

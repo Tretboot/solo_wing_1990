@@ -16,29 +16,37 @@ SW.Player = {
   update(frame) {
     if (!this.alive) return;
     let ix=0,iy=0;
-    // IM RAUM (v0.75-dev): Vorschub — Cruise oder Nachbrenner [SHIFT].
-    // Sterne + Motor-Sound + HUD spiegeln diese Geschwindigkeit wider.
     const sh = SW.Input.keys['ShiftLeft']||SW.Input.keys['ShiftRight'];
-    this.burning = !!sh;
-    const tSpd = sh ? SW.FORWARD_BURN : SW.FORWARD_BASE;
-    this.speed += (tSpd - this.speed) * SW.FORWARD_ACCEL;
-    this.z += this.speed;
     // Rollen (Q/E): reine Sicht-Rotation, federt in Ruhe zurück zur Mitte
     if (SW.Input.keys['KeyQ']) this.rollAngle -= SW.ROLL_SPEED;
     if (SW.Input.keys['KeyE']) this.rollAngle += SW.ROLL_SPEED;
     if (!SW.Input.keys['KeyQ'] && !SW.Input.keys['KeyE']) this.rollAngle *= SW.ROLL_DECAY;
     if (Math.abs(this.rollAngle) < 0.005) this.rollAngle = 0;
     this.rollAngle = Math.max(-SW.ROLL_MAX, Math.min(SW.ROLL_MAX, this.rollAngle));
-    // Autopilot: fly to target
+    // Autopilot: fliegt zum nächsten Nav-Punkt (IM RAUM, NAV).
+    // FLYBY-Animation (WC1-Autopilot): auf der Ausstreckung (z noch lang,
+    // oder Seitenstrecke noch groß) Nachbrenner — die Bank entsteht aus
+    // der Seitengeschwindigkeit (BANK_FACTOR), also sieht die Kurve aus.
+    this.burnAuto=false;
     if (this.autopilot && this.autopilotTarget) {
-      const dx=this.autopilotTarget.x-this.x, dy=this.autopilotTarget.y-this.y;
+      const t=this.autopilotTarget;
+      const dx=t.x-this.x, dy=t.y-this.y;
       const dist=Math.sqrt(dx*dx+dy*dy);
-      if (dist > SW.AUTOPILOT_TOLERANCE) { ix=(dx/dist); iy=(dy/dist); }
-      else { this.autopilot=false; this.autopilotTarget=null; }
+      if (dist > SW.AUTOPILOT_TOLERANCE) {
+        ix=(dx/dist); iy=(dy/dist);
+        const zLeft=(t.z!==undefined)?(t.z-this.z):0;
+        this.burnAuto = zLeft>400 || dist>90;
+      } else { this.autopilot=false; this.autopilotTarget=null; }
     }
     // Manual thrust overrides autopilot
     const move=SW.Input.getThrust();
-    if (move.x!==0||move.y!==0) { this.autopilot=false;this.autopilotTarget=null;ix=move.x;iy=move.y; }
+    if (move.x!==0||move.y!==0) { this.autopilot=false;this.autopilotTarget=null;this.burnAuto=false;ix=move.x;iy=move.y; }
+    // IM RAUM (v0.75-dev): Vorschub — Cruise oder Nachbrenner [SHIFT]
+    // (und Autopilot-Flyby). Sterne + Motor-Sound + HUD spiegeln wider.
+    this.burning = !!sh || this.burnAuto;
+    const tSpd = this.burning ? SW.FORWARD_BURN : SW.FORWARD_BASE;
+    this.speed += (tSpd - this.speed) * SW.FORWARD_ACCEL;
+    this.z += this.speed;
     // Inertial: thrust adds to velocity, drag slows down (space drift)
     this.vx += ix * SW.PLAYER_THRUST;
     this.vy += iy * SW.PLAYER_THRUST;
@@ -94,12 +102,24 @@ SW.Enemies = {
   init(mission) { this.list=[];this.waveIndex=0;this.waveTimer=0;this.waveActive=false;this.allWavesDone=false;this.missionData=mission; },
   spawnWave(idx) {
     const waves=this.missionData.waves; if (idx>=waves.length) return;
-    const cfg=waves[idx], count=cfg.count||3, z=cfg.z||200, spacing=50;
+    const cfg=waves[idx], count=cfg.count||3, spacing=50;
+    // IM RAUM (NAV): Welle i steht am Nav-Punkt i — Gegner an den
+    // Waypoints der Route (Weltkoordinaten, deterministisch).
+    // Ohne Nav-Punkt: alt, relativ vor dem Spieler (z.B. Akademie-Sim).
+    const np=(this.missionData.navPoints||[])[idx];
+    let baseX=0, baseY=(cfg.y||0), baseZ=SW.Player.z+(cfg.z||200);
+    if (np) {
+      baseX=np.x||0; baseY=np.y!==undefined?np.y:baseY;
+      if (np.z!==undefined) {
+        baseZ=np.z;
+        if (baseZ<SW.Player.z+150) baseZ=SW.Player.z+300;  // Sicherheit: nie zu nah/hinter dem Spieler
+      }
+    }
     const startX=-(count-1)*spacing/2;
     for (let i=0;i<count;i++) {
       const shipId=cfg.ship||'d_b'; const sp=SW.ShipRegistry[shipId]||SW.ShipRegistry.d_b;
-      // IM RAUM: Spawn relativ zum Spieler (Weltkoordinate, nicht Kamera)
-      this.list.push({x:startX+i*spacing+(Math.random()-0.5)*10,y:(cfg.y||0)+(Math.random()-0.5)*20,z:SW.Player.z+z,hp:sp.hp,fireTimer:sp.fireMin+Math.random()*(sp.fireMax-sp.fireMin),speed:sp.speed,damage:sp.damage,fireMin:sp.fireMin,fireMax:sp.fireMax,pattern:sp.pattern,strafeAmp:sp.strafeAmp,strafeFreq:sp.strafeFreq,shipId:shipId,alive:true,state:'approach',t:0,strafeDir:(i%2?1:-1),wab:0,range:sp.range||120,burst:sp.burst||1});
+      // IM RAUM: Spawn in Weltkoordinaten (relative Projektion rechnet den Rest)
+      this.list.push({x:baseX+startX+i*spacing+(Math.random()-0.5)*10,y:baseY+(Math.random()-0.5)*20,z:baseZ,hp:sp.hp,fireTimer:sp.fireMin+Math.random()*(sp.fireMax-sp.fireMin),speed:sp.speed,damage:sp.damage,fireMin:sp.fireMin,fireMax:sp.fireMax,pattern:sp.pattern,strafeAmp:sp.strafeAmp,strafeFreq:sp.strafeFreq,shipId:shipId,alive:true,state:'approach',t:0,strafeDir:(i%2?1:-1),wab:0,range:sp.range||120,burst:sp.burst||1});
     }
     this.waveActive=true;
   },

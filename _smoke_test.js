@@ -183,6 +183,40 @@ for (let i = 0; i < 60; i++) SW.Wingman.update(i);
 check('IM RAUM: Wingman folgt Formation (z ± 20)', Math.abs((SW.Wingman.z - SW.Player.z) - SW.Wingman.offZ) < 20);
 check('IM RAUM: Sechs-Idle-Funkzeilen vorhanden', Array.isArray(SW.Dialogues.wingmanIdle) && SW.Dialogues.wingmanIdle.length >= 3);
 
+    // --- 6c. IM RAUM (v0.75-dev, NAV): Route, Gegner an den WPs, Autopilot-Flyby ---
+    check('IM RAUM (NAV): m1 hat 4 Nav-Punkte mit z', SW.Missions.get('m1').navPoints.length === 4 && SW.Missions.get('m1').navPoints.every(np => np.z !== undefined));
+    // Frische Mission für deterministische Checks
+    SW.Game.startMission('m1');
+    SW.Game.setState('TAKEOFF');
+    for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();
+    // Browser-Realität: JUMP/Intro haben Frames gefressen — beim COCKPIT-
+    // Einstieg ist frame > FIRST_WAVE_DELAY (Welle 0 spawnt also sofort)
+    SW.Game.frame = 500;
+    check('IM RAUM (NAV): frische Mission im COCKPIT', SW.Game.state === 'COCKPIT');
+    check('IM RAUM (NAV): Autopilot mit 4 WPs initialisiert', SW.Autopilot.navPoints.length === 4 && SW.Autopilot.active === false);
+    // Welle 0 → WP1 (z 250)
+    pump(3);
+    check('IM RAUM (NAV): Welle 0 am WP1 (z≈250)', SW.Enemies.list.length >= 2 && SW.Enemies.list.every(e => Math.abs(e.z - 250) < 30));
+    // Welle 0 erledigt (Spiel-Logik zählt die Welle ab) → Welle 1 am WP2 (z 1500)
+    for (const e of SW.Enemies.list) e.alive = false;
+    for (let i = 0; i < 420; i++) pump(1);
+    check('IM RAUM (NAV): Welle 1 am WP2 (z≈1500)', SW.Enemies.list.some(e => e.alive && Math.abs(e.z - 1500) < 60));
+    // Autopilot [T]: Flyby zum nächsten WP (Burn auf der Ausstreckung)
+    SW.Player.frontShield = SW.SHIELD_MAX; SW.Player.rearShield = SW.SHIELD_MAX;
+    SW.Autopilot.toggle();
+    check('IM RAUM (NAV): Autopilot engagiert', SW.Autopilot.active === true && SW.Player.autopilot === true);
+    let sawBurn = false;
+    for (let i = 0; i < 200; i++) { pump(1); if (SW.Player.burning && SW.Player.burnAuto) sawBurn = true; }
+    check('IM RAUM (NAV): Flyby-Burn auf der Ausstreckung', sawBurn === true);
+    check('IM RAUM (NAV): Autopilot arbeitet WP ab (>=2 durch)', SW.Autopilot.currentNavIndex >= 2);
+    SW.Autopilot.toggle();
+    check('IM RAUM (NAV): Autopilot getrennt', SW.Autopilot.active === false && SW.Player.autopilot === false);
+    // [A] driftet links (Menü sagt WASD — A muss funktionieren)
+    SW.Input.keys['KeyA'] = true;
+    for (let i = 0; i < 20; i++) SW.Player.update(i);
+    SW.Input.keys['KeyA'] = false;
+    check('IM RAUM (NAV): [A] driftet links (vx < 0)', SW.Player.vx < 0);
+
 // --- 7. LANDING -> HANGAR -> DEBRIEFING (Sieg) -> CREDITS -> SHIP ---
 SW.Game.setState('LANDING');
 for (let i = 0; i < 400 && SW.Flight.mode; i++) SW.Flight.update();

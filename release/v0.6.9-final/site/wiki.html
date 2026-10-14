@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLO WING 1990 — Wiki</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="manual/index.html">Handbuch</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html">Benchmarks</a>
+  <a href="ethikrat.html">Ethikrat</a>
+  <a href="entwicklung.html">Entwicklung</a>
+  <a href="wiki.html" class="active">Wiki</a>
+</nav>
+<div class="wrap">
+<h1>WIKI</h1>
+<div class="subtitle">Sternenkorps Interne | Eine Seite. Kein zweiter Baum. Nur Verweise.</div>
+
+<div class="card">
+<h3>DAS PRINZIP</h3>
+<p>Es gibt keinen zweiten Dokumentationsbaum. Die Wiki ist ein <b>Hub</b>: Sie zeigt auf die Seiten, die es bereits gibt. Neue Doku entsteht in den Stammdateien (KONZEPTE.md, PATCHNOTES.md, TODO.md) oder in einer Site-Seite — die Wiki verlinkt danach. Was hier nicht verlinkt ist, existiert nicht.</p>
+<p style="color:#888;">"Wir drucken keine zweite Auflage. Wir zeigen auf die erste." — ARCHIV</p>
+<p><span class="tag arch">PRINZIP</span></p>
+</div>
+
+<h2>SPIEL & SITTE</h2>
+<div class="card">
+<h3><a href="../index.html">Spiel starten</a> — index.html</h3>
+<p>Kein Server, kein Internet, kein Tracking. Nur Fax. Stand: <b>v0.75-dev</b> — IM RAUM (Flugmodell, Nachbrenner [SHIFT], Feind-KI, Wingman Sechs, Träger im Feld), 13 Räume (inkl. SPINDE), Save/Load im Bunker, Abspann nach Sieg, Ingame-Handbuch [H].</p>
+</div>
+<div class="card">
+<h3><a href="manual/index.html">Handbuch</a> — Formular 1-A</h3>
+<p>Externes HTML-Handbuch, 6 Kapitel, progressiv. Im Spiel mit [H] — gleiche Kapitel, weniger Papier.</p>
+</div>
+<div class="card">
+<h3><a href="raeume.html">Räume</a> — das fliegende Dorf</h3>
+<p>Die 13 Räume des FAX-TRAGÖDIE: Bar, Kantine, Büro, Kapelle, Kältekammer, Krankenhaus, Maschinenraum, Friseur, Beobachtungsdeck, Flugdeck, Schulraum "ZWEIG" — und die SPINDE. Dort steht die Tür mit Ihrem Namen.</p>
+</div>
+<div class="card">
+<h3><a href="crew.html">Crew</a> — 18 Charaktere</h3>
+<p>Scoreboard, Backstories, Pingpong-Protokoll. Alle 18. Die Urnen sind in Spinde 14.</p>
+</div>
+
+<h2>DOKU & PROZESS</h2>
+<div class="card">
+<h3><a href="konzepte.html">Konzepte</a></h3>
+<p>Design-Überlegungen im Webformat. Die Stammquelle ist <code>KONZEPTE.md</code> im Repo — die Seite folgt, das File führt.</p>
+</div>
+<div class="card">
+<h3><a href="design.html">Design-Bibel</a></h3>
+<p>Auflösung, Rendering, Ton. Damit alle Agenten (und Menschen) dasselbe Ziel haben.</p>
+</div>
+<div class="card">
+<h3><a href="team.html">Team</a></h3>
+<p>Wer was macht. Der Agentenverbund ist aufgelöst; die Arbeit geht in VS Code über API weiter. Danke.</p>
+</div>
+<div class="card">
+<h3><a href="entwicklung.html">Entwicklung</a></h3>
+<p>Der Aufsatz: Wie der Träger gebaut wurde — Versionen, Unfälle, Katzen.</p>
+</div>
+<div class="card">
+<h3><a href="ethikrat.html">Ethikrat</a></h3>
+<p>1. und letzte Sitzung. Protokoll, A/B-Test, KLO ist der Ethikrat.</p>
+</div>
+<div class="card">
+<h3><a href="agent_benchmarks.html">Agent-Benchmarks</a></h3>
+<p>Sideprojekt: Orchestrierung messen. Scores, Graphen, 47 Formulare.</p>
+</div>
+<div class="card">
+<h3><a href="agent_reports.md">Agenten-Reports</a> (Markdown)</h3>
+<p>Die rohen Reports. Unkommentiert. Wie sie aus der Maschine kamen.</p>
+</div>
+
+<h2>REPO-STEMMDOKU</h2>
+<div class="card">
+<h3>Stammdateien im Repo</h3>
+<table>
+<tr><th>Datei</th><th>Was dort steht</th></tr>
+<tr><td><code>README.md</code></td><td>Start, Steuerung, Struktur, Git-Kurzanleitung, Version</td></tr>
+<tr><td><code>PATCHNOTES.md</code></td><td>Alle Versionen, Bugfixes, Entscheidungen (chronologisch)</td></tr>
+<tr><td><code>TODO.md</code></td><td>Roadmap nach Version (v0.6.7 offen → v0.80 Freies Universum)</td></tr>
+<tr><td><code>KONZEPTE.md</code></td><td>Design-Überlegungen (Stammquelle der Konzepte-Seite)</td></tr>
+<tr><td><code>WC1_PCI_ANALYSE.md</code></td><td>WC1 NPC-PI-Referenz (ohne Code, reine Beschreibung)</td></tr>
+<tr><td><code>TIMELINE.md</code></td><td>Story-Timeline (für die Bible)</td></tr>
+<tr><td><code>_smoke_test.js</code></td><td>Test: <code>node _smoke_test.js</code> — muss grün bleiben</td></tr>
+</table>
+</div>
+
+<div class="card" style="border-color:#f66;">
+<h3 style="color:#f66;">REGEL</h3>
+<p>Neue Doku ohne Verweis = unbekannte Flugobjekt. Vor der Pause committen, danach verlinken.</p>
+</div>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
+Diese Seite wird lokal ausgeliefert. Kein Internet. Kein Tracking. Nur Fax.
+</div>
+</body>
+</html>

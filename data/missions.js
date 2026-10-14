@@ -2,6 +2,14 @@
 // Data-driven. Neue Mission = neuer Eintrag. Kein Code-Change.
 // ship: 'd_b' | 'Jäger' | 'Kreuzer' | 'piraten_jaeger' | 'piraten_kapitaen'
 // Vertical Slice: m4 = "DER FRACHTER" (Piraten + Alien-Twist)
+//
+// IM RAUM (v0.75-dev, NAV): navPoints = Route durch die Mission.
+//   {x, y}  = Welt-Offset (Seitenlage der Station)
+//   {z}     = Welt-z ab Takeoff-Punkt (Distanz entlang der Route)
+// Welle i erscheint am Nav-Punkt i (falls vorhanden) — die Gegner stehen
+// also an den Waypoints, nicht "irgendwo vor dem Spieler". Punkte ohne
+// Welle = reine Nav-Ziele (z.B. Eskort-Endpunkt). Autopilot [T] fliegt
+// die Punkte nacheinander (Flyby: Burn auf der Ausstreckung).
 
 SW.Missions = {
   list: [
@@ -14,7 +22,7 @@ SW.Missions = {
         {count:3, z:200, y:0, ship:'d_b'},
         {count:2, z:250, y:0, ship:'Kreuzer'}
       ],
-      navPoints:[{x:0,y:0},{x:50,y:-30},{x:-40,y:20}],
+      navPoints:[{x:0,y:0,z:250},{x:60,y:-20,z:1500},{x:-50,y:30,z:3000},{x:0,y:0,z:4400}],
       waveMessages:[
         "COMMANDER: Erste Welle, d_b-Drohnen. Standardverfahren, viel Glück.",
         "COMMANDER: Jäger. Die streifen. Halten Sie die Höhe.",
@@ -29,7 +37,7 @@ SW.Missions = {
         {count:2, z:250, y:0, ship:'Jäger'},
         {count:3, z:200, y:0, ship:'d_b'}
       ],
-      navPoints:[{x:0,y:0},{x:80,y:0},{x:0,y:-50}],
+      navPoints:[{x:0,y:0,z:250},{x:80,y:0,z:1600},{x:0,y:-50,z:3000}],
       waveMessages:[
         "COMMANDER: Kontakt. War nicht im Plan. Machen Sie es schnell.",
         "COMMANDER: Noch ein paar. Der Frachter wartet nicht."
@@ -41,7 +49,7 @@ SW.Missions = {
       waves:[
         {count:2, z:300, y:0, ship:'d_b'}
       ],
-      navPoints:[{x:0,y:0},{x:-60,y:40}],
+      navPoints:[{x:0,y:0,z:300},{x:-60,y:40,z:2200}],
       waveMessages:[
         "COMMANDER: Das sind Zivilisten. Schießen Sie NICHT. Eskortieren Sie sie.",
         "COMMANDER: Sie haben sich verlaufen. Bringen Sie sie nach Hause."
@@ -60,7 +68,7 @@ SW.Missions = {
         {count:2, z:200, y:0, ship:'piraten_jaeger'},
         {count:1, z:250, y:0, ship:'piraten_kapitaen'}
       ],
-      navPoints:[{x:0,y:0},{x:20,y:-30},{x:-10,y:20}],
+      navPoints:[{x:0,y:0,z:250},{x:20,y:-30,z:1500},{x:-10,y:20,z:3000}],
       waveMessages:[
         "COMMANDER: Frachter eskortieren. Die Fracht ist leer. Aber da ist \"was\" in der Kältekammer.",
         "KUGELSCHREIBER: *Rapmusik* ...yo, hier der Kugelschreiber, wir haben euren Frachter, die Fracht ist leer, aber da ist \"was\" in der Kältekammer, wir wollen es, gebt es her, oder wir fliegen durch, *Beat* ...",

@@ -395,6 +395,33 @@ Feld), kein Motor-Sound.
 - **WC1-Steuerung bleibt:** 4-Achsen + Roll + Nachbrenner; Maus-Aim bleibt.
   Neue Mechaniken werden HINZUGEFÜGT, nichts wird umgelernt.
 
+**NAV & Flyby (2026-10-13, Fortsetzung nach Pilot-Playtest):**
+> "Ich bin jetzt auf keine Gegner getroffen. Autopilot sollte einen auch mit
+> Flyby-Animation zum nächsten (ausgewählten) Navpunkt bringen, wo dann die
+> Gegner und so sind."
+- Nav-Punkte der Missionsroute bekommen **Welt-z** (`data/missions.js`):
+  `[{x, y, z}]` = Route ab Takeoff (x/y = Seitenlage, z = Distanz entlang
+  der Route). **Welle i erscheint am Nav-Punkt i** — Gegnergruppen stehen an
+  den Waypoints (deterministisch, auf der Karte). Punkte ohne Welle = reine
+  Nav-Ziele (z.B. Eskort-Endpunkt).
+- Autopilot [T] fliegt die WPs nacheinander: z-Ebenen-Passage (Verhakt,
+  wenn man zu schnell durchfliegt), WP-Handover, Funk ("Engagiert. Ziel:
+  WP-n" / "Alle Nav-Punkte durch. Kurs frei.").
+- **Flyby-Animation:** auf der Ausstreckung (`zLeft>400 || lat>90`) zündet
+  der Autopilot den Nachbrenner — Stern-Flow, Motor-Sound und VORW-Balken
+  reagieren; die Bank entsteht aus der Seitengeschwindigkeit. Manuelle
+  Eingaben überschreiben jederzeit (WC1-Prinzip).
+- Nav-Karte [N]: Routenlinie, nächster WP weiß, Distanz-Label; Radar +
+  Space-Map spieler-relativ (IM-RAUM-Koordinaten). HUD: `NAV WPn D:xxxx`
+  mit Richtungs-Pfeil (alle drei Ansichten).
+- Bug-Fix: [A] driftet links (das Menü versprach WASD).
+- **Spec-Sheet:** `SPEC-FLUGMODELL.md` — WC1-Flugmodell "näher am Original"
+  in Phasen P1–P5: P1 = NAV & Flyby (steht), P2 = echtes Vektor-Flugmodell
+  (vel + yaw/pitch + Trägheit, man fliegt, wo man hinkuckt), P3 = Auto-Bank,
+  P4 = Bewegung AUF DER KARTE (Sektor-Geometrie, Objekte in der Welt,
+  echte Landebahn), P5 = WC1-Details (Target-Bracket, Sensoren, Radar-3D).
+  P2–P5 kommen NACH dem Playtest in eigenen dev-Runden, nicht in den RC.
+
 ### v0.76 → v0.81 — "Freies Universum" (das große Um- und Auf)
 
 > Nach der Kampagne (m1–m4) bekommt der Spieler **sein eigenes Schiff** und das

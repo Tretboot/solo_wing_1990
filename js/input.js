@@ -63,7 +63,7 @@ SW.Input = {
     if (this.keys['KeyW'] || this.keys['ArrowUp']) iy -= 1;
     if (this.keys['KeyS'] || this.keys['ArrowDown']) iy += 1;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) ix += 1;
-    if (this.keys['ArrowLeft']) ix -= 1; // A = Autopilot
+    if (this.keys['KeyA'] || this.keys['ArrowLeft']) ix -= 1;
     if (this.gamepadData) {
       const ax = this.gamepadData.axes[0] || 0, ay = this.gamepadData.axes[1] || 0;
       if (Math.abs(ax) > 0.2) ix = ax;

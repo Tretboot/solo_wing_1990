@@ -78,7 +78,7 @@ SW.Akademie = {
     SW.Game.state = 'AKADEMIE';  // FIX: direkt setzen (setState wuerde init() + Phase-Reset ausloesen).
                                   // after() zahlt nur in SW.Akademie.update() runter — frueher blieb der
                                   // State COCKPIT und der Spieler flog ewig weiter.
-    if (SW.TTS) SW.TTS.speak('Bestanden. Sie werden dem Träger FAX-TRAGÖDIE zugeteilt. Formular 83-B liegt bereit.', 'AUSBILDER');
+    if (SW.TTS) SW.TTS.speak('Bestanden. Sie werden dem Träger FAX-TRAGÖDIE zugeteilt. ', 'AUSBILDER');
     this.after(210, () => { SW.Game.startArrival(); });
   },
 

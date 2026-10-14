@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entwicklung — SOLO WING 1990</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="manual/index.html">Handbuch</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html">Benchmarks</a>
+  <a href="ethikrat.html">Ethikrat</a>
+  <a href="entwicklung.html" class="active">Entwicklung</a>
+</nav>
+<div class="wrap">
+<h1>ENTWICKLUNG</h1>
+<div class="subtitle">Aufsatz | Wie sich das Arbeiten verändert hat — vom Agentenverbund zum VS Code + Cline. Gedruckt auf Faxpapier, wie alles.</div>
+
+<div class="card">
+<p>Dieser Aufsatz ist kein Changelog. Der Changelog steht in den Patch Notes. Dieser Aufsatz ist die Frage dahinter: <b>Wie hat sich die Art zu arbeiten verändert, seit der Agentenverbund aufgelöst wurde und das Schiff über VS Code und Cline gebaut wird?</b> Die kurze Antwort: weniger Gremien, mehr Tests, dieselben Formulare.</p>
+</div>
+
+<h2>VORHER: DER AGENTENVERBUND</h2>
+<div class="card">
+<p>Fünf Agenten in einem Kreis: Commander, No Thinking, Lead Story Writer, Lead Developer, Code Review Agent. Dazu ein Mensch mit der Fernbedienung und dem Kaffee. Das System funktionierte wie ein Sternenkorps-Gremium: es entschied, es protokollierte, es vertagte. 47 Formulare, 18 Charaktere, 11 Räume. Der Ton saß von Anfang an: 1990-Deadpan, „Formular 12-B erforderlich", die Kältekammer atmet zweimal pro Minute.</p>
+<p>Die Schwäche lag im Prinzip: <b>Handoffs.</b> Jede Übergabe zwischen zwei Köpfen verlor ein paar Prozent Kontext. Ideen, die in einer Konferenz geboren wurden, starben auf dem Weg in die Engine. Und wenn fünf Stile aufeinandertreffen, entsteht ein Durchschnitt — der dann von jemandem als „Corporate Design" deklariert wird, obwohl er eigentlich nur müde ist. Der berühmte Commit „Ich weiß nicht warum ich das kommentieren soll" ist die Urform dieser Energie: ein Satz, der von keinem der fünf stammt und von allen fünf erlaubt wurde.</p>
+</div>
+
+<h2>DER HANDBOFF: BETRIEBSBEKANNTMACHUNG</h2>
+<div class="card">
+<p>„Der Agentenverbund wurde kurzfristig aufgelöst. Die Arbeit wird ab sofort in VS Code über API fortgesetzt." So stand es in der Bekanntmachung. So steht sie noch heute oben auf der Startseite. Was übrig blieb: die Engine, die Räume, der Ton, die Formulare, der Smoke-Test-Geist. Was verloren ging: die Konferenzdokumente, ein paar Ideen — die Sektor-Lichter zum Beispiel, die in einer Konferenz geboren und dann nirgends protokolliert wurden, bis sie jemand wieder erzählte. <b>Verlorene Ideen sind die einzigen, die man zweimal verliert.</b></p>
+</div>
+<h2>JETZT: VS CODE, EINE SESSION, EIN CO-PILOT</h2>
+<div class="card">
+<p>Statt eines Kreises aus fünf Köpfen gibt es jetzt einen Arbeitssitz: VS Code, ein Agent (Cline) und ein Mensch. Der Unterschied ist nicht „einer statt fünf". Der Unterschied ist <b>Entfernung zur Wahrheit</b>. Im Verbund stand zwischen der Idee und dem Code ein Plan, eine Konferenz und ein Handoff. Jetzt steht zwischen der Idee und dem Code ein Chatfenster. Der Plan wird zum Arbeitsergebnis, das Arbeitsergebnis wird zum Test, der Test wird zum Commit. Wenn der Smoke-Test grün ist, gibt es kein „das haben wir so besprochen" — es gibt nur „das läuft".</p>
+<p>Der Smoke-Test ist die neue Konferenzminute. Statt „Besprochen: 4. Sitzung, TOP 2" steht da „97/97 OK". Es ist eine schlechtere Minute — sie hat keine Rhetorik, kein Votum, keine Vertagung. Es ist eine <b>bessere</b> Minute. Sie lügt nicht. Sie kann nicht vertagt werden. Entweder ist alles grün, oder es steht, was nicht grün ist, in schwarzen Lettern da.</p>
+</div>
+
+<h2>WAS SICH GEÄNDERT HAT</h2>
+<div class="card">
+<table>
+<tr><th>Vorher (Verbund)</th><th>Jetzt (VS Code + Cline)</th></tr>
+<tr><td>5 Agenten, Konferenzen, Handoffs</td><td>1 Agent + 1 Mensch, eine Session, ein Kontext</td></tr>
+<tr><td>Plan-Dokumente als Wahrheit</td><td>Laufender Smoke-Test als Wahrheit</td></tr>
+<tr><td>„Besprochen" als Abschluss</td><td>„Grün" als Abschluss</td></tr>
+<tr><td>Stil-Durchschnitt aus fünf Händen</td><td>Ein Stil, der im Code nachweisbar ist</td></tr>
+<tr><td>Ideen sterben im Handoff</td><td>Ideen sterben im Todo — aber das Todo wird gelesen</td></tr>
+<tr><td>Formular 12-B</td><td>Formular 12-B (unverändert)</td></tr>
+</table>
+</div>
+
+<h2>WAS SICH NICHT GEÄNDERT HAT</h2>
+<div class="card">
+<ul>
+<li><b>Der Ton.</b> 1990-Deadpan ist keine Technik, die man delegieren kann. Er sitzt in den Sätzen. Die Sätze sitzen in den Dialogen. Die Dialoge sind dieselben, die der Verbund geschrieben hat — nur dass jetzt jeder neue Satz weiß, von wem er stammt.</li>
+<li><b>Die Formulare.</b> 12-B (Zutritt), 77-V (Ansichten), 14-C (Selbstanzeige), 20-E (Ein-Personen-Räte). Die Bürokratie des Tonfalls ist robust. Sie übersteht Organisationsformen.</li>
+<li><b>Die Kältekammer.</b> Zweimal pro Minute. Der Ethikrat zählt weiter. Auch die Sitzung, die sich selbst auflöste, hat nur 14 Atemzüge gezählt und keine gestrichen.</li>
+<li><b>Die Katze.</b> Sie ist in beiden Systemen aufgetreten: als Commit-Verursacherin (Verbund-Zeit: „Ich weiß nicht warum ich das kommentieren soll") und als Fenster-Silhouette (jetzt: Tastatur, Fragezeichen). Der Unfall-Protokoll-Bereich in der README ist die Institution, die aus beiden Epochen besteht.</li>
+</ul>
+</div>
+
+<h2>DER PREIS</h2>
+<div class="card">
+<p>Ein Mensch + ein Agent ist ein <b>Ein-Punkt-Ausfall</b>. Wenn der Kontext komprimiert wird, verliert die Session ein paar Prozent — exakt die Menge, die im Verbund zwischen zwei Handoffs verloren ging, nur jetzt in einer anderen Einheit. Gegenmittel existieren: Git (die Historie lügt nicht), Smoke-Test (der grüne Stand lügt nicht), Doku (TODO, Patch Notes, Captain's Log — die neuen Protokolle). Und die Regel, die aus dem Verbund geerbt wurde und jetzt härter gilt als je zuvor: <b>git status vor jedem commit.</b> Die Katze war in beiden Systemen anwesend. Git hat in beiden Systemen die leeren Commits abgelehnt. Das ist die eigentliche Kontinuität: nicht der Ton, nicht die Formulare — die Abfuhr.</p>
+</div>
+
+<h2>FOLGE</h2>
+<div class="card">
+<p>Das Schiff fliegt mit weniger Gremien. Das ist keine Abwertung des Rates — der Rat existiert, besteht aus einer Person und löst sich in seiner ersten Sitzung selbst auf. Es ist eine Beobachtung: <b>Weniger Übergänge, mehr Wahrheit pro Übergang.</b> Der nächste Block ist der gleiche, der immer vorsteht: Schreiben, Testen, commiten. Der Unterschied ist nur, dass jetzt jeder Satz, der in den Code kommt, von einer Hand geschrieben wurde, die man am Ende der Zeile fragen kann. Die Hand antwortet. Das Formular ist ausgefüllt.</p>
+<blockquote>"Der Ethikrat besteht aus einer Person. Die Entwicklung auch. Der Unterschied: Die Entwicklung hat einen Smoke-Test. Der Rat zählt Atmungen." — Cline, vermutlich</blockquote>
+</div>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
+Aufsatz: Entwicklungsverlauf. Kein Internet. Kein Tracking. Nur Fax.
+</div>
+</body>
+</html>

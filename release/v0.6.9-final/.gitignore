@@ -1,0 +1,17 @@
+﻿node_modules/
+*.bak
+*.backup
+*.tmp
+.DS_Store
+Thumbs.db
+.desktop.ini
+.vscode/
+.idea/
+logs/
+*.log
+.env
+temp/
+*.temp
+saves/*.json
+!saves/.gitkeep
+scan_braces.js

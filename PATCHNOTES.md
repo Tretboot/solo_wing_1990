@@ -52,11 +52,40 @@
   Sternen-Flow, Brains-Distanz 15..160, State-Wechsel, Wingman-Formation,
   Träger-Feld, Idle-Funk) — **ALLE TESTS OK**, kein Regression.
 
+### Fortsetzung 2 (2026-10-13, nach Pilot-Playtest): NAV & Flyby
+> Pilot: "Autopilot sollte einen auch mit Flyby-Animation zum nächsten
+> (ausgewählten) Navpunkt bringen, wo dann die Gegner und so sind."
+- **Nav-Punkte mit Welt-z** (Route ab Takeoff, `data/missions.js`):
+  `[{x, y, z}]` — x/y = Seitenlage, z = Distanz entlang der Route.
+  **Welle i erscheint am Nav-Punkt i** — die Gegnergruppen stehen an den
+  Waypoints (deterministisch, auf der Karte). Punkte ohne Welle = reine
+  Nav-Ziele (z.B. Eskort-Endpunkt).
+- **Autopilot [T] = Navigation:** fliegt die WPs nacheinander, z-Ebenen-
+  Passage (Verhakt bei schnellem Durchflug), WP-Handover, Funk ("Engagiert.
+  Ziel: WP-n" / "Alle Nav-Punkte durch. Kurs frei.").
+- **Flyby-Animation:** auf der Ausstreckung (`zLeft>400 || lat>90`) zündet
+  der Autopilot den Nachbrenner — Stern-Flow, Motor-Sound und VORW-Balken
+  reagieren, die Bank entsteht aus der Seitengeschwindigkeit. Manuelle
+  Eingaben überschreiben jederzeit.
+- **Nav-Karte [N]:** Routenlinie, nächster WP weiß, Distanz-Label. Radar +
+  Space-Map + Nav-Karte jetzt spieler-relativ (IM-RAUM-Koordinaten).
+- **NAV-HUD:** `NAV WPn D:xxxx` + Richtungs-Pfeil (alle drei Ansichten).
+- **Bug-Fix:** [A] driftet endlich links (das Menü versprach WASD).
+- **Spec-Sheet `SPEC-FLUGMODELL.md`:** WC1-Flugmodell "näher am Original"
+  in Phasen P1–P5 (P1 = diese Runde, steht; P2 = echtes Vektor-Flugmodell
+  mit Trägheit, P4 = Bewegung auf der Karte/Sektor-Geometrie). P2–P5 nach
+  dem Playtest, eigene dev-Runden, NICHT im RC.
+- Smoke-Test: +9 NAV-Checks (Route mit z, Welle 0 am WP1, Welle 1 am WP2,
+  Autopilot-Engage, Flyby-Burn, WP-Handover, Trennen, [A]) — **ALLE TESTS OK**.
+- Gemäß Pilot: **kein Versions-Bump, kein Push/Release** in dieser Runde —
+  alles bleibt in v0.75-dev, bis sich das Fliegen im Browser richtig anfühlt.
+
 ### Offene Punkte (M4/M5)
-- M4 Missionen & Balance (gestaffelte Wellen, Schwierigkeitskurve, Autopilot
-  unter 3D-Bedingung, Balance-Playtest).
+- M4 Missionen & Balance (Wellen an den WPs feintunen, Schwierigkeitskurve,
+  Balance-Playtest; Autopilot-Nav steht seit Fortsetzung 2).
 - M5 Polish (Ziel-Markierung, Wingman-Tod als Ereignis, Träger-Funk im Feld,
   Burn-Flash, Handbuch-Kapitel "Fliegen", Top-Down-Balancing).
+- Spec-Phasen P2–P5 (`SPEC-FLUGMODELL.md`) nach dem Playtest.
 - Offene v0.70-Punkte (3 Enden, Fax-Drucker UI, Aktenschrank, Optimierer-
   Erscheinen, externes Handbuch 12 Kapitel) wandern in den **v0.75-rc**.
 

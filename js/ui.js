@@ -112,57 +112,80 @@ SW.UI = {
 
   renderRadar(ctx) {
     const rx=26, ry=125, rr=15;
-    // Blips (der Kreis ist im Frame)
+    const P=SW.Player;
+    // Blips (der Kreis ist im Frame) — IM RAUM: RELATIV zum Spieler
     ctx.fillStyle='#fff'; ctx.fillRect(rx-1,ry-1,2,2);
     ctx.fillStyle='#f00';
     for (const e of SW.Enemies.list) {
       if (!e.alive) continue;
-      const bx=rx+(e.x*0.08), by=ry+(e.y*0.08);
+      const bx=rx+((e.x-P.x)*0.08), by=ry+((e.y-P.y)*0.08);
       if (Math.sqrt((bx-rx)*(bx-rx)+(by-ry)*(by-ry))<rr) ctx.fillRect(Math.round(bx),Math.round(by),2,2);
     }
     ctx.fillStyle='#0af';
     for (const np of SW.Autopilot.navPoints) {
-      const bx=rx+(np.x*0.08), by=ry+(np.y*0.08);
+      if (np.z!==undefined && np.z-P.z<-100) continue;  // passiert
+      const bx=rx+((np.x-P.x)*0.08), by=ry+((np.y-P.y)*0.08);
       if (Math.sqrt((bx-rx)*(bx-rx)+(by-ry)*(by-ry))<rr) ctx.fillRect(Math.round(bx)-1,Math.round(by)-1,3,3);
     }
   },
 
   renderSpaceMap(ctx) {
     const mx=5,my=5,mw=60,mh=40;
+    const P=SW.Player;
     ctx.fillStyle='rgba(0,10,20,0.8)';ctx.fillRect(mx,my,mw,mh);
     ctx.strokeStyle='#003344';ctx.strokeRect(mx,my,mw,mh);
+    // IM RAUM: alles RELATIV zum Spieler (Spieler steht in der Mitte)
     const sx=mw/400,sy=mh/300,cx=mx+mw/2,cy=my+mh/2;
-    if (SW.Carrier.visible) { ctx.fillStyle='#4488aa';ctx.fillRect(cx+SW.Carrier.x*sx-3,cy+SW.Carrier.y*sy-1,6,2); }
+    if (SW.Carrier.visible) { ctx.fillStyle='#4488aa';ctx.fillRect(cx+(SW.Carrier.x-P.x)*sx-3,cy+(SW.Carrier.y-P.y)*sy-1,6,2); }
     ctx.fillStyle='#00aaff';
-    for (const np of SW.Autopilot.navPoints) ctx.fillRect(cx+np.x*sx,cy+np.y*sy,2,2);
+    for (const np of SW.Autopilot.navPoints) {
+      if (np.z!==undefined && np.z-P.z<-100) continue;
+      ctx.fillRect(cx+((np.x-P.x)*sx),cy+((np.y-P.y)*sy),2,2);
+    }
     ctx.fillStyle='#ff0000';
-    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+e.x*sx,cy+e.y*sy,1,1); }
-    ctx.fillStyle='#00ff00';ctx.fillRect(cx+SW.Player.x*sx-1,cy+SW.Player.y*sy-1,3,3);
+    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
     ctx.fillStyle='#004455';ctx.font='5px monospace';ctx.fillText('TAKTISCH',mx+2,my+mh-2);
   },
 
-  // Nav-Karte (N): vergrößerte Übersicht mit Nummern-Waypoints
+  // Nav-Karte (N): Route mit Nummern-Waypoints + Distanz.
+  // IM RAUM: alles RELATIV zum Spieler (Spieler steht in der Mitte).
   renderNavMap(ctx) {
     const mx=85,my=45,mw=150,mh=110;
+    const P=SW.Player, nps=SW.Autopilot.navPoints;
     ctx.fillStyle='rgba(0,10,20,0.85)';ctx.fillRect(mx,my,mw,mh);
     ctx.strokeStyle='#0f0';ctx.lineWidth=1;ctx.strokeRect(mx,my,mw,mh);
     ctx.fillStyle='#0f0';ctx.font='bold 6px monospace';ctx.fillText('NAV-KARTE',mx+4,my+9);
     const sx=mw/400,sy=mh/300,cx=mx+mw/2,cy=my+mh/2;
     // Träger
-    if (SW.Carrier.visible) { ctx.fillStyle='#4488aa';ctx.fillRect(cx+SW.Carrier.x*sx-3,cy+SW.Carrier.y*sy-1,6,2); }
-    // Nav-Punkte (nächster Waypoint weiß)
-    for (let i=0;i<SW.Autopilot.navPoints.length;i++) {
-      const np=SW.Autopilot.navPoints[i];
-      const px=cx+np.x*sx, py=cy+np.y*sy;
-      ctx.fillStyle=(i===SW.Autopilot.currentNavIndex)?'#fff':'#00aaff';
+    if (SW.Carrier.visible) { ctx.fillStyle='#4488aa';ctx.fillRect(cx+(SW.Carrier.x-P.x)*sx-3,cy+(SW.Carrier.y-P.y)*sy-1,6,2); }
+    // Route (Linie durch die Waypoints)
+    ctx.strokeStyle='rgba(0,170,255,0.35)';
+    ctx.beginPath();
+    for (let i=0;i<nps.length;i++) {
+      const px=cx+((nps[i].x||0)-P.x)*sx, py=cy+((nps[i].y||0)-P.y)*sy;
+      if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    // Nächster WP (weiß) = Autopilot-Ziel, sonst erster Punkt vor uns
+    let nextIdx=-1;
+    if (SW.Autopilot.active&&SW.Autopilot.currentNavIndex>0) nextIdx=SW.Autopilot.currentNavIndex-1;
+    else { for (let i=0;i<nps.length;i++) { if (nps[i].z===undefined||P.z<nps[i].z+150) { nextIdx=i; break; } } }
+    for (let i=0;i<nps.length;i++) {
+      const np=nps[i];
+      const px=cx+((np.x||0)-P.x)*sx, py=cy+((np.y||0)-P.y)*sy;
+      ctx.fillStyle=(i===nextIdx)?'#fff':'#00aaff';
       ctx.fillRect(px-1,py-1,3,3);
-      ctx.fillStyle='#0af';ctx.font='5px monospace';ctx.fillText('WP'+(i+1),px+4,py+2);
+      ctx.fillStyle='#0af';ctx.font='5px monospace';
+      let label='WP'+(i+1);
+      if (np.z!==undefined&&np.z-P.z>0) label+=' '+Math.round(np.z-P.z);
+      ctx.fillText(label,px+4,py+2);
     }
     // Feinde
     ctx.fillStyle='#ff0000';
-    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+e.x*sx,cy+e.y*sy,1,1); }
-    // Spieler
-    ctx.fillStyle='#00ff00';ctx.fillRect(cx+SW.Player.x*sx-1,cy+SW.Player.y*sy-1,3,3);
+    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    // Spieler (Mitte)
+    ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
   },
 
   renderCrosshair(ctx) {

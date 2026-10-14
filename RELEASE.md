@@ -1,150 +1,101 @@
-# SOLO WING 1990 — RELEASE NOTES
+# SOLO WING 1990 — FINAL RELEASE NOTES
 
-## v0.6.9-rc — "Musik, Optik, Katalog & Website"
+## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix"
 
-**Release Candidate** | Sternenkorps Internes Netzwerk | Formular 12-B erforderlich
+**Final Release** | Sternenkorps Internes Netzwerk | GitHub-Ready
 
 ---
 
 ### ✨ NEUE FEATURES
 
-#### **INGAME HANDBUCH** [Taste H]
-- 6 Kapitel: Einführung, Steuerung, Cockpit, Kampf, Missionen, Crew
-- Progressiv freigeschaltet (Missionen m1, m2 erforderlich für spätere Kapitel)
-- NPCs zitieren in jedem Kapitel
-- Ingame-Overlay mit [ESC] schließen, Pfeiltasten zum Wechseln
+#### SPINDE (Raum 13 / Bunker)
+- Eigener Bunker-Raum an der Kantine angebaut
+- Spindwand, eigenes Namensschild, Lagerbett, Tür-Animation
+- Der Bunker trägt den Pilotennamen als `TÜR: <NAME>`
+- Reiner Fokus auf persönliche Gegenstände, Pflege und Atmosphäre
 
-#### **EXTERNES HANDBUCH**
-- Vollständiges HTML-Handbuch unter `site/manual/`
-- 6 Kapitel mit detaillierten Erklärungen
-- Corporate Design (Sternenkorps-Standard)
-- Verknüpft mit Ingame-Inhalten
+#### SAVE / LOAD PANEL
+- Save/Load/Export/Delete in der SPINDE implementiert
+- localStorage-Storage mit einem Slot, passend zur v0.6.9-Architektur
+- Export als JSON-Datei für manuelles Backup oder Archivierung
+- Direkte Integration in `index.html` und `js/savegame.js`
 
-#### **WEBSITE-ÜBERARBEITUNG**
-- Neues **Corporate Design v0.6.9**:
-  - Sternenkorps-Farben (Blau, Dunkelblau, Warnung)
-  - Professionelle Typografie (Monospace + Sans-Serif)
-  - Responsive Layout (Desktop, Mobile, Switch)
-- **Game ↔ Website Bridge**:
-  - Ingame [H] öffnet Handbuch
-  - Website verlinkt zurück zum Spiel
-  - Handbuch-Links in Navigation
+#### AUDIO-FIXES
+- Intro-Musik-Loop stabilisiert
+- Menü- und Dialog-Verhalten auf volle Stille gesetzt
+- `[P]` steuert beide Audio-Systeme konsistent
+- Keine Musik im Menü mehr, die nachträglich weiterläuft
 
-#### **SWITCH-PORT VORBEREITUNG**
-- CSS Media Queries für Switch-Display (1280×720)
-- UI-Scaling-System
-- Touch-Controls geplant (nicht implementiert)
-- Performance-Checks laufen
+#### DIALOG-BOX & NPC-GESICHTER
+- Dialogbox höher und lesbarer mit Umbruch-Verbesserung
+- Sprecher-Gesichter in Raum- und Dialog-Szenen
+- Reibungslosere Paging-Logik bei langen Texten
 
----
-
-### 📝 TECHNISCHE DETAILS
-
-**Neue Dateien:**
-- `js/manual.js` — Handbuch-Engine (6 Kapitel, progressiv unlock)
-- `site/manual/index.html` — Handbuch-Index
-- `site/manual/chapter[1-6].html` — Kapitel 1-6
-- `site/style.css` — Corporate Design (neu)
-
-**Geänderte Dateien:**
-- `index.html` — Handbuch-Script-Include
-- `js/main.js` — [H] Input Handler, Handbuch-Overlay
-- `site/index.html` — v0.6.9-rc Announcement, Handbuch-Links
-- `TODO.md` — v0.6.9 Status
+#### WIKI-HUB + DOCS
+- `site/wiki.html` als Sammelstelle für Doku und Projektseiten
+- Ingame-Handbuch `[H]` und externes Handbuch integriert
+- Website-Theme und Handbuch-Links sauber verknüpft
 
 ---
 
-### 🧪 TESTANWEISUNGEN
+### 🧪 VERIFIZIERUNG
 
-1. **Ingame Handbuch testen:**
-   ```
-   index.html öffnen
-   Spiel starten
-   [H] drücken → Handbuch-Overlay erscheint
-   Pfeiltasten → Kapitel wechseln
-   [ESC] → Schließen
-   ```
+Der Release wurde mit dem Repository-Smoke-Test verifiziert:
 
-2. **Externes Handbuch testen:**
-   ```
-   site/manual/index.html im Browser öffnen
-   Kapitel durchklicken
-   Navigation prüfen (Vorherig/Nächster)
-   ```
+```bash
+node _smoke_test.js
+```
 
-3. **Website-Design testen:**
-   ```
-   site/index.html öffnen
-   Corporate Design prüfen
-   Handbuch-Link klicken
-   ```
+Ergebnis: `ALLE TESTS OK`
 
-4. **Switch-Compatibility (simuliert):**
-   ```
-   Browser-DevTools öffnen
-   Viewport auf 1280×720 setzen
-   UI-Scaling prüfen
-   ```
+Damit ist der Build für GitHub-Release validiert.
 
 ---
 
-### 🚧 OFFENE AUFGABEN (v0.6.9)
+### 📦 RELEASE-PAKETE
 
-- [ ] **Musik-System:** 7 Instrumentierungen pro Raum
-- [ ] **Sprite-Pass:** Schiffe, Planeten, Sternenbasis
-- [ ] **Schiffskatalog:** 12. Raum, X-Wing-Style
-- [ ] **JUMP-Polish:** Quell-System schrumpft, Ziel wächst
+**Release-Ordner:**
+- `release/v0.6.9-final/`
 
----
+**Zip-Archiv:**
+- `release/solo_wing_1990_v0.6.9-final.zip`
 
-### 🔜 NÄCHSTE SCHRITTE
-
-**v0.6.9-final:**
-- Musik-System implementieren
-- Sprite-Pass abschließen
-- Schiffskatalog-Raum erstellen
-- Testing + Bugfixing
-
-**v0.70 — "Enden & Papierkram":**
-- 3 Enden (Sieg / Tod / Geheim)
-- Fax-Drucker UI
-- Aktenschrank-Raum
-- Optimierer-Erscheinen
+Der bestehende RC-Ordner `release/v0.6.9-rc/` bleibt als historische Referenz erhalten.
 
 ---
 
-### 📋 CHANGELOG
+### 🔁 GITHUB-PUSH (bereit)
 
-**v0.6.9-rc** (2026-10-10)
-- ✨ Ingame Handbuch [H] mit 6 Kapiteln
-- ✨ Externes Handbuch (site/manual/)
-- ✨ Website-Überarbeitung (Corporate Design)
-- ✨ Game ↔ Website Bridge
-- ✨ Switch-Port-Vorbereitung (CSS)
-- 🐛 Bugfixes: Handbuch-Input, Overlay-Rendering
+```bash
+git add .
+git commit -m "Release v0.6.9-final"
+git tag v0.6.9-final
+git push origin main --tags
+```
 
-**v0.6.7** (vorherig)
-- Schiffszeitung-Engine
-- Git-Setup
-- NPC-Dialoge
+Wenn der Remote bereits konfiguriert ist, kann der Release direkt als GitHub Release mit dieser Tag-Version veröffentlicht werden.
 
 ---
 
 ### 🎮 SPIELINFORMATIONEN
 
 **Titel:** SOLO WING 1990  
-**Version:** 0.6.9-rc  
+**Version:** 0.6.9-final  
 **Entwickler:** Sternenkorps Interne Entwicklung  
 **Lizenz:** MIT  
-**Plattform:** Web (Browser), Switch (vorbereitet)  
+**Plattform:** Web (Browser)  
 **Steuerung:** Tastatur, Maus, Gamepad  
 
 ---
 
-### 📞 KONTAKT
+### 📋 KURZFASSUNG
 
-**Sternenkorps Internes Netzwerk**  
-Formular 12-B erforderlich  
-Nur für autorisiertes Personal  
+Dieser Release schließt die v0.6.9-Phase ab:
+- SPINDE + Bunker-Atmosphäre
+- Save/Load-Workflow
+- Musik-/Audio-Konsistenz
+- Dialog-/Gesichtsfunktionen
+- Doku- und Website-Integrationen
+- Smoke-Test grün
 
 *"Wir fliegen allein. Wir fliegen zusammen."*

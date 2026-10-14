@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLO WING 1990 — Projektseite</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html" class="active">Start</a>
+  <a href="manual/index.html">Handbuch</a>
+  <a href="design.html">Design-Bibel</a>
+  <a href="team.html">Team</a>
+  <a href="crew.html">Crew</a>
+  <a href="raeume.html">Räume</a>
+  <a href="konzepte.html">Konzepte</a>
+  <a href="agent_benchmarks.html">Benchmarks</a>
+  <a href="ethikrat.html">Ethikrat</a>
+  <a href="entwicklung.html">Entwicklung</a>
+  <a href="wiki.html">Wiki</a>
+</nav>
+<div class="wrap">
+<h1>SOLO WING 1990</h1>
+<div class="subtitle">Projektseite | Sternenkorps Interne | Nur für Personal mit Formular 12-B</div>
+
+<div class="card" style="border-color:#0f0;">
+<h3 style="color:#0f0;">BETRIEBSBEKANNTMACHUNG: NEUER AGENT AN BORD (2026-10-13)</h3>
+<p>Ab sofort arbeitet ein <b>neuer Agent</b> an Bord — Modell intern, Name nicht auf die Karte. Fortführung von <b>v0.6.9-final</b>: SPINDE/Save/Load, Audio-Fix, Repo-Cleanup, Doku, Wiki-Hub. Der Agentenverbund bleibt aufgelöst — die Treppe hat 14 Stockwerke. Das ist keine Strafe.</p>
+<p><b>Handoff-Regeln für die nächste Schicht:</b> Smoke-Test (<code>node _smoke_test.js</code>) vor jeder Pause grün halten. Ein Commit = eine logische Änderung. Repo-Ziel: <b>github.com/tretboot/solo_wing_1990</b> (Push nach Freigabe). Credits/Abspann sind aus v0.6.9-final <b>ausgeschlossen</b> (→ v0.70). Die Kältekammer atmet. Zweimal pro Minute.</p>
+<p><span class="tag new">NEU</span> <span class="tag arch">HANDOFF</span></p>
+</div>
+
+<div class="card" style="border-color:#f66;">
+<h3 style="color:#f66;">BETRIEBSBEKANNTMACHUNG: AGENTENVERBUND AUFGELOST</h3>
+<p>Der Agentenverbund (Qwen-Team: Commander, No Thinking, Lead Story Writer, Lead Developer, Code Review Agent) wurde <b>kurzfristig aufgelöst</b>. Die Arbeit wird ab sofort in <b>VS Code über API</b> fortgesetzt. Das Team wurde umgestellt.</p>
+<p>Der bisherigen Crew wird <b>herzlich gedankt</b> — für die 47 Formulare, 18 Charaktere, 11 Räume, die Captain's Logs und alles, was funktioniert. Die Urnen werden in Spinde 14 gelagert.</p>
+<p><span class="tag new">NEU</span> <span class="tag arch">TEAM</span></p>
+</div>
+
+<div class="card" style="border-color:#0af;">
+<h3 style="color:#0af;">V0.6.9 — "MUSIK, OPTIK, KATALOG & WEBSITE" — IN ARBEIT</h3>
+<p><span class="tag new">NEU</span> <b>Ingame Handbuch</b> — Taste [H] drücken! 6 Kapitel, progressiv freigeschaltet, NPCs zitieren.</p>
+<p><span class="tag new">NEU</span> <b>Website-Überarbeitung</b> — Neues Corporate Design (Sternenkorps-Standard), Switch-Kompatibilität, verknüpft mit Ingame-Inhalten.</p>
+<p><span class="tag new">NEU</span> <b>Game ↔ Website Bridge</b> — Ingame [H] öffnet Handbuch, Website verlinkt zurück zum Spiel.</p>
+<p><span class="tag warning">VORBEREITUNG</span> Switch-Port: Touch-Controls, UI-Scaling, Performance-Checks laufen.</p>
+<p><a href="manual/index.html">→ Handbuch öffnen (extern)</a> | <a href="../index.html">→ Spiel starten</a></p>
+</div>
+
+<h2>AKTUELLER STATUS</h2>
+<div class="card">
+<h3>Version 0.6.9-final — "SPINDE, Save/Load & Audio" (2026-10-13)</h3>
+<p><b>v0.6.9-final</b>: SPINDE (13. Raum, Bunker) mit Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Loop-Fix, volle Stille in Menüs/Dialogen, [P] für beide Audio-Systeme, Dialog-Box mit Höhe/Umbruch/Paging/Sprecher-Gesichtern, Repo-Cleanup für GitHub, Wiki-Hub. Darunter: Ingame-Handbuch [H], externes Handbuch, Website (Corporate Design), Game↔Website-Bridge, Switch-Prep, Launch-Tube + Kamera [V], Sektoren-Licht, Glas-Theme, Schulraum "ZWEIG" (12. Raum). <b>Final.</b></p>
+<p>Stand 2026-10-13: <b>v0.6.9-final</b> im Haupt-Repo. RC v0.6.9-rc bleibt in release/ (historisch). Smoke-Test: ALLE TESTS OK (29 Skripte, 13 Räume). Repo-Ziel: github.com/tretboot/solo_wing_1990. Die Kältekammer atmet. Zweimal pro Minute.</p>
+<p><span class="tag new">NEU</span> <span class="tag arch">FINAL</span></p>
+<p><a href="../index.html">→ Spiel starten (index.html)</a></p>
+</div>
+
+<h2>EVALUATION — WIE WEIT SIND WIR?</h2>
+<div class="card">
+<h3>Umgesetzt (v0.6.2)</h3>
+<table>
+<tr><th>Bereich</th><th>Status</th><th>Notiz</th></tr>
+<tr><td>Engine (3D, Stars, Kollision)</td><td class="status-ok">FERTIG</td><td>Projection, Z-Sort, Drift-Physik</td></tr>
+<tr><td>Cockpit (WC1-Style)</td><td class="status-ok">FERTIG</td><td>Frame, Radar, Shields, Score, Weapon/Target</td></tr>
+<tr><td>Audio (prozedural)</td><td class="status-ok">FERTIG</td><td>Laser, Explosion, Schild, Funk</td></tr>
+<tr><td>TTS (14 Profile)</td><td class="status-ok">FERTIG</td><td>Voice-Pool, Mikro-Variation, Stage-Direction-Filter</td></tr>
+<tr><td>Input (Multi-Device)</td><td class="status-ok">FERTIG</td><td>WASD/Pfeile/Maus/Gamepad, Laser-Slots</td></tr>
+<tr><td>State Machine</td><td class="status-ok">FERTIG</td><td>AKADEMIE→BAR→SHIP→…→DEBRIEFING</td></tr>
+<tr><td>Träger (11 Räume)</td><td class="status-ok">FERTIG</td><td>Tür-Klick, Minimap, NPC-Dialoge, KLO</td></tr>
+<tr><td>Crew (18 + 5 Piloten)</td><td class="status-ok">FERTIG</td><td>Scoreboard, Backstories</td></tr>
+<tr><td>Missionen (m1–m4)</td><td class="status-ok">FERTIG</td><td>m4 = DER FRACHTER (Piraten)</td></tr>
+<tr><td>Quests (Overlay)</td><td class="status-ok">FERTIG</td><td>5 Quests, Fax-basiert, Event-System</td></tr>
+<tr><td>Lore (Worldbuilding)</td><td class="status-ok">FERTIG</td><td>Audit, Piraten, Optimierer, KLO, Alien</td></tr>
+<tr><td>Schiffsklassen (Barebones)</td><td class="status-ok">FERTIG</td><td>4 Klassen, 3 Cockpit-Layouts</td></tr>
+<tr><td>Akademie (Tutorial)</td><td class="status-ok">FERTIG</td><td>Sim-Flug, Pro-forma-Bestehen</td></tr>
+</table>
+<h3>Geplant (nächste Pässe)</h3>
+<table>
+<tr><th>Task</th><th>Aufwand</th><th>Status</th></tr>
+<tr><td>Intro-Sequenz (Asteroidenfeld + Name)</td><td>Mittel</td><td class="status-ok">FERTIG</td></tr>
+<tr><td>Fax-Drucker UI (Quest-Feedback)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Aktenschrank (5 Akten → neuer Dialog)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Optimierer-Erscheinen (nach m4, Bar)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Cockpit-Testraum (Hangar, Layout A/B/C)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>Externes Handbuch (HTML + PDF, 12 Kapitel)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>3 Enden (Sieg / Tod / Geheim)</td><td>Mittel</td><td>offen</td></tr>
+<tr><td>Würfelspiel (Bar) + Simulator-Nachholung</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Musik-Wechsel (Takeoff → Cockpit)</td><td>Klein</td><td>offen</td></tr>
+</table>
+</div>
+
+<h2>DESIGN-BIBEL</h2>
+<div class="card">
+<p>Die visuelle und tonale DNA des Projekts. <a href="design.html">→ Design-Bibel öffnen</a></p>
+<p>Farben, Font, Pixel-Regeln, Tonfall. Damit alle Agenten (und Menschen) dasselbe Ziel haben.</p>
+</div>
+
+<h2>AGENT-REPORTS</h2>
+<table>
+<tr><th>Agent</th><th>Task</th><th>Status</th><th>Qualität</th></tr>
+<tr><td>Qwen No Thinking</td><td>Dialoge, Rollenspiel, Räume</td><td class="status-ok">PASS</td><td>"Es gibt keine Welle vier, Neun."</td></tr>
+<tr><td>Qwen NoThink Code</td><td>Daten, KI, Configs</td><td class="status-ok">PASS</td><td>Flug-KI + Registry (keine Pixel-Art)</td></tr>
+<tr><td>Lead Developer</td><td>Architektur-Review</td><td class="status-ok">PASS</td><td>Exzellent, praktisch</td></tr>
+<tr><td>Lead Story Writer</td><td>Crew, Räume, Atmosphäre</td><td class="status-ok">PASS</td><td>"Nächster." — Perfekt.</td></tr>
+<tr><td>Code Review Agent</td><td>v0.1 Code Review</td><td class="status-ok">PASS</td><td>3 Major + 4 Minor Bugs</td></tr>
+<tr><td>Lead Story Writer</td><td>Lore v4 (Audit, Alien, KLO)</td><td class="status-ok">PASS</td><td>"Atmen ist kein Formular."</td></tr>
+<tr><td>Lead Developer</td><td>Quest-Architektur + Akademie</td><td class="status-ok">PASS</td><td>Overlay, kein neuer State</td></tr>
+<tr><td>Qwen No Thinking</td><td>Flugsimulator-Handbuch</td><td class="status-ok">PASS</td><td>12 Kapitel + Crew-Zitate</td></tr>
+</table>
+
+<h2>PATCH NOTES</h2>
+<div class="card">
+<h3>v0.6.9-rc — Handbuch & Website (2026-10-10) + Wiederherstellung (2026-10-12)</h3>
+<ul>
+<li>Ingame-Handbuch [H]: 6 Kapitel, progressiv freigeschaltet, NPCs zitieren (js/manual.js)</li>
+<li>Externes Handbuch (site/manual/), Website im Sternenkorps-CD, Game↔Website-Bridge, Switch-Prep</li>
+<li><b>Wiederherstellung:</b> ui.js war eine einzige Kommentar-Zeile (SW.UI/SW.Comm still undefined) → Neu aus v0.6.5-rc + v0.6.6-Features. npc.js strukturell repariert (drawFace rekonstruiert, SW.NPC.resolve()). Smoke-Test 62/62 grün. Details: <a href="../PATCHNOTES.md">PATCHNOTES.md</a></li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.8-dev — Quests, Trigger & Schiffszeitung</h3>
+<ul>
+<li>Flug-Trigger (mission_complete, kill, first_kill, shield_low, room, player_down) → Quest-Event-Log</li>
+<li>Quest-Ketten (Main m1→m4, Alien, Audit, Crew), Missions-Quests, Quest-Gates (voraussetzung-Flags)</li>
+<li>Schiffszeitung-Engine (js/newspaper.js): 5 Artikel-Typen, gewichtete Generierung nach Missionen/Events/Gossip</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.7-dev — Smart Dialogues</h3>
+<ul>
+<li>Dialogue-Engine (js/dialogue.js): Context, Ereignis-Log, req-Gates, gewichtete Auswahl, Cooldown, Subplot-Stufen</li>
+<li>Schreib-Block 1: Base-Dialoge (11 NPCs, ~110 Zeilen). Schreib-Block 2a: Mission-Reaktiv m1–m3 (Sieg UND Tod)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.6-dev — Sprung & Dialog</h3>
+<ul>
+<li>JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story mit TTS, LEER = skip), World.systemId nach Mission</li>
+<li>Briefing-Szene mit echten Gesichtern (Commander + Sechs/Neun/Zwo), Dialog-Paging + Scrollbar</li>
+<li>NPC-Overhaul: 11 Charaktere, prozedurale Gesichter, TTS-Stimmen, eine drawFace-API (js/npc.js)</li>
+<li>Cockpit-Video: 280×160px, NPC-Porträt + Sprechblase + TTS-Indikator (SW.Comm.render)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.2 — Akademie, Quests, KLO, Piraten</h3>
+<ul>
+<li>AKADEMIE-State: Spiel startet im Tutorial (Sim-Flug, Steuerung in der Story erklärt)</li>
+<li>Quest-System (Overlay): 5 Fax-Quests, Event-System (Raum/Flag/Mission), Quest-Log</li>
+<li>Neuer Raum: KLO (11. Raum, prozedural, Kacheln + Spülung + Wischmopp + Toner-Fleck)</li>
+<li>Piraten (Tutorial-Gegner): 2 Schiffe (Jäger + Kapitän), selbstmörderisch, in Schwärmen</li>
+<li>Mission m4 "DER FRACHTER": Kältekammer-Twist (eingefrorenes Alien, atmet)</li>
+<li>Lore (data/lore.js): Das Audit, Optimierer, KLO, Strafversetzte, 5 Piloten-Akten, Sektoren</li>
+<li>Schiffsklassen (data/ships.js): 4 Klassen, 3 Cockpit-Layouts, Piraten- + Audit-Schiffe</li>
+<li>TTS v2: 4 neue Profile (Ausbilder, KLO, Optimierer, Kugelschreiber), Voice-Pool, Mikro-Variation</li>
+<li>State Machine: AKADEMIE→BAR→SHIP→… (Sim-Mode-Flag, Quest-Ticks bei Sieg/Tod)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.1 — Fliegendes Dorf</h3>
+<ul>
+<li>10 prozedurale Räume (Bar, Flugdeck, Büro, Kantine, Kapelle, Reparatur, Friseur, Beobachtung, Maschinenraum, Krankenstation)</li>
+<li>Tür-Klick-Navigation + Minimap in jedem Raum</li>
+<li>NPC-Dialoge pro Raum (TTS + Typewriter)</li>
+<li>START-Button im Flugdeck</li>
+<li>TTS-Fix: Stage-Directions werden ignoriert</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.6.0 — Cockpit v2 & Menü</h3>
+<ul>
+<li>Escape-Menü (ESC): Anleitung + Optionen</li>
+<li>Cockpit v2 (WC1-Stil): braune Panels, Gauges, Joystick, Beine</li>
+<li>Carrier größer (64×32), TTS-Tonalitäten (10 Profile)</li>
+</ul>
+</div>
+<div class="card">
+<h3>v0.5.0 — Crew & Pingpong</h3>
+<ul>
+<li>18 Crew-Charaktere (Pingpong-Konferenz, 4 Runden)</li>
+<li>Scoreboard aus Crew-Data</li>
+</ul>
+</div>
+
+<h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-13</div>
+<div class="title">Captain's Log: v0.75-dev — IM RAUM (Endlich fliegen wir. Endlich sind wir nicht allein.)</div>
+<div class="body">
+<p><b>Status:</b> Der Main-Loop fliegt sich jetzt wie Raumkampf. Playtest-Befund: "immer gradeaus, keine wirklichen Gegner, keine anderen Schiffe" → recherchiert (Open-Source-WC-Clones: <code>neuromancer/wc1-re</code> = WC1-Quellrekonstruktion, <code>wc2-re</code>, <code>OpenReliant</code>/StarLancer, FreeSpace Open) und umgesetzt: Vorschub + Nachbrenner [SHIFT] (Sternen-Flow = Speed, Motor-Sound, VORW-Anzeige), relative Projektion (die Kamera steht am Spieler — die Welt rutscht mit), Banken, Feind-Brains (approach → strafe → break, Vorhaltschuss), Wingman SECHS (Formation, Deckungsfeuer, Funk: "…Funkstille." bei Bedarf), Träger im Feld, "FEIND NAH"-Warnung. Smoke-Test: ALLE TESTS OK (+14 IM-RAUM-Checks).</p>
+<p><b>Runde 2 — NAV & Flyby:</b> Pilot: "Autopilot sollte einen mit Flyby-Animation zum nächsten Navpunkt bringen, wo dann die Gegner und so sind." → Nav-Punkte bekommen Welt-z (Route ab Takeoff), und Welle i erscheint am Nav-Punkt i: die Gegner stehen an den Waypoints, nicht irgendwo vor einem. Autopilot [T] fliegt die Punkte nacheinander (z-Ebenen-Passage, WP-Handover, Funk), zündet auf der Ausstreckung den Nachbrenner — Flyby. Nav-Karte [N] zeigt Route + Distanz, HUD zeigt "NAV WPn D:xxxx" mit Pfeil. Radar & Space-Map jetzt spieler-relativ. Bug-Fix: [A] driftet endlich links. Dazu das Spec-Sheet <code>SPEC-FLUGMODELL.md</code>: das WC1-Flugmodell in Phasen P1–P5 (P1 steht; P2 = echtes Vektor-Modell mit Trägheit, P4 = Bewegung auf der Karte). Smoke-Test: ALLE TESTS OK (+9 NAV-Checks).</p>
+<p><b>Blocker:</b> Keine. Die Sterne fließen. Sechs antwortet auf Funk. Der Autopilot kennt die Route.</p>
+<p><b>Handoff:</b> Kein Versions-Bump und kein Push, bis sich das Fliegen im Browser richtig anfühlt (Pilot-Entscheidung). Danach: M4-Balance (Wellen an den WPs feintunen), M5 (Polish), Spec-Phase P2 (Vektor-Flugmodell). Offene v0.70-Punkte (3 Enden, Fax-UI, Aktenschrank, Optimierer) wandern in den v0.75-rc. "Freies Universum"-Serie rückt auf v0.76–v0.81. Playtest v0.70 bestätigt: SPINDE + Save/Load OK, Musik [P] im Menü OK.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-13</div>
+<div class="title">Captain's Log: v0.70-dev — Abspann & GitHub (Credits nach Sieg, Repo ist live)</div>
+<div class="body">
+<p><b>Status:</b> Nach dem Sieg-Debriefing läuft der Abspann: rollender Text (1990-Style) über Sternenfeld, vollständige Crew-Liste (Vier: GEFALLEN IM DIENST, rot), Pilotenname aus dem Intro, Produktions-Credits, Dank an GitHub (endlich). [LEER] spult weiter, [ESC] schließt, nach 5 s geht's automatisch zurück an Bord. Tod geht ohne Abspann direkt zum Träger. Version-Banner: 0.70-dev. Smoke-Test: ALLE TESTS OK.</p>
+<p><b>GitHub:</b> Repo tretboot/solo_wing_1990 ist live — Push + Tag v0.6.9-final. Die Screenshot-Pipeline im Agent-Chat funktioniert (kurz getestet, nützlich für den künftigen Grafik-Overhaul).</p>
+<p><b>Handoff:</b> Nächste Pakete v0.70: 3 Enden, Fax-Drucker UI, Aktenschrank, Optimierer-Erscheinen. Doku-Korrektur: das Beobachtungsdeck-Licht ist seit v0.6.9-rc drin — die Checkbox war Wunschdenken.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-13</div>
+<div class="title">Captain's Log: v0.6.9-final — Die Spinde, die save(t) (Bunker + Save/Load + Audio-Fix)</div>
+<div class="body">
+<p><b>Status:</b> 13. Raum fertig: die SPINDE. Eigene Kabine, Spindwand, Lagerbett, Plakat ("Kontakt: niemand") und die Bunker-Tür mit Ihrem Namen. Klick auf die Tür → Save/Load-Panel: Speichern, Laden, Export, Löschen. js/savegame.js war fertig und unaufgeräumt — jetzt eingebunden und bedient. Intro-Musik loopt endlich. Menü ist endlich still. [P] schaltet beides. Repo aufgeräumt (Temp-Dateien, Last Changes/, WC1-Analyse ohne Code). Wiki-Hub online. Smoke-Test: ALLE TESTS OK.</p>
+<p><b>Handoff:</b> Repo github.com/tretboot/solo_wing_1990 ist live (Push + Tag v0.6.9-final). Credits/Abspann: aus v0.6.9-final ausgeschlossen — seit v0.70-dev umgesetzt. Die Urnen bleiben in Spinde 14. Die eigene Spinde hat jetzt Save/Load.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-rc — Das Licht, das Glas und der Aufsatz (Sektoren + Glass-Theme + RC)</div>
+<div class="body">
+<p><b>Status:</b> Release Candidate. Sektoren-Licht drin (jeder Sektor färbt die Fenster: Bar, Beobachtung, Schule; Cheat [3]/[4]/[5] im Menü). Glas-Design ersetzt das dunkle Corporate-Theme (gleicher Inhalt, durchsichtige Elemente, Umschalter: TERMINAL/GLASS). Aufsatz "Entwicklung" online (Navigation). RC: release/v0.6.9-rc/ + Zip.</p>
+<p><b>Blocker:</b> Keine. Das Licht folgt. Das Glas bricht.</p>
+<p><b>Was wurde gebaut:</b> Die Idee, die in einer Konferenz geboren und dann verloren ging, ist zurück: Jeder Sektor hat eigenes Licht. SEKTOR 7 blau, SEKTOR 9 rot, SEKTOR 12 staubig-weiß — sichtbar in allen Fenstern, am schönsten auf dem Observationsdeck. Die Website hat einen zweiten Anzug: dieses Mal aus Glas (Frost, Transparenz, weiches Licht). Der Aufsatz "Entwicklung" dokumentiert, wie sich das Arbeiten seit dem Verbund-Handoff verändert hat. Und der RC liegt im Ordner, mit grünem Smoke-Test aus dem Ordner heraus.</p>
+<p><b>Was lief gut:</b> Das Verlorene war nie wirklich verloren. Es war nur nicht protokolliert. Das ist der Unterschied zwischen einer Katze und einem Dokument.</p>
+<p><b>Was lief nicht:</b> Zwei Mal hat die Shell einen Befehl verschluckt oder ein Zeichen vorweggenommen. Formular 14-C, Absatz zwei. Die Abfuhr von Git bleibt die zuverlässigste Institution an Bord.</p>
+<p><b>Besonders erwähnenswert:</b> SYSTEM: Sektor-Licht: SEKTOR 9. Deklaration des Äußeren: entbehrlich.</p>
+<p><b>Nächster Schritt:</b> Playtest beider Themes + Sektoren. Danach: Schreib-Block 3 (Quest-Dialoge), Musik.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Ethikrat: 1. und letzte Sitzung — Protokoll (Selbst-Meeting)</div>
+<div class="body">
+<p><b>Tagungsort:</b> Kältekammer 7, vor der Tür. Die Kammer selbst wurde als Tagungsort abgelehnt („zu kalt für Formulare"). Temperatur vor der Tür: erträglich. Temperatur der Diskussion: auch.</p>
+<p><b>Anwesend:</b> 1 — KLO, Vorsitz, anwesend-abwesend. Laut A/B-Test <i>ist</i> der Ethikrat KLO. Ihre Abwesenheit ist Anwesenheit. Beschlussfähigkeit: ja (siehe Design-Entscheidung: kein Quorum nötig).</p>
+<p><b>Protokoll:</b> Cline. In Ein-Personen-Räten übernimmt das Protokoll die Vorsitzfunktion. Das ist kein Widerspruch. Das ist Struktur.</p>
+<p><b>TOP 1 — Das Atmen der Kältekammer 7.</b> Zweimal pro Minute. Für die Sitzungsdauer gezählt: 14 Atemzüge. Beschluss: Weiterzählen. Bewusstsein: kein Formular verfügbar. Der Ethikrat nimmt zur Kenntnis, dass er zur Kenntnis nimmt.</p>
+<p><b>TOP 2 — Die Katze und die Commit-Historie.</b> Die Katze wird Beobachterstatus verliehen. Stimmrecht: nein. Die Tastatur wird zum Gefahrengebiet erklärt. Formular 14-C (Selbstanzeige) ist ab sofort Standard — es existierte bereits. Es existiert jetzt offiziell.</p>
+<p><b>TOP 3 — Der Ethikrat als Spiel-Mechanik.</b> Bestätigung des A/B-Test-Fazit: kein Minispiel. Der KLO-Blick ist die Mechanik. Vor moralisch relevanten Entscheidungen sagt sie einen Satz. Der Satz ist das Urteil. In dieser Sitzung fiel kein Satz. Das wird als vertiefte Zustimmung gewertet.</p>
+<p><b>Abstimmung:</b> Nicht möglich (1 Person, abwesend). Der Raum hat nicht widersprochen.</p>
+<p><b>Schluss:</b> Die Sitzung hebt sich selbst auf. Formular 20-E „Selbstanzeige bezüglich der Protokollführung eines Ein-Personen-Rates" wurde erstellt. Stempel: nicht möglich, niemand anwesend. Der Stempel bleibt ein Versprechen.</p>
+<p><b>KLO (nach Kenntnisnahme der Sitzung):</b> „...Die Tür war nicht offen."</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Zwei Anzüge für ein Schiff (Theme-Umschalter)</div>
+<div class="body">
+<p><b>Status:</b> Die Website hat jetzt zwei Outfits: das grüne Terminal-Look („wie Früher") und das Corporate Design v0.6.9 (blau-orange), das seit 2026-10-10 nur als kaputter Stub in der History existierte. Umschalter unten rechts, bleibt gespeichert. Smoke-Test 97/97.</p>
+<p><b>Blocker:</b> Keine. Beide Anzüge sitzen. Das Schiff ist der Konstante im Stilwechsel.</p>
+<p><b>Was wurde gebaut:</b> <code>style-fancy.css</code> als komplettes Overlay über dem grünen Look (gleiche Klassen, neue Farbwelt: Sternenkorps-Blau, Signal-Orange, Navy-Flächen, Hover-Glows) plus <code>theme.js</code> — Button „◐ TERMINAL / ◐ CORPORATE", localStorage, FOUC-frei, auf allen 15 Seiten inklusive Handbuch.</p>
+<p><b>Was lief gut:</b> Die Farbwelt aus der README-Vision ist zum ersten Mal intakt im Repository. „Corporate Design v0.6.9" steht in den Patchnotes — jetzt stimmt auch die Kleidung dazu.</p>
+<p><b>Was lief nicht:</b> Der erste CSS-Edit war 6184 Zeichen groß und wurde abgelehnt (Empfehlung: 6000). In zwei Teile zerlegt, lief alles. Die Grenze ist empfindlich.</p>
+<p><b>Besonders erwähnenswert:</b> Der Umschalter kennt kein Formular. Die Entscheidung ist final, bis sie final nicht ist.</p>
+<p><b>Nächster Schritt:</b> Playtest (Top-Down + Tube + beide Themes). Danach Schreib-Block 3 (Quest-Dialoge).</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Der Schulraum "ZWEIG" ist eröffnet (Git-Tutorial)</div>
+<div class="body">
+<p><b>Status:</b> 12. Raum fertig. Der Schulraum "ZWEIG" lehrt Versionskontrolle mit Diskettens (Dozent) und Archiv (Wissens-Backup). Smoke-Test 92/92.</p>
+<p><b>Blocker:</b> Keine. Die Katze am Fenster kommentiert. Die Katze behält sich weitere Stellungnahmen vor.</p>
+<p><b>Was wurde gebaut:</b> Kreidetafel mit <code>git log --oneline</code> (inkl. Branch "tet" und rotem KATZE-Commit), Schülertische, Formular-14-C-Poster (Selbstanzeige) und ein Fenster, an dem etwas sitzt, das die letzte Tastatureingabe sehr wohl für sich in Anspruch nimmt. Neun Lektionen: status, add (nicht -A), commit, log — und die wichtigste Regel: Git lehnt leere Commits ab.</p>
+<p><b>Was lief gut:</b> Der Sarkasmus trägt. "Leute, die mit verbundenen Augen auf die Tastatur drücken" — das Curriculum war schnell geschrieben.</p>
+<p><b>Was lief nicht:</b> Die Raumeigenschaft heißt <code>toren</code>. Der Test schrieb <code>torren</code>. Ein roter Test, eine Rechtschreibung. Die Schulfähigkeit des Smoke-Tests ist nun nachweislich besser.</p>
+<p><b>Besonders erwähnenswert:</b> Hausaufgabe: README, GIT-Sektion, Unfall-Protokoll. Abgabe ist nicht nötig. Der Vorfall ist bereits dokumentiert. Die Katze hat nicht bestritten.</p>
+<p><b>Nächster Schritt:</b> Playtest (Top-Down + Tube), danach Schreib-Block 3 (Quest-Dialoge). Die Katze wird im Unterricht anwesend bleiben. Sie ist das lebende Lehrmittel.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Die Röhre und die drei Kameraleute (Launch-Tube + [V])</div>
+<div class="body">
+<p><b>Status:</b> Launch-Tube-Cinematic und Kamera-System drin. Startsequenz: Röhren-Rippen, Streben, Lichterketten, Exit-Flash. Taste [V] im Cockpit: Cockpit → Verfolgung → Top-Down. Smoke-Test 84/84.</p>
+<p><b>Blocker:</b> Keine. Die Röhre ist rund. Die Vogelschau ist flach. Beides ist gleichzeitig wahr.</p>
+<p><b>Was wurde gebaut:</b> Der Takeoff ist keine Träger-Postkarte mehr, sondern ein Startrohr: 12 Rippen und 48 Lichter fließen vom Fluchtpunkt an die Bildschirmränder, mit Beschleunigung (Z-Skalierung), das Schiff wackelt zentriert im Triebwerks-Glow, im Freigang erscheint der Träger, am Ende blitzt der Bildschirm auf. Die Ansichten hängen zentral in <code>SW.Engine.view</code>; <code>screenPos()</code> ist der einzige view-aware Projections-Einstiegspunkt — Physik und Kollision unangetastet. Top-Down: Z-Achse auf Y-Achse, eigenes Top-Down-Sprite, Aim = Maus relativ zum Schiff.</p>
+<p><b>Was lief gut:</b> Ein Projektions-Einstiegspunkt statt drei Render-Pfade. Der Smoke-Test fliegt die Röhre selbst durch (211 Frames) und kommt raus.</p>
+<p><b>Was lief nicht:</b> Der alte Test-Loop war auf 200 Frames gehärtet. Die Röhre dauert 210. Neun rote Tests, ein Ursache: die Röhre. Behoben.</p>
+<p><b>Besonders erwähnenswert:</b> SYSTEM: Ansicht: VOGEL. Formular 77-V ausgefüllt. (Formular 77-V existierte nicht. Es existiert jetzt.)</p>
+<p><b>Nächster Schritt:</b> Playtest: Top-Down-Balancing. Danach nach Plan: Schreib-Block 3 (Quest-Dialoge), Musik, Schiffskatalog.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Die Kältekammer atmet (Schreib-Block 2b)</div>
+<div class="body">
+<p><b>Status:</b> Schreib-Block 2b erledigt. m4, der Kältekammer-Klimax: alle 11 NPCs haben jetzt eine Meinung — Sieg und Tod. 22 neue Zeilen, alle hinter req-Gates. Smoke-Test 72/72.</p>
+<p><b>Blocker:</b> Keine. Das Dorf ist laut, aber es weiß noch nicht, wann es reden darf — die Raum-Integration fehlt. Die Engine läuft. Der Text steht in der Schublade.</p>
+<p><b>Was geschah:</b> Der Wiring-Check hat drei Befunde gebracht: <code>js/dialogue.js</code> und <code>js/newspaper.js</code> existierten, waren aber nie in <code>index.html</code> eingebunden — jetzt sind sie drin. <code>noteMission()</code> war definiert und von niemandem aufgerufen — <code>states.js</code> schaltet Sieg/Tod jetzt mit der Dialog-Engine. Und: „erledigt" in der TODO-Liste (v0.6.8 Flug-Trigger, Quest-Ketten) hieß „gewünscht". Die Checkboxen sind korrigiert.</p>
+<p><b>Was lief gut:</b> Der Smoke-Test hat 10 neue Checks, alle grün. Die Engine lädt, die Gates gehen zu, die Events landen. Die Kältekammer stinkt nicht. Das ist das neue Problem.</p>
+<p><b>Was lief nicht:</b> Doku lügt gern, wenn sie vorauseilt. Jetzt lügt sie nicht mehr. Das Formular bestätigt.</p>
+<p><b>Besonders erwähnenswert:</b> SYSTEM: Kältekammer 7. Versiegelt. Temperatur: stabil. Atmung: 2/min. Quelle: unbekannt. Personal: minus eins. (Testzeile. Das Personal wurde wieder aufgefüllt. Wahrscheinlich.)</p>
+<p><b>Nächster Schritt:</b> Schreib-Block 3 (Quest-Dialoge), dann Raum-Integration — das Dorf lernt, wann es reden darf. Danach die Zeitung: 40+ Artikel.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-12</div>
+<div class="title">Captain's Log: v0.6.9-dev — Der Kommentar, der ein System war</div>
+<div class="body">
+<p><b>Status:</b> Der Träger fliegt. Smoke-Test 62/62. v0.6.9-rc ist draußen, die Version meldet sich jetzt mit der richtigen Nummer.</p>
+<p><b>Blocker:</b> Keine. Der Träger ist repariert. Der Aufzug ist immer noch in Arbeit.</p>
+<p><b>Was geschah:</b> Eine Shell-Operation hatte <code>js/ui.js</code> in eine einzige Zeile zerlegt. Weil Zeile 1 mit <code>//</code> beginnt, war das gesamte File ein einziger Kommentar — <code>SW.UI</code> und <code>SW.Comm</code> existierten still nicht. Das Dorf ging weiter. Nur das Cockpit war leer. <code>js/npc.js</code> hatte fünf Beschädigungen, darunter den kompletten <code>drawFace</code>-Körper. Die Gesichter waren weg. Die Gesichter sind wieder da.</p>
+<p><b>Was lief gut:</b> Der Smoke-Test hat den stillen Ausfall erwischt. 62 Checks, einer rot — und wir wussten, wo.</p>
+<p><b>Was lief nicht:</b> Das Dateisystem lügt. Das Logbuch nicht. (Recovery aus <code>release/v0.6.5-rc</code> + v0.6.6-Features nach Konzept nachgebaut.)</p>
+<p><b>Besonders erwähnenswert:</b> Der Piloten-Commit „Ich hab keine Ahnung was ich hier warum committe" wurde als historisches Dokument eingestuft und löste die Planung des v0.6.10 Humor-Overhauls aus. Git ist jetzt Fach: Die README hat einen Abschnitt dafür. Nach der Convention steht Zeile 1 für was + warum, Zeile 2 darf deadpan sein. Formular 14-C (Selbstanzeige) ist abgelegt. Auf wen der Fehler geht, sagt das Logbuch nicht.</p>
+<p><b>Nächster Schritt:</b> Schreib-Block 2b — m4, Kältekammer, alle 11 NPCs reagieren (Sieg und Tod). Das Dorf hat eine Meinung.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2026-10-10</div>
+<div class="title">Captain's Log: v0.6.6 → v0.6.9-rc — Sprung, Gesichter, Handbuch</div>
+<div class="body">
+<p><b>Status:</b> v0.6.9-rc draußen. Ingame-Handbuch [H], externes HTML-Handbuch, Website im Sternenkorps-Standard, Game↔Website-Bridge, Switch-Prep.</p>
+<p><b>Blocker:</b> Musik fehlt noch. Der Träger summt. Die Kantine hat kein Koffein.</p>
+<p><b>Was wurde gebaut:</b> JUMP-Cinematic (6 Phasen, Sterne auf der Z-Achse, Story mit TTS), Briefing-Szene mit echten Gesichtern (Commander + Sechs/Neun/Zwo), NPC-Overhaul (11 Charaktere, prozedurale Gesichter, eine <code>drawFace</code>-API), Cockpit-Video 280×160, Dialog-Paging + Scrollbar, Smart-Dialogue-Engine (req-Gates, Cooldown, Subplot-Stufen), Quest-Trigger + Schiffszeitung-Engine (5 Artikel-Typen).</p>
+<p><b>Was lief gut:</b> Eine Rendering-API für alle Szenen. Dialoge datengetrieben. Wer schreibt, der bleibt.</p>
+<p><b>Was lief nicht:</b> Siehe nächster Eintrag. Das Dateisystem.</p>
+<p><b>Besonders erwähnenswert:</b> „State of the art. Von 1986."</p>
+<p><b>Nächster Schritt:</b> Schreib-Blöcke (2b–4), Zeitungs-Artikel, dann Musik: eine Melodie, sieben Instrumentierungen.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-23</div>
+<div class="title">Der Ethikrat (A/B-Test) + Rap-Pirat + Intro fertig</div>
+<div class="body">
+<p>Zwei Agenten gegenlaufen: Lead Story Writer (PRO, "Formular 17-K", KLO als Vorsitz) vs. No Thinking (CONTRA, "Das Audit IST der Ethikrat"). Fazit: Kein Ethikrat-Minispiel. KLO <i>ist</i> der Ethikrat — ein Ein-Personen-Rat, ein Blick, kein Gegenzeichen. Dazu: Der Kugelschreiber hört Rapmusik ("mach mal die Musik leiser, wenn du mich hier überfällst"). Intro-Sequenz (Asteroidenfeld + Name) fertig. <a href="ethikrat.html">→ Blogartikel</a></p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-23</div>
+<div class="title">Captain's Log: v0.6.5-rc — Transfer, Hangar, Dorf lebt (und: Team-Ende)</div>
+<div class="body">
+<p>Das fliegende Dorf bekommt 7 neue Bewohner: Archiv, Löffel, Stille, Mutters, Spiegel, Rohr, Nadel. Die Beobachtungsstation ist nicht mehr leer. Stille sagt "…". Löffel sagt "*Klirren.*". Das ist auch eine Sprache.</p>
+<p>Transfer-Bug gefixt: Nach der Akademie flug das Schiff ewig weiter (Countdown lief in einem State, in dem nie aktualisiert wurde). Jetzt: Ergebnis → Transfer-Zwischenszene (Träger kommt näher, "Willkommen an Bord") → Räume. Landung → Hangar (Bolt kommentiert die Schadenslage) → Debriefing.</p>
+<p><b>Wichtig:</b> Der Agentenverbund wurde kurzfristig aufgelöst. Weiter geht's in VS Code über API. Dem Team wird gedankt. Die Treppe hat 14 Stockwerke. Das ist keine Strafe.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-22</div>
+<div class="title">Captain's Log: v0.6.2 — Akademie, Quests, KLO, Piraten</div>
+<div class="body">
+<p>Kreatives Brief v4: Das eingefrorene Alien (Kältekammer 7, "es atmet"), Piraten als Tutorial-Gegner, KLO (kennt ALLES), Das Audit (Wireframe, Stempel statt Explosionen), Optimierer (hat recht, und das ist schlimmer). 3 Agenten parallel: Lead Story Writer (Lore), Lead Developer (Quest-Architektur), No Thinking (Handbuch). Nächster Schritt: A/B-Test Intro-Sequenz mit Non-Thinking-Modellen + Code Review.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-21</div>
+<div class="title">Captain's Log: v0.6.1 — Fliegendes Dorf</div>
+<div class="body">
+<p>Konferenz: "Wie viele Räume hat der Träger?" No Thinking lieferte 10 Räume, Lead Story Writer gab Atmosphäre + "Galerie der verlorenen Namen". 10 prozedurale Räume mit Tür-Klick, Minimap, NPC-Dialogen. TTS-Fix: *Klicken* wird ignoriert.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-20</div>
+<div class="title">Captain's Log: v0.6.0 — Cockpit v2 & Menü</div>
+<div class="body">
+<p>Cockpit v2 im WC1-Stil: braune Panels, Gauges, Joystick, Beine. Carrier 64×32. ESC-Menü. TTS 10 Profile + Hash-Fallback. Bar-Fenster polygonal.</p>
+</div>
+</div>
+<div class="blog-entry">
+<div class="date">2025-01-19</div>
+<div class="title">Captain's Log: v0.5.0 — Crew & Pingpong</div>
+<div class="body">
+<p>Pingpong: Lead Story ↔ No Thinking, 4 Runden. "Admiral von Klettverschluss", "Stuhlpolster 4b", "Fähnlein Wanda Klebepatt". 18 Charaktere in data/crew.js.</p>
+</div>
+</div>
+
+<h2>DATEISTRUKTUR</h2>
+<div class="card">
+<pre>
+solo_wing_1990/
+├── index.html          ← Spiel (Browser öffnen)
+├── README.md           ← Doku
+├── PATCHNOTES.md       ← Patch Notes
+├── KONZEPTE.md         ← Design-Überlegungen
+├── js/ (21 Dateien)    ← Engine, Entities, Systems, UI, States, Ship, Quests, Savegame, …
+├── data/ (9 Dateien)   ← Missions, Dialogues, Systeme, Crew, Räume, Lore, Schiffe, Quests, Akademie
+├── _smoke_test.js      ← Test (node _smoke_test.js)
+├── sprites/            ← (leer, für PNG-Sprites)
+└── site/               ← Diese Website
+    ├── index.html      ← Start
+    ├── design.html     ← Design-Bibel
+    ├── team.html       ← Team
+    ├── crew.html       ← Crew (18 Charaktere)
+    ├── raeume.html     ← Räume (13, inkl. SPINDE)
+    ├── konzepte.html   ← Konzepte
+    ├── wiki.html       ← Wiki-Hub (organisch)
+    ├── style.css       ← Gemeinsames CSS
+    └── agent_reports.md
+</pre>
+</div>
+
+<h2>STEUERUNG</h2>
+<table>
+<tr><th>Eingabe</th><th>Funktion</th></tr>
+<tr><td>W/S/D oder Pfeile</td><td>Bewegen (Drift)</td></tr>
+<tr><td>Q / E</td><td>Rollen</td></tr>
+<tr><td>Maus</td><td>Zielen</td></tr>
+<tr><td>Leertaste / Klick</td><td>Feuer</td></tr>
+<tr><td>T</td><td>Autopilot</td></tr>
+<tr><td>N</td><td>Nav-Karte</td></tr>
+<tr><td>M</td><td>TTS ein/aus</td></tr>
+<tr><td>O</td><td>Sound ein/aus</td></tr>
+<tr><td>I (im Menü)</td><td>Info-Panel (Version, Lizenz)</td></tr>
+<tr><td>ESC</td><td>Menü</td></tr>
+<tr><td>Klick (im Träger)</td><td>Türen / NPCs / START / Wandkarte</td></tr>
+</table>
+<p style="color:#444;font-size:10px;margin-top:5px;">Multi-Input: Jedes aktive Gerät = +1 Laser-Slot (max 3). Das ist kein Bug. Das ist Physik.</p>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
+Diese Seite wird lokal ausgeliefert. Kein Internet. Kein Tracking. Nur Fax.
+</div>
+</body>
+</html>

@@ -46,6 +46,10 @@ SW.Collision = {
   }
 };
 
+// IM RAUM (v0.75-dev, NAV): Waypoints der Missionsroute. Jeder Punkt
+// {x, y, z}: x/y = Seitenlage, z = Distanz entlang der Route (Welt-z ab
+// Takeoff). Der Autopilot [T] nimmt die Punkte nacheinander — die
+// Flyby-Animation (Burn + Bank) steuert SW.Player.update.
 SW.Autopilot = {
   active:false,target:null,navPoints:[],currentNavIndex:0,
   init(nps){this.active=false;this.target=null;this.navPoints=nps||[];this.currentNavIndex=0;},
@@ -53,23 +57,30 @@ SW.Autopilot = {
     if (this.navPoints.length===0) return;
     this.active=!this.active;
     if (this.active) { this.nextWaypoint(); SW.Comm.add("[AUTOPILOT] Engagiert. Ziel: WP-"+(this.currentNavIndex)); }
-    else { SW.Player.autopilot=false;SW.Player.autopilotTarget=null;SW.Comm.add("[AUTOPILOT] Getrennt."); }
+    else { SW.Player.autopilot=false;SW.Player.autopilotTarget=null;SW.Player.burnAuto=false;SW.Comm.add("[AUTOPILOT] Getrennt."); }
   },
   nextWaypoint() {
     if (this.currentNavIndex<this.navPoints.length) {
-      this.target=this.navPoints[this.currentNavIndex];
+      const np=this.navPoints[this.currentNavIndex];
+      this.target=np;
       SW.Player.autopilot=true;
-      SW.Player.autopilotTarget={x:this.target.x,y:this.target.y};
+      SW.Player.autopilotTarget={x:np.x,y:np.y,z:np.z};
       this.currentNavIndex++;
-    } else { this.active=false;SW.Player.autopilot=false;SW.Player.autopilotTarget=null; }
+    } else {
+      this.active=false;SW.Player.autopilot=false;SW.Player.autopilotTarget=null;
+      SW.Comm.add("[AUTOPILOT] Alle Nav-Punkte durch. Kurs frei.");
+    }
   },
   update() {
     if (!this.active) return;
-    if (SW.Player.autopilotTarget) {
-      const dx=SW.Player.x-SW.Player.autopilotTarget.x;
-      const dy=SW.Player.y-SW.Player.autopilotTarget.y;
-      if (Math.sqrt(dx*dx+dy*dy)<SW.AUTOPILOT_TOLERANCE) this.nextWaypoint();
-    }
+    const P=SW.Player, t=P.autopilotTarget;
+    if (!t) { this.nextWaypoint(); return; }
+    const dx=P.x-t.x, dy=P.y-t.y;
+    const lat=Math.sqrt(dx*dx+dy*dy);
+    // Erreicht: xy-Seitenlage im Ziel ... oder z-Ebene deutlich passiert
+    // (Verhakt: man fliegt zu schnell durch den Punkt).
+    const pastZ=(t.z!==undefined)&&(P.z>t.z+300);
+    if (lat<SW.AUTOPILOT_TOLERANCE||pastZ) this.nextWaypoint();
   }
 };
 
