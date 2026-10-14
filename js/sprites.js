@@ -158,137 +158,98 @@ SW.Sprites = {
     const c = document.createElement('canvas');
     c.width = SW.W; c.height = SW.H;
     const s = c.getContext('2d');
-    const TAN = '#9a7d4b', TAN_D = '#6a5230', TAN_L = '#c8a46a';
-    const PANEL = '#1a1408', SCREEN = '#0a0a0a';
+    const steel = '#536777', darkSteel = '#293a47', lightSteel = '#8297a8';
+    const panel = '#111c25', glass = '#040b10';
 
-    // ===== OBEN: HUD-Leiste (braun) =====
-    s.fillStyle = TAN;
-    s.fillRect(0, 0, SW.W, 16);
-    s.fillStyle = TAN_D;
-    s.fillRect(0, 14, SW.W, 2);
-    // HUD-Text
+    // Low-profile status strip above the forward canopy.
+    s.fillStyle = '#263642'; s.fillRect(0, 0, SW.W, 16);
+    s.fillStyle = lightSteel; s.fillRect(0, 0, SW.W, 2);
+    s.fillStyle = darkSteel; s.fillRect(0, 14, SW.W, 2);
+    s.fillStyle = '#72d7e8'; s.font = '6px monospace';
+    s.fillText('FLUG', 6, 10); s.fillText('HP', 69, 10);
+    s.fillText('LASER', 142, 10); s.fillText('FAX-TRAGÖDIE', 242, 10);
     s.fillStyle = '#0f0';
-    s.font = '7px monospace';
-    s.fillText('FUEL', 8, 11);
-    s.fillText('HP', 70, 11);
-    s.fillText('WEAPONS', 150, 11);
-    // FUEL-Segmente
-    s.fillStyle = '#0f0';
-    for (let i=0;i<6;i++) s.fillRect(32+i*6, 5, 4, 7);
-    // HP-Segmente
-    s.fillStyle = '#0f0';
-    for (let i=0;i<6;i++) s.fillRect(92+i*6, 5, 4, 7);
-    // WEAPONS (Laser-Slots, gelb)
-    s.fillStyle = '#ff0';
-    for (let i=0;i<3;i++) s.fillRect(200+i*8, 5, 6, 7);
-    // Ziel-Retikel oben Mitte
-    s.strokeStyle = '#0f0'; s.lineWidth = 1;
-    s.strokeRect(120, 3, 20, 10);
+    for (let i=0;i<5;i++) s.fillRect(31+i*6, 5, 4, 6);
+    for (let i=0;i<5;i++) s.fillRect(83+i*6, 5, 4, 6);
+    s.fillStyle = '#ffdc58';
+    for (let i=0;i<3;i++) s.fillRect(177+i*8, 5, 6, 6);
 
-    // ===== DIAGONALE STREBEN (oben) =====
-    s.strokeStyle = TAN; s.lineWidth = 6;
-    s.beginPath(); s.moveTo(0,0); s.lineTo(55, 45); s.stroke();
-    s.beginPath(); s.moveTo(SW.W,0); s.lineTo(SW.W-55, 45); s.stroke();
-    s.strokeStyle = TAN_D; s.lineWidth = 2;
-    s.beginPath(); s.moveTo(0,0); s.lineTo(55, 45); s.stroke();
-    s.beginPath(); s.moveTo(SW.W,0); s.lineTo(SW.W-55, 45); s.stroke();
+    // Canopy rails: the main 3D view stays open and nearly square.
+    s.fillStyle = steel; s.fillRect(0, 16, 3, 130); s.fillRect(SW.W-3, 16, 3, 130);
+    s.fillStyle = darkSteel; s.fillRect(66, 16, 3, 131); s.fillRect(251, 16, 3, 131);
+    s.fillStyle = '#718594'; s.fillRect(0, 143, SW.W, 4);
+    s.fillStyle = '#a4b8c6'; s.fillRect(68, 16, 183, 1);
+    s.strokeStyle = 'rgba(140,170,190,0.45)'; s.lineWidth = 1;
+    s.beginPath(); s.moveTo(0, 18); s.lineTo(18, 34); s.lineTo(18, 42); s.stroke();
+    s.beginPath(); s.moveTo(SW.W, 18); s.lineTo(SW.W-18, 34); s.lineTo(SW.W-18, 42); s.stroke();
 
-    // ===== LINKE TAFEL (Waffen-Status) =====
-    s.fillStyle = TAN;
-    s.fillRect(0, 45, 52, 105);
-    s.fillStyle = PANEL;
-    s.fillRect(3, 48, 46, 99);
-    s.fillStyle = '#0af';
-    s.font = '6px monospace';
-    s.fillText('WAF-STATUS', 5, 56);
-    // Waffen-Balken
-    const weapons = [['LASER','#f00',1.0],['MASS','#ff0',0.0],['SHLD','#0f0',0.8]];
-    for (let i=0;i<weapons.length;i++) {
-      const y = 64 + i*12;
-      s.fillStyle = '#666'; s.font = '5px monospace';
-      s.fillText(weapons[i][0], 5, y);
-      s.fillStyle = '#222'; s.fillRect(30, y-5, 17, 5);
-      s.fillStyle = weapons[i][1]; s.fillRect(30, y-5, Math.round(17*weapons[i][2]), 5);
-    }
-    // Radar (links unten in Tafel)
-    s.fillStyle = SCREEN;
-    s.beginPath(); s.arc(26, 125, 16, 0, Math.PI*2); s.fill();
-    s.strokeStyle = '#0f0'; s.lineWidth = 1;
-    s.beginPath(); s.arc(26, 125, 16, 0, Math.PI*2); s.stroke();
-    s.strokeStyle = '#030';
-    s.beginPath(); s.moveTo(10,125); s.lineTo(42,125); s.moveTo(26,109); s.lineTo(26,141); s.stroke();
+    // Left communications rack with two recessed, bolted radio bays.
+    s.fillStyle = steel; s.fillRect(0, 42, 67, 108);
+    s.fillStyle = panel; s.fillRect(3, 45, 61, 49); s.fillRect(3, 98, 61, 49);
+    s.fillStyle = '#162630'; s.fillRect(5, 47, 57, 45); s.fillRect(5, 100, 57, 45);
+    s.fillStyle = '#57c8df'; s.fillRect(5, 47, 57, 1);
+    s.fillStyle = '#8bdc74'; s.fillRect(5, 100, 57, 1);
+    s.font = 'bold 5px monospace'; s.fillText('PUBLIC', 8, 55); s.fillText('STAFFEL', 8, 108);
+    s.fillStyle = '#57c8df'; s.fillRect(55, 51, 3, 3);
+    s.fillStyle = '#8bdc74'; s.fillRect(55, 104, 3, 3);
+    s.fillStyle = lightSteel; s.fillRect(1, 44, 2, 2); s.fillRect(62, 44, 2, 2);
+    s.fillRect(1, 97, 2, 2); s.fillRect(62, 97, 2, 2);
 
-    // ===== RECHTE TAFEL (Auto-Targeting) =====
-    s.fillStyle = TAN;
-    s.fillRect(SW.W-52, 45, 52, 105);
-    s.fillStyle = PANEL;
-    s.fillRect(SW.W-49, 48, 46, 99);
-    s.fillStyle = '#0f0';
-    s.font = '6px monospace';
-    s.fillText('AUTO-TARGET', SW.W-47, 56);
-    s.fillStyle = '#0af';
-    s.font = '5px monospace';
-    s.fillText('Target: Radar', SW.W-47, 66);
-    s.fillText('Range: 2023m', SW.W-47, 74);
-    // Targetting-Balken (farbig)
-    const tcols = ['#f00','#ff0','#0f0','#0af','#f0f'];
-    for (let i=0;i<5;i++) {
-      const y = 82 + i*8;
-      s.fillStyle = tcols[i];
-      s.fillRect(SW.W-47, y, 10, 5);
-      s.fillStyle = '#222'; s.fillRect(SW.W-35, y, 28, 5);
-      s.fillStyle = tcols[i]; s.fillRect(SW.W-35, y, 10+((i*7)%18), 5);
-    }
-    // Ziel-Symbol
-    s.strokeStyle = '#0f0'; s.lineWidth = 1;
-    s.strokeRect(SW.W-35, 120, 20, 20);
-    s.beginPath(); s.moveTo(SW.W-35,130); s.lineTo(SW.W-15,130); s.moveTo(SW.W-25,120); s.lineTo(SW.W-25,140); s.stroke();
+    // Right-side target repeater, cut into the instrument housing.
+    s.fillStyle = steel; s.fillRect(253, 42, 67, 108);
+    s.fillStyle = panel; s.fillRect(256, 45, 61, 102);
+    s.fillStyle = '#162630'; s.fillRect(258, 47, 57, 98);
+    s.fillStyle = '#57c8df'; s.font = 'bold 6px monospace';
+    s.fillText('ZIELDATEN', 261, 56);
+    s.fillStyle = '#253746'; s.fillRect(261, 60, 50, 1);
+    s.strokeStyle = '#34505e'; s.strokeRect(272, 93, 28, 28);
+    s.beginPath(); s.moveTo(272,107); s.lineTo(300,107); s.moveTo(286,93); s.lineTo(286,121); s.stroke();
+    s.fillStyle = lightSteel; s.fillRect(255, 44, 2, 2); s.fillRect(315, 44, 2, 2);
+    s.fillRect(255, 144, 2, 2); s.fillRect(315, 144, 2, 2);
 
-    // ===== UNTEN: Cockpit-Boden (braun) =====
-    s.fillStyle = TAN;
-    s.fillRect(0, 150, SW.W, 50);
-    s.fillStyle = TAN_D;
-    s.fillRect(0, 150, SW.W, 3);
-    // Mittlere Konsole
-    s.fillStyle = PANEL;
-    s.fillRect(110, 153, 100, 47);
-    // Eject-Button
-    s.fillStyle = '#f00';
-    s.fillRect(155, 158, 30, 8);
-    s.fillStyle = '#fff'; s.font = '5px monospace';
-    s.fillText('EJECT', 160, 164);
-    // Buttons-Grid
-    for (let r=0;r<3;r++) for (let col=0;col<6;col++) {
-      s.fillStyle = (r+col)%2 ? '#0f0' : '#0af';
-      s.fillRect(118 + col*14, 172 + r*8, 10, 5);
-    }
+    // Lower instrument shelf: a fax, paired MFDs and the central tactical radar.
+    s.fillStyle = '#3b4c59'; s.fillRect(0, 150, SW.W, 50);
+    s.fillStyle = darkSteel; s.fillRect(0, 150, SW.W, 3);
+    s.fillStyle = '#718594'; s.fillRect(0, 197, SW.W, 3);
+    s.fillStyle = panel; s.fillRect(4, 154, 56, 40);
+    s.fillStyle = '#9bb0bd'; s.font = '4px monospace';
+    s.fillText('FAX-KONSOLE', 8, 161);
+    s.fillStyle = '#d9d1bd'; s.fillRect(8, 164, 29, 10);
+    s.fillStyle = '#7d796f'; s.fillRect(11, 167, 22, 1); s.fillRect(11, 170, 18, 1);
+    s.fillStyle = '#273746'; s.fillRect(8, 176, 46, 13);
+    s.fillStyle = '#57c8df'; s.fillRect(12, 180, 3, 3);
+    s.fillStyle = '#26343d'; s.fillRect(75, 155, 51, 37);
+    s.strokeStyle = lightSteel; s.strokeRect(73, 153, 55, 41);
+    s.fillStyle = '#162630'; s.fillRect(77, 157, 47, 33);
+    s.fillStyle = '#9bb0bd'; s.font = '4px monospace'; s.fillText('SCHILD / SPEED', 80, 163);
+    s.fillStyle = '#39a9d2'; s.fillRect(80, 167, 5, 2); s.fillRect(80, 174, 5, 2);
+    s.fillStyle = '#26343d'; s.fillRect(89, 167, 30, 2); s.fillRect(89, 174, 30, 2);
+    s.fillStyle = '#15222c'; s.fillRect(133, 153, 54, 41);
+    s.strokeStyle = lightSteel; s.strokeRect(131, 151, 58, 45);
+    s.fillStyle = '#0a1418'; s.beginPath(); s.arc(160, 173, 17, 0, Math.PI*2); s.fill();
+    s.strokeStyle = '#45c97a'; s.lineWidth = 2;
+    s.beginPath(); s.arc(160, 173, 14, 0, Math.PI*2); s.stroke();
+    s.strokeStyle = '#205333'; s.lineWidth = 1;
+    s.beginPath(); s.moveTo(146,173); s.lineTo(174,173); s.moveTo(160,159); s.lineTo(160,187); s.stroke();
+    s.fillStyle = '#26343d'; s.fillRect(195, 155, 51, 37);
+    s.strokeStyle = lightSteel; s.strokeRect(193, 153, 55, 41);
+    s.fillStyle = '#162630'; s.fillRect(197, 157, 47, 33);
+    s.fillStyle = '#9bb0bd'; s.font = '4px monospace'; s.fillText('TAKTIK / SCORE', 200, 163);
+    s.fillStyle = '#253746'; s.fillRect(200, 169, 40, 1);
+    for (let i=0;i<4;i++) { s.fillStyle = '#39a9d2'; s.fillRect(201+i*9, 175, 3, 3); }
+    s.fillStyle = '#dce7ed'; s.font = '5px monospace'; s.fillText('00000', 200, 186);
+    s.fillStyle = '#273746'; s.fillRect(254, 154, 62, 40);
+    s.strokeStyle = lightSteel; s.strokeRect(252, 152, 66, 44);
+    s.fillStyle = '#15222c'; s.fillRect(256, 158, 58, 32);
+    s.fillStyle = '#9bb0bd'; s.font = '4px monospace'; s.fillText('WEAPON / SHIP', 260, 165);
+    s.fillStyle = '#d8483d'; s.fillRect(267, 171, 12, 5);
+    s.fillStyle = '#ffdc58'; s.fillRect(285, 171, 12, 5);
+    s.fillStyle = '#46c878'; s.fillRect(303, 171, 7, 5);
 
-    // ===== JOYSTICK + HAND (unten Mitte) =====
-    // Joystick-Basis
-    s.fillStyle = TAN_L;
-    s.fillRect(150, 185, 20, 15);
-    // Joystick-Stift
-    s.fillStyle = '#333';
-    s.fillRect(158, 175, 4, 12);
-    s.fillStyle = '#f00';
-    s.fillRect(156, 172, 8, 5);
-    // Hand (pixel-art, braun)
-    s.fillStyle = '#c8956a';
-    s.fillRect(150, 180, 20, 14); // Handfläche
-    s.fillRect(148, 184, 4, 8);  // Daumen
-    s.fillStyle = '#a8755a';
-    s.fillRect(150, 180, 20, 3); // Schatten
-    // Arm (braun)
-    s.fillStyle = '#8a5a3a';
-    s.fillRect(152, 192, 16, 8);
-
-    // ===== BEINE (blau, unten links/rechts) =====
-    s.fillStyle = '#2244aa';
-    s.fillRect(90, 188, 25, 12);  // linkes Bein
-    s.fillRect(205, 188, 25, 12); // rechtes Bein
-    s.fillStyle = '#1a3388';
-    s.fillRect(90, 188, 25, 3);
-    s.fillRect(205, 188, 25, 3);
+    // Compact joystick keeps the 3D canopy and its center radar in view.
+    s.fillStyle = '#475b68'; s.fillRect(155, 190, 10, 7);
+    s.fillStyle = '#333'; s.fillRect(158, 183, 4, 8);
+    s.fillStyle = '#d8483d'; s.fillRect(157, 181, 6, 4);
 
     this.cockpitFrame = c;
   },

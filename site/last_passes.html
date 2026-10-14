@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rückblick auf die letzten Pässe — SOLO WING 1990</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<nav>
+  <span class="logo">SOLO WING 1990</span>
+  <a href="index.html">Start</a>
+  <a href="manual/index.html">Handbuch</a>
+  <a href="raeume.html">Räume</a>
+  <a href="overhaul.html">Overhaul</a>
+  <a href="wiki.html" class="active">Wiki</a>
+</nav>
+<div class="wrap">
+<h1>RÜCKBLICK AUF DIE LETZTEN PÄSSE</h1>
+<div class="subtitle">14. Oktober 2026 · Quartiere, Träger-Innenräume, Cockpit, Schadensmodell und nächste Schritte</div>
+
+<article class="card">
+<h3>WAS SICH ZUSAMMENGEFÜGT HAT</h3>
+<p>Die letzten Pässe haben nicht nur Oberflächen poliert, sondern mehrere Spielbereiche miteinander verbunden: Das eigene Quartier ist ein echter Ort und zugleich Savegame-Terminal; Beschädigung wird im Cockpit sichtbar, verändert Flug und Kampf, überlebt Speichern und Laden und führt nach der Landung in den Hangar zur Reparatur. Die Crew-Räume bleiben begehbar, und die Deckkarte ist ein kleines Wanddisplay, das erst auf Klick den großen Plan öffnet.</p>
+<ul>
+  <li><b>Savegames:</b> Der persönliche Raum nutzt die stabile ID <code>player_quarters</code>. Alte Kabinen-IDs werden weiterhin gelesen; optionale Systemdaten erweitern das bestehende Saveformat, ohne die Schema-Version für alte Dateien zu erzwingen.</li>
+  <li><b>Träger:</b> Die Räume teilen sich sichtbare Rumpfdetails, die Türen sind in Bulkheads integriert und Crew-Mitglieder bekommen erkennbare, prozedurale Gesichter. Der Quartiergang erlaubt zunächst nur den Zutritt zum eigenen Zimmer.</li>
+  <li><b>Flug:</b> Funk, Zielinformationen und Instrumente sind ins Cockpit gerückt. Antrieb, Waffen, Schilde und Sensoren können ausfallen oder beeinträchtigt werden; Bolt kann nach der Landung reparieren.</li>
+  <li><b>Orientierung:</b> Das neue Handbuchkapitel <a href="manual/chapter7.html">Fliegen</a> erklärt Vorschub, Wegpunkte, Schaden und Hangar-Reparatur.</li>
+</ul>
+<p>Die dazugehörigen Screenshots und die genauere Beschreibung der Innenräume stehen im <a href="overhaul.html">Raum- und Cockpit-Overhaul</a>.</p>
+</article>
+
+<article class="card">
+<h3>MEINE EINSCHÄTZUNG DES PROJEKTS</h3>
+<p>SOLO WING 1990 hat eine ungewöhnlich klare Identität: Ein kleines Canvas-Spiel, ein müder Träger als bewohnter Ort und Bürokratie als Humor. Das stärkste daran ist, dass die Welt nicht nur erzählt wird. Räume, Funk, Savegame und Reparatur greifen zunehmend ineinander. Die prozedurale Grafik passt zum Projekt, weil sie unmittelbar auf Namen, Decks und Spielzustände reagieren kann.</p>
+<p>Gleichzeitig ist das Fundament absichtlich handgebaut: globale Zustände, sequenzielles Script-Laden und ein enger Zusammenhang zwischen Rendering und Spielregeln. Das ist kein Grund für einen großen Framework-Umbau; es ist ein Grund, bestehende Grenzen ernst zu nehmen, Tests zu ergänzen und Änderungen als vollständige Abläufe zu prüfen. Der Smoke-Test ist eine wertvolle Sicherheitsleine, aber er ersetzt keinen Flug mit menschlichem Blick auf Tempo, Lesbarkeit und Schwierigkeit.</p>
+<p>Die größte offene Produktfrage ist jetzt nicht „Wie bekommt das Cockpit noch mehr Details?“, sondern „Welche Schiffe gibt es und was unterscheidet sie spielerisch?“. Ohne Schiffsklassen wären klassenbezogene Anzeigen, Schadensbilder und Waffenanzeigen vor allem Platzhalter. Es ist sinnvoll, den jetzigen Cockpit-Stand als brauchbaren Zwischenstand zu behandeln und den nächsten größeren UI-Pass zurückzustellen.</p>
+</article>
+
+<article class="card">
+<h3>WAS ALS NÄCHSTES SINNVOLL IST</h3>
+<ol>
+  <li><b>Missionen im Browser ausbalancieren:</b> Gegnerwellen, Trefferhäufigkeit, Systemausfälle und Top-Down-Ansicht tatsächlich spielen. Automatisierte Checks belegen Regressionen, aber nicht, ob ein Einsatz fair und lesbar ist.</li>
+  <li><b>Schiffsklassen definieren:</b> Erst Rollen, Waffen und Systemwerte festlegen; dann Cockpit-Anzeigen, Trefferreaktionen und Reparatur darauf abstimmen.</li>
+  <li><b>Spielschleife weiter verbinden:</b> Missionsfortschritt, Quest-Ereignisse und Rückkehrdialoge aus den vorhandenen Todo-Punkten schrittweise integrieren, statt neue isolierte Systeme anzuhäufen.</li>
+</ol>
+<p>Bis dahin bleibt der Leitgedanke: Rückwärtskompatible Daten, kleine zusammenhängende Änderungen, kein Framework-Wechsel und ein grüner Smoke-Test vor dem nächsten Push.</p>
+</article>
+
+<p><a href="wiki.html">Zur Wiki-Übersicht</a> · <a href="../TODO.md">Zur Todo-Liste</a></p>
+</div>
+<div class="footer">
+© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.
+</div>
+</body>
+</html>

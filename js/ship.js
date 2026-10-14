@@ -5,6 +5,7 @@
 SW.World = {
   seed: 1990,
   systemId: 's1',
+  shipSystems: { engines:100, weapons:100, shields:100, sensors:100 },
   nachrufe: [],       // gesammelte Nachrufe (Kapelle)
   missionResult: null, // 'sieg' | 'tod' | null
 
@@ -12,6 +13,7 @@ SW.World = {
     this.systemId = systemId || 's1';
     this.seed = seed || 1990;
     this.missionResult = null;
+    if (!SW.Player.isValidSystems(this.shipSystems)) this.shipSystems = SW.Player.defaultSystems();
     // Nachrufe: aus gefallenen Piloten (Scoreboard) + generisch
     this.nachrufe = [];
     for (const p of SW.Scoreboard) {
@@ -84,6 +86,7 @@ SW.World = {
 // Konferenz: No Thinking + Lead Story Writer.
 
 SW.Ship = {
+  DECK_NAMES: { 1: 'WOHNDECK', 2: 'DIENSTDECK', 3: 'OBERDECK' },
   currentRoom: 'bar',
   dialogueActive: false,
   dialogueLines: [],
@@ -94,8 +97,12 @@ SW.Ship = {
   _frame: 0,
   _doorRects: [],
   _npcRects: [],
-  savePanelOpen: false,  // Save/Load-Panel (SPINDE)
-  _bunkerRect: null,     // Bunker-Tür (SPINDE)
+  _lockedQuartersRects: [],
+  _ownQuartersRect: null,
+  _roomNotice: null,
+  _lockedDoorClick: 0,
+  savePanelOpen: false,  // Save/Load-Panel im persönlichen Quartier
+  _saveTerminalRect: null,
   _saveRects: [],        // Panel-Optionen
 
   init(systemId) {
@@ -111,11 +118,19 @@ SW.Ship = {
 
   getRoom() { return SW.Rooms.find(r => r.id === this.currentRoom) || SW.Rooms[0]; },
 
+  roomLabel(room, mapLabel) {
+    const pilotName = ((SW.World && SW.World.pilotName) || 'PILOT').trim() || 'PILOT';
+    const label = mapLabel ? (room.mapLabel || room.name) : room.name;
+    return label.replace(/\{spielername\}/gi, pilotName);
+  },
+
   // ===== NAVIGATION =====
   navigateTo(roomId) {
     const room = this.getRoom();
     if (room.toren.indexOf(roomId) < 0) return; // nur über Türen
     this.currentRoom = roomId;
+    this._saveTerminalRect = null;
+    this._roomNotice = null;
     this.dialogueActive = false;
     this.talkingNPC = null;
     SW.Audio.playCommBeep();
@@ -164,6 +179,10 @@ SW.Ship = {
 
   update() {
     this._frame++;
+    if (this._roomNotice) {
+      this._roomNotice.timer--;
+      if (this._roomNotice.timer <= 0) this._roomNotice = null;
+    }
     if (!this.dialogueActive) return;
     if (this.typing) {
       this.charIndex++;
@@ -173,12 +192,29 @@ SW.Ship = {
 
   // ===== KLIK-BEHANDLUNG =====
   handleClick(mx, my) {
-    // Save/Load-Panel (SPINDE): Overlay hat Vorrang
+    // Save/Load-Panel: Overlay hat Vorrang
     if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
-    // Bunker-Tuer (SPINDE): Klick = Save/Load-Panel oeffnen
-    if (this.currentRoom === 'spinde' && this._bunkerRect) {
-      const b = this._bunkerRect;
-      if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+    if (this.currentRoom === 'quartiere') {
+      if (this._ownQuartersRect && this._contains(this._ownQuartersRect, mx, my)) {
+        this.navigateTo('player_quarters');
+        return;
+      }
+      if (this._lockedQuartersRects.some(rect => this._contains(rect, mx, my))) {
+        const messages = [
+          ['ZUGANGSKONTROLLE', 'Abgeschlossen. Das Quartier ist privat.'],
+          ['ZUGANGSKONTROLLE', 'Kein Zugriff. Für diese Tür fehlt die Berechtigung.'],
+          ['DU', 'Ich sollte mich da nicht reinschleichen.']
+        ];
+        const notice = messages[this._lockedDoorClick % messages.length];
+        this._lockedDoorClick++;
+        this.showRoomNotice(notice[0], notice[1]);
+        return;
+      }
+    }
+    // Die persönliche Savegame-Konsole ist nur im eigenen Quartier erreichbar.
+    if (this.currentRoom === 'player_quarters' && this._saveTerminalRect) {
+      const t = this._saveTerminalRect;
+      if (mx >= t.x && mx <= t.x + t.w && my >= t.y && my <= t.y + t.h) {
         this.savePanelOpen = true;
         SW.Audio.playCommBeep();
         return;
@@ -219,11 +255,23 @@ SW.Ship = {
     if (this.dialogueActive) this.advanceDialogue();
   },
 
+  _contains(rect, x, y) {
+    return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+  },
+
+  showRoomNotice(speaker, text) {
+    this.dialogueActive = false;
+    this._roomNotice = { speaker, text, timer: 180 };
+    if (SW.Audio) SW.Audio.playCommBeep();
+  },
+
   // ===== RENDER =====
   render(ctx) {
     const room = this.getRoom();
     this._doorRects = [];
     this._npcRects = [];
+    this._lockedQuartersRects = [];
+    this._ownQuartersRect = null;
 
     // Hintergrund
     ctx.fillStyle = room.farbe;
@@ -231,12 +279,13 @@ SW.Ship = {
 
     // Raum-Art (prozedural, je Raum anders)
     this.renderArt(ctx, room);
+    this.renderRoomArchitecture(ctx, room);
 
     // Raum-Name + Zweck
     ctx.fillStyle = room.akzent;
     ctx.font = 'bold 10px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(room.name, SW.CX, 14);
+    ctx.fillText(this.roomLabel(room), SW.CX, 14);
     ctx.fillStyle = '#888';
     ctx.font = '6px monospace';
     ctx.fillText(room.zweck, SW.CX, 24);
@@ -253,8 +302,9 @@ SW.Ship = {
 
     // Dialog-Box
     if (this.dialogueActive) this.renderDialogue(ctx, room);
+    else if (this._roomNotice) this.renderRoomNotice(ctx, room);
     else this.renderHint(ctx, room);
-    // Save/Load-Panel (SPINDE) — oberstes Overlay
+    // Save/Load-Panel — oberstes Overlay
     if (this.savePanelOpen) this.renderSavePanel(ctx, room);
   },
 
@@ -262,7 +312,8 @@ SW.Ship = {
   renderArt(ctx, room) {
     switch (room.art) {
       case 'bar': this.artBar(ctx, room); break;
-      case 'spinde': this.artSpinde(ctx, room); break;
+      case 'quartiere': this.artQuartersLobby(ctx, room); break;
+      case 'player_quarters': this.artPlayerQuarters(ctx, room); break;
       case 'flugdeck': this.artFlugdeck(ctx, room); break;
       case 'buerro': this.artBuerro(ctx, room); break;
       case 'kantine': this.artKantine(ctx, room); break;
@@ -275,6 +326,71 @@ SW.Ship = {
       case 'klo': this.artKlo(ctx, room); break;
       case 'schule': this.artSchule(ctx, room); break;
     }
+  },
+
+  renderRoomArchitecture(ctx, room) {
+    ctx.save();
+    // Druckschotten, Paneelfugen und Decklicht halten alle Räume im Träger-Look.
+    ctx.fillStyle = 'rgba(5,9,15,0.32)';
+    ctx.fillRect(0, 29, 8, 154);
+    ctx.fillRect(SW.W - 8, 29, 8, 154);
+    ctx.fillStyle = 'rgba(190,210,230,0.24)';
+    ctx.fillRect(8, 29, SW.W - 16, 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(8, 157, SW.W - 16, 4);
+    ctx.strokeStyle = 'rgba(180,205,225,0.18)';
+    ctx.lineWidth = 1;
+    for (const x of [9, 18, 78, 160, 242, SW.W - 19, SW.W - 10]) {
+      ctx.beginPath();
+      ctx.moveTo(x, 32);
+      ctx.lineTo(x, 157);
+      ctx.stroke();
+    }
+    ctx.fillStyle = room.akzent;
+    for (const x of [32, 112, 192, 272]) {
+      ctx.globalAlpha = 0.35;
+      ctx.fillRect(x, 31, 20, 2);
+      ctx.globalAlpha = 0.16;
+      ctx.fillRect(x + 2, 33, 16, 1);
+    }
+    ctx.globalAlpha = 1;
+    for (const x of [10, 18, SW.W - 19, SW.W - 11]) {
+      for (const y of [39, 76, 113, 150]) {
+        ctx.fillStyle = '#aebdcc';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(x - 1, y, 2, 2);
+        ctx.fillStyle = room.akzent;
+        ctx.globalAlpha = y === 39 ? 0.65 : 0.25;
+        ctx.fillRect(x - 1, y + 3, 2, 1);
+      }
+    }
+
+    // Bodenplatten und ein farbcodiertes Deckband unter den integrierten Schotts.
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(0, 183, SW.W, 17);
+    ctx.strokeStyle = 'rgba(195,215,235,0.18)';
+    for (const y of [184, 191, 198]) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(SW.W, y);
+      ctx.stroke();
+    }
+    for (let x = 16; x < SW.W; x += 32) {
+      ctx.beginPath();
+      ctx.moveTo(x, 184);
+      ctx.lineTo(x - 7, 200);
+      ctx.stroke();
+    }
+    ctx.fillStyle = room.akzent;
+    ctx.globalAlpha = 0.65;
+    ctx.fillRect(0, 182, SW.W, 2);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#aebdcc';
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('FAX-TRAGÖDIE  /  DECK ' + room.deck, SW.W - 12, 197);
+    ctx.restore();
   },
 
   artBar(ctx, room) {
@@ -356,7 +472,7 @@ SW.Ship = {
     // Neon
     ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,30,SW.W,20);
     ctx.fillStyle=room.akzent; ctx.font='bold 10px monospace'; ctx.textAlign='center';
-    ctx.fillText('KANTINE "BROTZEIT 4711"', SW.CX, 44); ctx.textAlign='left';
+    ctx.fillText('BROTZEIT 4711', 125, 65); ctx.textAlign='left';
     // Tische
     for(let i=0;i<3;i++){ const tx=40+i*90;
       ctx.fillStyle='#4a3a2a'; ctx.fillRect(tx,110,60,8);
@@ -364,13 +480,13 @@ SW.Ship = {
       ctx.fillStyle='#888'; ctx.fillRect(tx+10,104,8,6); // Teller
     }
     // Speisekarte
-    ctx.fillStyle='#1a1a1a'; ctx.fillRect(240,50,60,50);
-    ctx.strokeStyle='#ff6644'; ctx.strokeRect(240,50,60,50);
+    ctx.fillStyle='#1a1a1a'; ctx.fillRect(188,50,58,50);
+    ctx.strokeStyle='#ff6644'; ctx.strokeRect(188,50,58,50);
     ctx.fillStyle='#ff6644'; ctx.font='5px monospace';
-    ctx.fillText('MENÜ', 255, 60);
-    ctx.fillText('Suppe: 2 DM', 245, 70);
-    ctx.fillText('Nudeln: 3 DM', 245, 78);
-    ctx.fillText('Kaffee: aus', 245, 86);
+    ctx.fillText('MENÜ', 194, 60);
+    ctx.fillText('Suppe: 2 DM', 194, 70);
+    ctx.fillText('Nudeln: 3 DM', 194, 78);
+    ctx.fillText('Kaffee: aus', 194, 86);
     // Fliesenboden
     ctx.fillStyle='#2a2a2a'; ctx.fillRect(0,SW.H-25,SW.W,25);
     for(let i=0;i<16;i++){ ctx.fillStyle=i%2?'#333':'#222'; ctx.fillRect(i*20,SW.H-25,20,25); }
@@ -610,178 +726,248 @@ SW.Ship = {
   // Fallback für NPCs ohne Registry-Eintrag (z.B. Klopstock, Löffel): Silhouette.
   renderNPCs(ctx, room) {
     const npcs = SW.World.npcInRoom(room.id);
-    const positions = [[70,140],[160,144],[250,140]];
+    const positions = [[70,116],[160,116],[250,116]];
     for (let i=0; i<npcs.length && i<3; i++) {
       const name = npcs[i];
       const x = positions[i][0], y = positions[i][1];
       const npcId = SW.NPC ? SW.NPC.resolve(name) : null;
       if (npcId && SW.NPC.registry[npcId]) {
-        SW.NPC.drawFace(ctx, npcId, x, y, 22, { showBody: true, showUniform: true, animated: true, frame: this._frame });
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        ctx.beginPath();
+        ctx.ellipse(x, y + 34, 12, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        SW.NPC.drawFace(ctx, npcId, x, y, 28, { showBody: true, showUniform: true, animated: true, frame: this._frame });
       } else {
         const npcData = SW.RoomNPCs[name] || { farbe:'#888' };
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        ctx.beginPath();
+        ctx.ellipse(x, y + 34, 12, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.fillStyle = npcData.farbe || '#888';
-        ctx.globalAlpha = 0.7;
-        ctx.fillRect(x-4, y-14, 8, 8); // Kopf
-        ctx.fillRect(x-6, y-6, 12, 14); // Körper
-        ctx.globalAlpha = 1;
+        ctx.fillRect(x - 7, y - 10, 14, 14);
+        ctx.fillRect(x - 10, y + 4, 20, 26);
+        ctx.fillStyle = '#f0d5a8';
+        ctx.fillRect(x - 5, y - 8, 10, 9);
+        ctx.fillStyle = '#18202a';
+        ctx.fillRect(x - 3, y - 5, 2, 2);
+        ctx.fillRect(x + 2, y - 5, 2, 2);
       }
       // Name
-      ctx.fillStyle = '#ccc';
+      ctx.fillStyle = 'rgba(5,8,12,0.78)';
+      ctx.fillRect(x - 27, y + 33, 54, 9);
+      ctx.strokeStyle = 'rgba(180,205,225,0.28)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x - 27, y + 33, 54, 9);
+      ctx.fillStyle = '#e0e8ef';
       ctx.font = '5px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(name, x, y+30);
+      ctx.fillText(name.toUpperCase(), x, y + 39);
       ctx.textAlign = 'left';
       // Klick-Region
-      this._npcRects.push({ x: x-14, y: y-16, w: 28, h: 48, name: name });
+      this._npcRects.push({ x: x-17, y: y-17, w: 34, h: 60, name: name });
     }
   },
 
   // ===== TÜR RENDER =====
   renderDoors(ctx, room) {
-    const doors = room.toren;
+    const doors = room.id === 'quartiere'
+      ? room.toren.filter(id => id !== 'player_quarters')
+      : room.toren;
     const destNames = doors.map(d => {
-      const r = SW.Rooms.find(rr => rr.id === d);
-      return r ? r.name : d;
+      const destination = SW.Rooms.find(rr => rr.id === d);
+      if (destination && destination.deck !== room.deck) return 'AUFZUG D' + destination.deck;
+      return destination ? this.roomLabel(destination, true) : d;
     });
-    // Türen auf den Wänden verteilen
-    const layouts = {
-      1: [[SW.CX-25, SW.H-38, 50, 20]],
-      2: [[15, SW.H-38, 80, 20], [SW.W-95, SW.H-38, 80, 20]],
-      3: [[15, 45, 20, 60], [SW.CX-25, SW.H-38, 50, 20], [SW.W-35, 45, 20, 60]],
-      4: [[15, 45, 20, 60], [SW.CX-25, SW.H-38, 50, 20], [SW.W-35, 45, 20, 60], [SW.CX-25, 30, 50, 14]]
-    };
-    const pos = layouts[Math.min(doors.length, 4)] || layouts[3];
+    // Seitliche Schotts sitzen in den Bulkheads und lassen Boden und Crew frei.
+    const positions = [[8, 55, 34, 44], [278, 55, 34, 44], [8, 105, 34, 44], [278, 105, 34, 44]];
     for (let i=0; i<doors.length; i++) {
-      const [dx, dy, dw, dh] = pos[i];
-      // Tür
-      ctx.fillStyle = '#0a0a0a';
+      const [dx, dy, dw, dh] = positions[i];
+      ctx.fillStyle = 'rgba(13,21,29,0.9)';
       ctx.fillRect(dx, dy, dw, dh);
+      ctx.fillStyle = '#6b7c89';
+      ctx.fillRect(dx, dy, dw, 2);
+      ctx.fillRect(dx, dy, 2, dh);
+      ctx.fillStyle = '#263644';
+      ctx.fillRect(dx + 3, dy + 3, dw - 6, dh - 5);
+      ctx.fillStyle = '#080e14';
+      ctx.fillRect(dx + 5, dy + 11, dw - 10, dh - 15);
       ctx.strokeStyle = room.akzent;
       ctx.lineWidth = 1;
-      ctx.strokeRect(dx, dy, dw, dh);
-      // Pfeil
+      ctx.strokeRect(dx + 5, dy + 10, dw - 10, dh - 14);
       ctx.fillStyle = room.akzent;
-      ctx.font = '6px monospace';
+      ctx.globalAlpha = 0.75;
+      ctx.fillRect(dx + dw - 8, dy + 20, 2, 5);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#aebdcc';
+      ctx.font = '3px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('→ ' + destNames[i], dx + dw/2, dy + dh/2 + 2);
+      ctx.fillText(destNames[i].toUpperCase().substring(0, 13), dx + dw / 2, dy + 8);
       ctx.textAlign = 'left';
-      // Klick-Region
       this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: doors[i] });
     }
   },
 
   // ===== MINIMAP =====
   renderMap(ctx, room) {
-    const mx = SW.W-58, my = 30, mw = 50, mh = 40;
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    const mx = SW.W-62, my = 28, mw = 52, mh = 26;
+    ctx.save();
+    // Kleine, fest montierte Wandkarte statt schwebendem HUD-Panel.
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(mx + 2, my + 2, mw, mh);
+    ctx.fillStyle = '#111b25';
     ctx.fillRect(mx, my, mw, mh);
-    ctx.strokeStyle = room.akzent;
+    ctx.strokeStyle = '#718398';
     ctx.lineWidth = 1;
     ctx.strokeRect(mx, my, mw, mh);
-    // Räume als Punkte (Grid auto: 13 Räume = 7x2)
-    const cols = Math.ceil(SW.Rooms.length / 2), rows = 2;
-    const cw = mw/cols, ch = mh/rows;
-    for (let i=0; i<SW.Rooms.length; i++) {
-      const r = SW.Rooms[i];
-      const gx = mx + (i%cols)*cw + cw/2;
-      const gy = my + Math.floor(i/cols)*ch + ch/2;
-      const isCurrent = r.id === room.id;
-      const isNeighbor = room.toren.indexOf(r.id) >= 0;
-      ctx.fillStyle = isCurrent ? r.akzent : (isNeighbor ? '#666' : '#333');
-      ctx.fillRect(gx-2, gy-2, 4, 4);
-      if (isCurrent) {
-        ctx.strokeStyle = r.akzent;
-        ctx.strokeRect(gx-3, gy-3, 6, 6);
+    ctx.fillStyle = '#080d13';
+    ctx.fillRect(mx + 2, my + 2, mw - 4, mh - 4);
+    ctx.strokeStyle = 'rgba(190,210,230,0.35)';
+    ctx.strokeRect(mx + 2, my + 2, mw - 4, mh - 4);
+    for (const [sx, sy] of [[mx + 2, my + 2], [mx + mw - 4, my + 2],
+      [mx + 2, my + mh - 4], [mx + mw - 4, my + mh - 4]]) {
+      ctx.fillStyle = '#92a3b3';
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.fillStyle = room.akzent;
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('TRÄGER / DECKPLAN', mx + 4, my + 6);
+    for (let deck = 1; deck <= 3; deck++) {
+      const deckRooms = SW.Rooms.filter(r => r.deck === deck);
+      const y = my + 11 + (deck - 1) * 6;
+      const isCurrentDeck = room.deck === deck;
+      ctx.fillStyle = isCurrentDeck ? room.akzent : '#8291a0';
+      ctx.fillText('D' + deck, mx + 4, y + 2);
+      const startX = mx + 14, span = mw - 22;
+      if (deckRooms.length > 1) {
+        ctx.strokeStyle = '#3c4b58';
+        ctx.beginPath();
+        ctx.moveTo(startX, y + 1);
+        ctx.lineTo(startX + span, y + 1);
+        ctx.stroke();
+      }
+      for (let i = 0; i < deckRooms.length; i++) {
+        const r = deckRooms[i];
+        const gx = deckRooms.length === 1 ? startX : startX + i * span / (deckRooms.length - 1);
+        const isCurrent = r.id === room.id;
+        const isNeighbor = room.toren.indexOf(r.id) >= 0;
+        ctx.fillStyle = isCurrent ? room.akzent : (isNeighbor ? '#bdcbd7' : '#596a79');
+        ctx.fillRect(gx - 1, y, 2, 2);
+        if (isCurrent) {
+          ctx.strokeStyle = '#eef5fb';
+          ctx.strokeRect(gx - 2, y - 1, 4, 4);
+        }
       }
     }
-    // Label
-    ctx.fillStyle = room.akzent;
-    ctx.font = '5px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('KARTE', mx+mw/2, my+mh-2);
-    ctx.textAlign = 'left';
+    // Der senkrechte Schacht rechts verbindet die drei Deckebenen.
+    const liftX = mx + mw - 5;
+    ctx.strokeStyle = '#536b7e';
+    ctx.beginPath();
+    ctx.moveTo(liftX + 1, my + 13);
+    ctx.lineTo(liftX + 1, my + 24);
+    ctx.stroke();
+    for (const deck of [1, 2, 3]) {
+      const y = my + 11 + (deck - 1) * 6;
+      ctx.fillStyle = deck === room.deck ? room.akzent : '#99adbd';
+      ctx.fillRect(liftX, y, 3, 3);
+    }
+    ctx.restore();
     // Klick-Region (Wandkarte → Fullscreen)
     this._mapRect = { x: mx, y: my, w: mw, h: mh };
   },
 
-  // ===== SPINDE (Bunker) — v0.6.9-final: Save/Load-Kammer =====
-  // Eigene Kabine: Spindwand, eigener Spind mit Namensschild (Pilotenname
-  // aus dem Intro), Lagerbett, Plakat und die Bunker-Tür (Klick = Save/Load).
-  artSpinde(ctx, room) {
-    const name = ((SW.World && SW.World.pilotName) || 'PILOT').toUpperCase();
-    // Spindwand (2 Reihen graue Metallschränke)
-    for (let r = 0; r < 2; r++) {
-      for (let c = 0; c < 6; c++) {
-        const x = 14 + c * 26, y = 32 + r * 40;
-        ctx.fillStyle = '#2c2c34';
-        ctx.fillRect(x, y, 22, 36);
-        ctx.strokeStyle = '#4a4a56';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x, y, 22, 36);
-        ctx.fillStyle = '#666';
-        ctx.fillRect(x + 17, y + 16, 2, 5); // Griff
-        ctx.fillStyle = '#20202a';
-        ctx.fillRect(x + 4, y + 6, 14, 1);
-        ctx.fillRect(x + 4, y + 10, 14, 1); // Belüftung
+  // ===== QUARTIERE =====
+  artQuartersLobby(ctx, room) {
+    const name = ((SW.World && SW.World.pilotName) || 'PILOT').trim() || 'PILOT';
+    ctx.fillStyle = '#121a24';
+    ctx.fillRect(48, 42, 224, 100);
+    ctx.fillStyle = '#27384a';
+    ctx.fillRect(48, 42, 224, 8);
+    ctx.fillStyle = '#d8e4f0';
+    ctx.font = '6px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('CREW-DECK  /  ZUTEILUNG NACH DIENSTNUMMER', SW.CX, 37);
+    for (let i = 0; i < 4; i++) {
+      const x = 50 + i * 55;
+      const isOwn = i === 0;
+      const y = 58;
+      ctx.fillStyle = isOwn ? '#253849' : '#111820';
+      ctx.fillRect(x, y, 48, 78);
+      ctx.fillStyle = isOwn ? room.akzent : '#596675';
+      ctx.fillRect(x, y, 48, 4);
+      ctx.fillStyle = '#0a1017';
+      ctx.fillRect(x + 4, y + 8, 40, 62);
+      ctx.fillStyle = isOwn ? '#344d60' : '#202a34';
+      ctx.fillRect(x + 8, y + 12, 32, 54);
+      ctx.fillStyle = isOwn ? '#a9d5ff' : '#727d87';
+      ctx.fillRect(x + 36, y + 20, 3, 7);
+      ctx.fillStyle = isOwn ? '#8fe0ff' : '#d89442';
+      ctx.fillRect(x + 6, y + 40, 2, 10);
+      ctx.fillStyle = isOwn ? '#e8f4ff' : '#77818b';
+      ctx.font = '4px monospace';
+      const cabinLabel = isOwn ? name.toUpperCase() : 'CREW ' + String(i + 1).padStart(2, '0');
+      ctx.fillText(cabinLabel, x + 24, y + 76);
+      if (isOwn) {
+        this._ownQuartersRect = { x, y, w: 48, h: 78 };
+      } else {
+        this._lockedQuartersRects.push({ x, y, w: 48, h: 78 });
       }
     }
-    // Eigener Spind (rechts, Akzentfarbe, Namensschild)
-    const bx = 232, by = 32;
-    ctx.fillStyle = '#14141c';
-    ctx.fillRect(bx, by, 74, 76);
+    ctx.textAlign = 'left';
+  },
+
+  artPlayerQuarters(ctx, room) {
+    const name = ((SW.World && SW.World.pilotName) || 'PILOT').toUpperCase();
+    // Private sleeping alcove and an assigned-name plaque.
+    ctx.fillStyle = '#171d29';
+    ctx.fillRect(24, 42, 174, 98);
+    ctx.fillStyle = '#303b4d';
+    ctx.fillRect(24, 42, 174, 5);
+    ctx.fillStyle = '#252c3b';
+    ctx.fillRect(34, 98, 151, 32);
+    ctx.fillStyle = '#687b91';
+    ctx.fillRect(39, 93, 141, 9);
+    ctx.fillStyle = '#d0d8dd';
+    ctx.fillRect(47, 87, 30, 8);
+    ctx.fillStyle = '#475263';
+    ctx.fillRect(31, 47, 4, 81);
+    ctx.fillRect(188, 47, 4, 81);
+    ctx.fillStyle = '#0b1119';
+    ctx.fillRect(47, 55, 130, 23);
     ctx.strokeStyle = room.akzent;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(bx, by, 74, 76);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(47, 59, 116, 21);
     ctx.fillStyle = room.akzent;
     ctx.font = 'bold 7px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(name, bx + 37, by + 16);
-    ctx.font = '5px monospace';
-    ctx.fillStyle = '#999';
-    ctx.fillText('FORMULAR 83-D', bx + 37, by + 26);
-    ctx.fillStyle = '#3a3a44';
-    ctx.fillRect(bx + 12, by + 36, 50, 30); // Fach
-    // Lagerbett (unten links)
-    ctx.fillStyle = '#2a2a30';
-    ctx.fillRect(14, 134, 120, 8);
-    ctx.fillStyle = '#3a4a5a';
-    ctx.fillRect(16, 128, 116, 6); // Decke
-    ctx.fillStyle = '#444';
-    ctx.fillRect(20, 142, 4, 20);
-    ctx.fillRect(126, 142, 4, 20); // Beine
-    // Plakat
-    ctx.fillStyle = '#101014';
-    ctx.fillRect(146, 128, 72, 32);
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(146, 128, 72, 32);
-    ctx.fillStyle = '#888';
-    ctx.font = '5px monospace';
-    ctx.fillText('SAVE/LOAD', 182, 138);
-    ctx.fillText('SPINDE-EINGANG', 182, 146);
-    ctx.fillStyle = '#555';
-    ctx.font = '4px monospace';
-    ctx.fillText('Kontakt: niemand', 182, 155);
-    // BUNKER-TÜR (Klick = Save/Load-Panel)
-    const dx = 232, dy = 124, dw = 74, dh = 44;
-    ctx.fillStyle = '#0a0a10';
-    ctx.fillRect(dx, dy, dw, dh);
+    ctx.fillText(name, 112, 72);
+    ctx.fillStyle = '#596473';
+    ctx.fillRect(211, 105, 84, 10);
+    ctx.fillRect(216, 115, 5, 27);
+    ctx.fillRect(284, 115, 5, 27);
+    ctx.fillStyle = '#121a21';
+    ctx.fillRect(222, 54, 62, 42);
     ctx.strokeStyle = room.akzent;
     ctx.lineWidth = 2;
-    ctx.strokeRect(dx, dy, dw, dh);
-    ctx.fillStyle = room.akzent;
+    ctx.strokeRect(222, 54, 62, 42);
+    ctx.fillStyle = '#9edbff';
     ctx.font = 'bold 6px monospace';
-    ctx.fillText('TÜR: ' + name, dx + dw/2, dy + 12);
-    ctx.fillStyle = '#aaa';
+    ctx.fillText('PERSÖNLICHES', 253, 67);
+    ctx.fillText('SAVEGAME', 253, 77);
+    ctx.fillStyle = (SW.Game.frame % 60 < 30) ? room.akzent : '#687987';
+    ctx.fillRect(242, 83, 22, 4);
+    ctx.fillStyle = '#999';
     ctx.font = '5px monospace';
-    ctx.fillText('[KLICK: SAVE/LOAD]', dx + dw/2, dy + 24);
-    ctx.fillStyle = (SW.Game.frame % 60 < 30) ? room.akzent : '#444';
-    ctx.fillText('>>', dx + dw/2, dy + 36);
+    ctx.fillText('[KLICK: SPEICHERN]', 253, 91);
     ctx.textAlign = 'left';
-    this._bunkerRect = { x: dx, y: dy, w: dw, h: dh };
+    this._saveTerminalRect = { x: 222, y: 54, w: 62, h: 42 };
   },
 
-  // ===== SAVE/LOAD-PANEL (SPINDE) =====
+  // Alte Aufrufer und gespeicherte Kabinen-IDs bleiben auf dem eigenen Quartier.
+  artCaptainQuarters(ctx, room) { this.artPlayerQuarters(ctx, room); },
+  artSpinde(ctx, room) { this.artPlayerQuarters(ctx, room); },
+
+  // ===== SAVE/LOAD-PANEL (PERSÖNLICHES QUARTIER) =====
   renderSavePanel(ctx, room) {
     ctx.fillStyle = 'rgba(0,0,0,0.85)';
     ctx.fillRect(0, 0, SW.W, SW.H);
@@ -794,24 +980,24 @@ SW.Ship = {
     ctx.fillStyle = room.akzent;
     ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('SPINDE — SAVE/LOAD', SW.CX, py + 14);
+    ctx.fillText(this.roomLabel(room) + ' — SAVE/LOAD', SW.CX, py + 14);
     ctx.font = '5px monospace';
     ctx.fillStyle = '#888';
-    ctx.fillText('Barraken. Spinde. Formular 83-D. Hier ist niemand.', SW.CX, py + 25);
+    ctx.fillText('Persönliche Kabine. Formular 83-D bleibt an Bord.', SW.CX, py + 25);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#666';
     ctx.font = '5px monospace';
     ctx.fillText('Sie haben bisher ohne Savegame überlebt. Respekt.', px + 12, py + 38);
     const t = SW.SaveGame ? SW.SaveGame.lastSaveTime() : null;
     ctx.fillStyle = '#555';
-    ctx.fillText(t ? ('Letzter Save: ' + new Date(t).toLocaleString()) : 'Kein Save. Die Spinde ist leer.', px + 12, py + 48);
+    ctx.fillText(t ? ('Letzter Save: ' + new Date(t).toLocaleString()) : 'Kein Savegame vorhanden.', px + 12, py + 48);
     // Optionen (Klick oder Taste)
     this._saveRects = [];
     const opts = [
-      ['1', 'SPEICHERN', 'Formular 83-D ablegen'],
+      ['1', 'SPEICHERN', 'Spielstand sichern'],
       ['2', 'LADEN', 'Zurück zu dem Moment, wo es noch lief'],
       ['3', 'EXPORT', 'JSON auf Datenträger (Fax-Archiv +1)'],
-      ['4', 'LÖSCHEN', 'Die Spinde ist wieder leer. Wie immer.'],
+      ['4', 'LÖSCHEN', 'Spielstand endgültig entfernen'],
       ['5', 'SCHLIESSEN', '']
     ];
     for (let i = 0; i < opts.length; i++) {
@@ -848,6 +1034,21 @@ SW.Ship = {
     else if (action === '4') SW.SaveGame.delete();
     else if (action === '5') this.savePanelOpen = false;
     SW.Audio.playCommBeep();
+  },
+
+  renderRoomNotice(ctx, room) {
+    const boxY = SW.H - 48;
+    ctx.fillStyle = 'rgba(4,8,13,0.94)';
+    ctx.fillRect(25, boxY, SW.W - 50, 38);
+    ctx.strokeStyle = room.akzent;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(25, boxY, SW.W - 50, 38);
+    ctx.fillStyle = room.akzent;
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText(this._roomNotice.speaker, 33, boxY + 10);
+    ctx.fillStyle = '#e0e8ef';
+    ctx.font = '6px monospace';
+    ctx.fillText(this._roomNotice.text, 33, boxY + 23);
   },
 
   // ===== DIALOG BOX =====
@@ -939,7 +1140,7 @@ SW.Ship = {
     ctx.textAlign = 'left';
   },
 
-  // ===== CHEAT MAP (Fullscreen, Testing) =====
+  // ===== DECKPLAN (Vollbildkarte) =====
   _cheatMapRects: [],
 
   renderCheatMap(ctx) {
@@ -947,77 +1148,79 @@ SW.Ship = {
     ctx.fillRect(0, 0, SW.W, SW.H);
 
     // Titel
-    ctx.fillStyle = '#f66';
-    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = '#b8d8ff';
+    ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('FAX-TRAGÖDIE — RAUMKARTE [CHEAT]', SW.CX, 14);
+    ctx.fillText('FAX-TRAGÖDIE — DECKPLÄNE', SW.CX, 12);
     ctx.textAlign = 'left';
 
-    // Schiff-Umriss (grober Träger: längliches Oval mit "Flügeln")
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(30, 100);
-    ctx.lineTo(60, 60);
-    ctx.lineTo(260, 60);
-    ctx.lineTo(290, 100);
-    ctx.lineTo(290, 140);
-    ctx.lineTo(260, 160);
-    ctx.lineTo(60, 160);
-    ctx.lineTo(30, 140);
-    ctx.closePath();
-    ctx.stroke();
-    // Triebwerke (hinten)
-    ctx.strokeStyle = '#222';
-    ctx.beginPath(); ctx.moveTo(30, 100); ctx.lineTo(15, 90); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(30, 140); ctx.lineTo(15, 150); ctx.stroke();
-    // Nase (vorn)
-    ctx.beginPath(); ctx.moveTo(290, 100); ctx.lineTo(305, 110); ctx.lineTo(290, 140); ctx.stroke();
-
-    // Räume als Boxen (3 Reihen × 5, für 13 Räume)
+    // Drei Deckbänder mit verbundenen Aufzugsschächten.
     this._cheatMapRects = [];
-    const rooms = SW.Rooms;
-    const cols = 5, rows = 3;
-    const bw = 52, bh = 42, gap = 5;
-    const startX = 20, startY = 32;
-    for (let i = 0; i < rooms.length; i++) {
-      const r = rooms[i];
-      const col = i % cols, row = Math.floor(i / cols);
-      const x = startX + col * (bw + gap);
-      const y = startY + row * (bh + gap);
-      const isCurrent = r.id === this.currentRoom;
-      // Box
-      ctx.fillStyle = isCurrent ? 'rgba(0,255,0,0.15)' : 'rgba(0,0,0,0.6)';
-      ctx.fillRect(x, y, bw, bh);
-      ctx.strokeStyle = isCurrent ? r.akzent : '#444';
-      ctx.lineWidth = isCurrent ? 2 : 1;
-      ctx.strokeRect(x, y, bw, bh);
-      // Raum-Name
-      ctx.fillStyle = isCurrent ? r.akzent : '#aaa';
-      ctx.font = 'bold 6px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(r.name, x + bw/2, y + 12);
-      // Zweck (klein)
-      ctx.fillStyle = '#666';
-      ctx.font = '5px monospace';
-      const zw = r.zweck.substring(0, 28);
-      ctx.fillText(zw, x + bw/2, y + 22);
-      // NPC-Count
-      const npcs = SW.World.npcInRoom(r.id);
-      ctx.fillStyle = '#0f0';
-      ctx.font = '5px monospace';
-      ctx.fillText(npcs.length + ' NPC', x + bw/2, y + 34);
+    const panelX = 14, panelW = SW.W - 28;
+    const cardX = 17, cardGap = 3, cardW = 55, cardH = 32;
+    for (let deck = 1; deck <= 3; deck++) {
+      const top = 18 + (deck - 1) * 57;
+      const rooms = SW.Rooms.filter(r => r.deck === deck);
+      ctx.fillStyle = 'rgba(10,18,30,0.86)';
+      ctx.fillRect(panelX, top, panelW, 52);
+      ctx.strokeStyle = deck === this.getRoom().deck ? '#b8d8ff' : '#2c3a4a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(panelX, top, panelW, 52);
+      ctx.fillStyle = deck === this.getRoom().deck ? '#b8d8ff' : '#8395a8';
+      ctx.font = 'bold 5px monospace';
       ctx.textAlign = 'left';
-      // Klick-Region
-      this._cheatMapRects.push({ x, y, w: bw, h: bh, room: r.id });
+      ctx.fillText('DECK ' + deck + '  ' + this.DECK_NAMES[deck], panelX + 4, top + 8);
+
+      for (let i = 0; i < rooms.length; i++) {
+        const r = rooms[i];
+        const x = cardX + i * (cardW + cardGap);
+        const y = top + 14;
+        const isCurrent = r.id === this.currentRoom;
+        const isNeighbor = this.getRoom().toren.indexOf(r.id) >= 0;
+        ctx.fillStyle = isCurrent ? 'rgba(89,158,222,0.28)' : (isNeighbor ? 'rgba(120,150,180,0.16)' : 'rgba(0,0,0,0.48)');
+        ctx.fillRect(x, y, cardW, cardH);
+        ctx.strokeStyle = isCurrent ? r.akzent : (isNeighbor ? '#71869a' : '#3b4652');
+        ctx.lineWidth = isCurrent ? 2 : 1;
+        ctx.strokeRect(x, y, cardW, cardH);
+        ctx.fillStyle = isCurrent ? r.akzent : '#c2cfdd';
+        ctx.font = 'bold 4px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.roomLabel(r, true), x + cardW / 2, y + 10);
+        ctx.fillStyle = '#8797a8';
+        ctx.font = '4px monospace';
+        const purpose = r.zweck.length > 19 ? r.zweck.substring(0, 16) + '...' : r.zweck;
+        ctx.fillText(purpose, x + cardW / 2, y + 19);
+        const npcs = SW.World.npcInRoom(r.id);
+        ctx.fillStyle = '#9eb99a';
+        ctx.fillText(npcs.length + ' CREW', x + cardW / 2, y + 28);
+        ctx.textAlign = 'left';
+        this._cheatMapRects.push({ x, y, w: cardW, h: cardH, room: r.id });
+      }
+    }
+
+    // Schacht, Kabinen und Aufzugskabinen verbinden die drei Decks.
+    ctx.strokeStyle = '#54708a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(8, 43);
+    ctx.lineTo(8, 157);
+    ctx.stroke();
+    for (let deck = 1; deck <= 3; deck++) {
+      const y = 18 + (deck - 1) * 57 + 24;
+      ctx.fillStyle = '#182433';
+      ctx.fillRect(3, y - 4, 10, 8);
+      ctx.strokeStyle = '#8ab9e8';
+      ctx.strokeRect(3, y - 4, 10, 8);
+      ctx.fillStyle = '#8ab9e8';
+      ctx.fillRect(7, y - 2, 2, 4);
     }
 
     // Hinweis
     const blink = Math.floor(Date.now()/500)%2===0;
     ctx.fillStyle = blink ? '#fff' : '#666';
-    ctx.font = '7px monospace';
+    ctx.font = '6px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('[ Klicke auf Raum = dorthin | ESC = zurück ]', SW.CX, SW.H-10);
+    ctx.fillText('[ RAUM WÄHLEN ]  [ ESC: ZURÜCK ]', SW.CX, SW.H-5);
     ctx.textAlign = 'left';
   },
 

@@ -23,7 +23,7 @@
 </nav>
 <div class="wrap">
 <h1>ENTWICKLUNG</h1>
-<div class="subtitle">Aufsatz | Wie sich das Arbeiten verändert hat — vom Agentenverbund zum VS Code + Cline. Gedruckt auf Faxpapier, wie alles.</div>
+<div class="subtitle">Aufsatz | Wie sich das Arbeiten verändert hat — vom Agentenverbund zum VS Code + Copilot. Gedruckt auf Faxpapier, wie alles.</div>
 
 <div class="card">
 <p>Dieser Aufsatz ist kein Changelog. Der Changelog steht in den Patch Notes. Dieser Aufsatz ist die Frage dahinter: <b>Wie hat sich die Art zu arbeiten verändert, seit der Agentenverbund aufgelöst wurde und das Schiff über VS Code und Cline gebaut wird?</b> Die kurze Antwort: weniger Gremien, mehr Tests, dieselben Formulare.</p>
@@ -39,10 +39,12 @@
 <div class="card">
 <p>„Der Agentenverbund wurde kurzfristig aufgelöst. Die Arbeit wird ab sofort in VS Code über API fortgesetzt." So stand es in der Bekanntmachung. So steht sie noch heute oben auf der Startseite. Was übrig blieb: die Engine, die Räume, der Ton, die Formulare, der Smoke-Test-Geist. Was verloren ging: die Konferenzdokumente, ein paar Ideen — die Sektor-Lichter zum Beispiel, die in einer Konferenz geboren und dann nirgends protokolliert wurden, bis sie jemand wieder erzählte. <b>Verlorene Ideen sind die einzigen, die man zweimal verliert.</b></p>
 </div>
-<h2>JETZT: VS CODE, EINE SESSION, EIN CO-PILOT</h2>
+<h2>JETZT: VS CODE, COPILOT, EINE SESSION, KEIN PLAN OHNE TEST</h2>
 <div class="card">
-<p>Statt eines Kreises aus fünf Köpfen gibt es jetzt einen Arbeitssitz: VS Code, ein Agent (Cline) und ein Mensch. Der Unterschied ist nicht „einer statt fünf". Der Unterschied ist <b>Entfernung zur Wahrheit</b>. Im Verbund stand zwischen der Idee und dem Code ein Plan, eine Konferenz und ein Handoff. Jetzt steht zwischen der Idee und dem Code ein Chatfenster. Der Plan wird zum Arbeitsergebnis, das Arbeitsergebnis wird zum Test, der Test wird zum Commit. Wenn der Smoke-Test grün ist, gibt es kein „das haben wir so besprochen" — es gibt nur „das läuft".</p>
-<p>Der Smoke-Test ist die neue Konferenzminute. Statt „Besprochen: 4. Sitzung, TOP 2" steht da „97/97 OK". Es ist eine schlechtere Minute — sie hat keine Rhetorik, kein Votum, keine Vertagung. Es ist eine <b>bessere</b> Minute. Sie lügt nicht. Sie kann nicht vertagt werden. Entweder ist alles grün, oder es steht, was nicht grün ist, in schwarzen Lettern da.</p>
+<p>Statt eines Kreises aus fünf Köpfen gibt es jetzt einen Arbeitssitz: VS Code, ein Agent (Cline, dann GitHub Copilot) und ein Mensch. Der Unterschied ist nicht „einer statt fünf". Der Unterschied ist <b>Entfernung zur Wahrheit</b>. Im Verbund stand zwischen der Idee und dem Code ein Plan, eine Konferenz und ein Handoff. Jetzt steht zwischen der Idee und dem Code ein Chatfenster. Der Plan wird zum Arbeitsergebnis, das Arbeitsergebnis wird zum Test, der Test wird zum Commit. Wenn der Smoke-Test grün ist, gibt es kein „das haben wir so besprochen" — es gibt nur „das läuft".</p>
+<p>GitHub Copilot ist dabei kein Freibrief für „alles falsch, aber schnell". Es ist ein Werkzeug für die Geschwindigkeit, nicht für den Qualitätsverlust. Es kann beim Refactor, bei der Korrektur, beim Scan von Mustern und beim Dokumentieren helfen — aber es liefert keine Wahrheit, wenn der Code nicht in einem echten Laufzustand geprüft wurde. Das Projekt wurde bewusst nicht als sauberer Plan aus dem Nichts gebaut; es wurde als laufendes, chaotisches, aber funktionierendes System ausgebaut. Genau das ist seine Stärke. Genau das ist auch der Grund, warum der Smoke-Test nicht optional ist.</p>
+<p>Das entscheidende Zeichen ist nicht, dass das Projekt „perfekt" ist. Das entscheidende Zeichen ist: <b>Es ist noch nicht kaputt.</b> Der Spielcode ist chaotisch, die Zustände sind dünn, der globale Namespace ist ungeschützt und die Regeln werden mit jedem Handoff ein bisschen klarer. Das allein ist schon bemerkenswert: ein Test von LLM-Programmierung, bei dem man nicht nur Sachen schnell repariert, sondern auch einen kompletten Zustand aufrecht erhält, obwohl das Schiff von den meisten Regeln des guten Aufbaus abweicht. Das ist nicht Bequemlichkeit; das ist Verhalten unter Stress.</p>
+<p>Der Smoke-Test ist die neue Konferenzminute. Statt „Besprochen: 4. Sitzung, TOP 2" steht da „97/97 OK". Es ist eine schlechtere Minute — sie hat keine Rhetorik, kein Votum, keine Vertagung. Es ist eine <b>bessere</b> Minute. Sie lügt nicht. Sie kann nicht vertagt werden. Entweder ist alles grün, oder es steht, was nicht grün ist, in schwarzen Lettern da. Und genau deshalb bleibt der Code auch in Zukunft lesbar: keine Magie, keine verschwiegenen Hacks, nur Tatsachen, die mit Test und Verlauf belegt sind.</p>
 </div>
 
 <h2>WAS SICH GEÄNDERT HAT</h2>
@@ -52,6 +54,7 @@
 <tr><td>5 Agenten, Konferenzen, Handoffs</td><td>1 Agent + 1 Mensch, eine Session, ein Kontext</td></tr>
 <tr><td>Plan-Dokumente als Wahrheit</td><td>Laufender Smoke-Test als Wahrheit</td></tr>
 <tr><td>„Besprochen" als Abschluss</td><td>„Grün" als Abschluss</td></tr>
+<tr><td>Cline als Agent im Verlauf</td><td>GitHub Copilot als weiterer Agent im VS Code-Context</td></tr>
 <tr><td>Stil-Durchschnitt aus fünf Händen</td><td>Ein Stil, der im Code nachweisbar ist</td></tr>
 <tr><td>Ideen sterben im Handoff</td><td>Ideen sterben im Todo — aber das Todo wird gelesen</td></tr>
 <tr><td>Formular 12-B</td><td>Formular 12-B (unverändert)</td></tr>

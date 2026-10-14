@@ -62,12 +62,34 @@ SW.Game = {
   // Bolt geht zum Schiff und kommentiert — je nach Schadenslage.
   startHangar() {
     this._hangarTimer = 0;
+    this._hangarRepairHeld = false;
+    this._hangarRepaired = false;
     this._hangarLines = this._hangarDialog();
     this.setState('HANGAR');
+  },
+  repairShip() {
+    if (this.state !== 'HANGAR') return false;
+    const damaged=Object.values(SW.Player.systems).some(value => value<100);
+    if (!damaged) {
+      SW.Comm.add('BOLT: Alles im Soll. Ich prüfe es trotzdem. Zweimal.');
+      return false;
+    }
+    SW.Player.repairSystems();
+    this._hangarRepaired=true;
+    SW.Comm.add('BOLT: Antrieb, Waffen, Schilde und Sensoren instandgesetzt.');
+    return true;
   },
   _hangarDialog() {
     const f = SW.Player.frontShield, r = SW.Player.rearShield;
     const min = Math.min(f, r);
+    const systemLabels={engines:'ANTRIEB',weapons:'WAFFEN',shields:'SCHILDE',sensors:'SENSOREN'};
+    const damagedSystems=Object.keys(systemLabels).filter(key => SW.Player.systems[key]<100);
+    if (damagedSystems.length) {
+      return [
+        'Diagnose: '+damagedSystems.map(key => systemLabels[key]).join(', ')+' beschädigt.',
+        'Bolt repariert im Hangar. R drücken, bevor du weiterfliegst.'
+      ];
+    }
     if (min >= 80) {
       return [
         'Rein mit dir. Kein Kratzer. Kein Öl. Zu sauber.',
@@ -652,7 +674,7 @@ SW.Game = {
         const lat=(np.x||0)-SW.Player.x;
         const arrow=Math.abs(lat)<30?'  ':(lat<0?'◀ ':'▶ ');
         ctx.fillStyle='#0af';ctx.font='6px monospace';ctx.textAlign='center';
-        ctx.fillText(arrow+'NAV WP'+(nIdx+1)+'  D:'+d,SW.CX,SW.H-16);ctx.textAlign='left';
+        ctx.fillText(arrow+'NAV WP'+(nIdx+1)+'  D:'+d,SW.CX,31);ctx.textAlign='left';
       }
     }
     // Nav-Hinweis
@@ -764,8 +786,15 @@ SW.Game = {
     // Weiter-Prompt (nach allen Zeilen)
     if (t > 60 + (SW.Game._hangarLines||[]).length*120) {
       const blink=Math.floor(Date.now()/500)%2===0;
-      ctx.fillStyle=blink?'#fff':'#666';ctx.font='8px monospace';ctx.textAlign='center';
-      ctx.fillText('[ LEERTASTE: ZUM TRÄGER ]',SW.CX,15);ctx.textAlign='left';
+      ctx.fillStyle=blink?'#fff':'#666';ctx.font='7px monospace';ctx.textAlign='center';
+      const damaged=Object.values(SW.Player.systems).some(value => value<100);
+      if (damaged) {
+        ctx.fillText(SW.Game._hangarRepaired?'[ SYSTEME INSTANDGESETZT ]':'[ R: SYSTEME REPARIEREN ]',SW.CX,13);
+        ctx.fillText('[ LEERTASTE: ZUM TRÄGER ]',SW.CX,23);
+      } else {
+        ctx.fillText('[ LEERTASTE: ZUM TRÄGER ]',SW.CX,15);
+      }
+      ctx.textAlign='left';
     }
     ctx.textAlign='left';
   },

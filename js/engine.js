@@ -94,11 +94,17 @@ SW.Engine = {
   },
   renderStars(ctx, playerX, playerY) {
     ctx.fillStyle = '#fff';
+    const player = SW.Player;
     for (const s of this.stars) {
-      // Parallax: stars shift opposite to player movement
+      // Sternpositionen bleiben camera-relativ; fuer die gemeinsame Projektion
+      // werden sie kurz in Weltkoordinaten umgerechnet.
       const px = s.x - playerX * 0.5;
       const py = s.y - playerY * 0.5;
-      const p = this.project(px, py, s.z);
+      const p = this.project(
+        px + (player ? player.x : 0),
+        py + (player ? player.y : 0),
+        s.z + (player ? player.z : 0)
+      );
       if (p && p.sx >= 0 && p.sx < SW.W && p.sy >= 0 && p.sy < SW.H) {
         ctx.fillRect(Math.round(p.sx), Math.round(p.sy), 1, 1);
       }

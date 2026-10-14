@@ -3,7 +3,7 @@
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
 // COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → DEBRIEFING → CREDITS → SHIP.
 // Skript-Liste AMT 29 Dateien = index.html (2026-10-13 synchronisiert:
-// + js/savegame.js (SPINDE/Save-Load, v0.6.9-final).
+// + js/savegame.js (Save-Load, Quartier-Deckplan und Schema-Migration).
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -48,6 +48,12 @@ const sandbox = {
   setTimeout, clearTimeout, setInterval, clearInterval,
   Date, Math, Object, Array, String, Number, JSON, Promise, Symbol, Proxy,
   performance: { now: () => 0 }
+};
+const storedValues = new Map();
+sandbox.localStorage = {
+  getItem: (key) => storedValues.has(key) ? storedValues.get(key) : null,
+  setItem: (key, value) => storedValues.set(key, String(value)),
+  removeItem: (key) => storedValues.delete(key)
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -94,30 +100,187 @@ check('BAR laeuft ohne Fehler', SW.Game.state === 'BAR');
 SW.Game.setState('SHIP'); pump(3);
 check('SHIP laeuft ohne Fehler', SW.Game.state === 'SHIP');
 const roomsWithNpcs = SW.Rooms.filter(r => r.npcs.length >= 1).length;
-check('alle 12 besetzten Raeume haben NPCs, SPINDE ist Spielerraum (' + roomsWithNpcs + '/12)', roomsWithNpcs === 12);
+check('alle 12 besetzten Raeume haben NPCs; Quartiere bleiben privat (' + roomsWithNpcs + '/12)', roomsWithNpcs === 12);
 for (const n of ['Archiv','Löffel','Stille','Mutters','Spiegel','Rohr','Nadel']) {
   check('RoomNPCs: ' + n, !!SW.RoomNPCs[n]);
 }
+check('Alle Raum-Crew-NPCs haben ein eigenes Gesicht im Registry',
+  Object.keys(SW.RoomNPCs).every(name => {
+    const id = SW.NPC.resolve(name);
+    return !!id && !!SW.NPC.registry[id];
+  }));
 SW.Ship.currentRoom = 'kantine';
+let roomFaceCount = 0;
+const drawNpcFeatures = SW.NPC._drawFeatures;
+SW.NPC._drawFeatures = function(ctx, x, y, size, npc) {
+  roomFaceCount++;
+  return drawNpcFeatures.call(this, ctx, x, y, size, npc);
+};
+SW.Ship.render(ctxStub);
+SW.NPC._drawFeatures = drawNpcFeatures;
+check('Raum-Porträts zeichnen Augen und Gesichtszüge', roomFaceCount === SW.World.npcInRoom('kantine').length);
 SW.Ship.startDialogue(); pump(3);
 const kantineLines = SW.Dialogues.rooms.kantine.map(l => l.npc).join(',');
 check('Kantine-Dialog hat LÖFFEL', kantineLines.includes('LÖFFEL'));
 check('Beobachtung hat NPC (Spiegel)', SW.World.npcInRoom('beobachtung').length >= 1);
 check('Schulraum ZWEIG ist der 12. Raum', !!SW.Rooms.find(r => r.id === 'schule'));
-check('SPINDE (Bunker) ist der 13. Raum', SW.Rooms.length === 13 && !!SW.Rooms.find(r => r.id === 'spinde'));
-check('SPINDE: Toer zu Kantine (beidseitig)', (() => { const s = SW.Rooms.find(r => r.id === 'spinde'), k = SW.Rooms.find(r => r.id === 'kantine'); return s.toren.includes('kantine') && k.toren.includes('spinde'); })());
+check('Quartiere + persoenliches Pilotenzimmer sind implementiert', SW.Rooms.length === 14 &&
+  !!SW.Rooms.find(r => r.id === 'quartiere') && !!SW.Rooms.find(r => r.id === 'player_quarters'));
+check('Quartiere sind vom Aufzug und Oberdeck erreichbar', (() => {
+  const q = SW.Rooms.find(r => r.id === 'quartiere'), k = SW.Rooms.find(r => r.id === 'kantine');
+  const o = SW.Rooms.find(r => r.id === 'beobachtung');
+  return q.toren.includes('player_quarters') && q.toren.includes('beobachtung') &&
+    q.toren.includes('kantine') && k.toren.includes('quartiere') && o.toren.includes('quartiere');
+})());
+check('Eigenes Quartier ist nur ueber den Quartier-Hub erreichbar', (() => {
+  const q = SW.Rooms.find(r => r.id === 'quartiere'), c = SW.Rooms.find(r => r.id === 'player_quarters');
+  return c.toren.length === 1 && c.toren[0] === q.id && c.deck === 3 &&
+    c.name === 'QUARTIER {spielername}' && c.mapLabel === '{spielername}';
+})());
+check('Räume sind auf genau drei Decks verteilt', [1,2,3].every(deck =>
+  SW.Rooms.some(room => room.deck === deck)) && SW.Rooms.every(room => [1,2,3].includes(room.deck)));
+SW.World.pilotName = 'TESTPILOT';
+let allRoomsRender = true;
+let allDoorwaysInBulkheads = true;
+for (const room of SW.Rooms) {
+  SW.Ship.currentRoom = room.id;
+  try { SW.Ship.render(ctxStub); } catch (e) { allRoomsRender = false; }
+  if (SW.Ship._doorRects.some(rect =>
+    !(rect.x + rect.w <= 50 || rect.x >= SW.W - 50) || rect.y > SW.H - 50)) allDoorwaysInBulkheads = false;
+}
+check('Alle 14 Raumgrafiken und Schiffsschotts rendern', allRoomsRender);
+check('Raumtüren sitzen seitlich in den Bulkheads statt am Boden', allDoorwaysInBulkheads);
+check('Eigenes Quartier zeigt den Namen des Spielers', SW.Ship.roomLabel(SW.Rooms.find(r => r.id === 'player_quarters')) === 'QUARTIER TESTPILOT');
+SW.Ship.currentRoom = 'quartiere';
+SW.Ship.render(ctxStub);
+const ownQuarters = SW.Ship._ownQuartersRect;
+if (ownQuarters) SW.Ship.handleClick(ownQuarters.x + 4, ownQuarters.y + 4);
+check('Erste Quartiertuer oeffnet das eigene Pilotenzimmer', SW.Ship.currentRoom === 'player_quarters');
+SW.Ship.currentRoom = 'quartiere';
+SW.Ship.render(ctxStub);
+const lockedQuarters = SW.Ship._lockedQuartersRects[0];
+if (lockedQuarters) SW.Ship.handleClick(lockedQuarters.x + 4, lockedQuarters.y + 4);
+check('Fremde Quartiere bleiben gesperrt und antworten mit Hinweis',
+  SW.Ship.currentRoom === 'quartiere' && !!SW.Ship._roomNotice && /Abgeschlossen|Zugriff/.test(SW.Ship._roomNotice.text));
+SW.Ship.navigateTo('player_quarters');
+SW.Ship.render(ctxStub);
+const saveTerminal = SW.Ship._saveTerminalRect;
+if (saveTerminal) SW.Ship.handleClick(saveTerminal.x + 2, saveTerminal.y + 2);
+check('Savegame-Terminal ist im eigenen Pilotenzimmer erreichbar', SW.Ship.savePanelOpen === true);
+SW.Ship.saveAction('5');
+SW.Ship.currentRoom = 'kantine';
 check('Save/Load: SW.SaveGame existiert', !!SW.SaveGame);
 check('Save/Load: API komplett', ['save','load','export','delete','hasSave','lastSaveTime'].every(k => typeof SW.SaveGame[k] === 'function'));
 check('Save/Load: leerer Start (kein Save)', SW.SaveGame.hasSave() === false);
-check('Ship: Save-Panel-Funktionen vorhanden', ['renderSavePanel','saveAction','handleSavePanelClick','artSpinde'].every(k => typeof SW.Ship[k] === 'function'));
+check('Ship: Save-Panel- und Quartier-Funktionen vorhanden', ['renderSavePanel','saveAction','handleSavePanelClick','artPlayerQuarters','artQuartersLobby'].every(k => typeof SW.Ship[k] === 'function'));
 check('index.html: js/savegame.js eingebunden', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('js/savegame.js'));
+check('Handbuch: Flugkapitel ist im Spiel vorhanden', SW.Manual.chapters.length === 7 &&
+  SW.Manual.chapters[6].id === 'flight');
+const manualText=[];
+const manualTestCtx=new Proxy({}, {
+  get(target,key) {
+    if (key==='fillText') return text => manualText.push(text);
+    if (!(key in target)) target[key]=()=>{};
+    return target[key];
+  },
+  set(target,key,value) { target[key]=value; return true; }
+});
+SW.Game.state='COCKPIT';SW.Manual.open();SW.Manual.currentChapter=6;SW.Manual.render(manualTestCtx);SW.Manual.close();
+check('Handbuch: Flugkapitel rendert Vorschub und Reparaturhinweise',
+  manualText.includes('VORSCHUB: SHIFT = Nachbrenner.') &&
+  manualText.includes('Bolt repariert im Hangar mit [R].'));
+check('Web-Handbuch: Flugkapitel ist verlinkt',
+  fs.existsSync(path.join(root,'site','manual','chapter7.html')) &&
+  fs.readFileSync(path.join(root,'site','manual','index.html'),'utf8').includes('chapter7.html'));
+// Ältere Saves ohne schemaVersion müssen weiter laden; der alte Kabinen-ID-Alias
+// wird auf das persoenliche Pilotenzimmer abgebildet.
+storedValues.set(SW.SaveGame.STORAGE_KEY, JSON.stringify({
+  version: '0.6.9-final',
+  timestamp: 1234,
+  currentRoom: 'spinde',
+  world: { pilotName: 'TESTPILOT', systemId: 's2', missionProgress: ['m1'], nachrufe: [] },
+  game: { score: 42 }
+}));
+const migratedSave = SW.SaveGame.load();
+check('Savegame: Legacy-Format ohne Versionsfeld geladen', !!migratedSave && migratedSave.schemaVersion === 1);
+check('Savegame: alte Spinde werden zum persoenlichen Quartier', SW.Ship.currentRoom === 'player_quarters');
+check('Savegame: alter Kapitaensraum-Alias bleibt kompatibel',
+  SW.SaveGame._canonicalRoomId('captains_quarters') === 'player_quarters');
+check('Savegame: Legacy-Spielstandsdaten bleiben erhalten', SW.World.pilotName === 'TESTPILOT' &&
+  SW.World.systemId === 's2' && SW.Game.score === 42 && SW.World.missionProgress[0] === 'm1');
+SW.Player.init();
+check('Savegame: Legacy-Saves ohne Systemdaten starten mit intakten Systemen',
+  ['engines','weapons','shields','sensors'].every(key => SW.Player.systems[key] === 100));
+SW.Player.damageSystem(37);
+check('Schaden: Treffer mindern den Systemzustand', SW.Player.systems.engines === 63);
+SW.Player.init();
+check('Schaden: Systemzustand bleibt bei Missionsinitialisierung erhalten', SW.Player.systems.engines === 63);
+SW.Ship.currentRoom = 'player_quarters';
+check('Savegame: neue Raumposition und Systemzustand werden gespeichert', SW.SaveGame.save() &&
+  JSON.parse(storedValues.get(SW.SaveGame.STORAGE_KEY)).ship.currentRoom === 'player_quarters' &&
+  JSON.parse(storedValues.get(SW.SaveGame.STORAGE_KEY)).world.shipSystems.engines === 63);
+SW.Ship.currentRoom = 'bar';
+SW.Player.systems.engines=100;
+check('Savegame: gespeicherte Raumposition wird wiederhergestellt',
+  !!SW.SaveGame.load() && SW.Ship.currentRoom === 'player_quarters' && SW.Player.systems.engines === 63);
+SW.Player.systems.shields=50;
+check('Schaden: Schildsystem senkt die maximale Ladung', SW.Player.shieldCapacity() === SW.SHIELD_MAX*0.75);
+SW.Player.systems.weapons=0;
+const projectilesBeforeOfflineFire=SW.Projectiles.list.length;
+SW.Player.fire();
+check('Schaden: ausgefallene Waffen feuern nicht', SW.Projectiles.list.length === projectilesBeforeOfflineFire);
+SW.Player.systems.weapons=50;
+SW.Player.fire();
+check('Schaden: beeinträchtigte Waffen verursachen weniger Schaden',
+  SW.Projectiles.list.length>projectilesBeforeOfflineFire &&
+  SW.Projectiles.list[SW.Projectiles.list.length-1].damage === SW.LASER_DAMAGE*0.75);
+SW.Projectiles.clear();
+const radarBlipColors=[];
+const radarTestCtx=new Proxy({}, {
+  get(target,key) {
+    if (key==='fillRect') return () => radarBlipColors.push(target.fillStyle);
+    if (!(key in target)) target[key]=()=>{};
+    return target[key];
+  },
+  set(target,key,value) { target[key]=value; return true; }
+});
+const previousRadarEnemies=SW.Enemies.list;
+SW.Enemies.list=[{alive:true,x:1,y:1}];
+SW.Player.systems.sensors=0;
+SW.UI.renderRadar(radarTestCtx);
+check('Schaden: Sensorausfall blendet Gegner-Radarblips aus', !radarBlipColors.includes('#f00'));
+SW.Enemies.list=previousRadarEnemies;
+SW.Ship.currentRoom = 'bar';
+SW.Player.systems.engines=71;
+storedValues.set(SW.SaveGame.STORAGE_KEY, JSON.stringify({
+  schemaVersion: 1, world: { shipSystems: { engines: 101 } }
+}));
+check('Savegame: ungültiger Systemzustand verändert den laufenden Zustand nicht',
+  SW.SaveGame.load() === null && SW.Player.systems.engines === 71);
+storedValues.set(SW.SaveGame.STORAGE_KEY, JSON.stringify({ schemaVersion: 99, world: { pilotName: 'FUTURE' } }));
+check('Savegame: unbekannte Zukunftsversion verändert keinen Zustand', SW.SaveGame.load() === null &&
+  SW.World.pilotName === 'TESTPILOT' && SW.Ship.currentRoom === 'bar');
+SW.Player.repairSystems();
+SW.SaveGame.delete();
 check('Schulraum: Git-Tutorial-Dialog (9 Zeilen)', (SW.Dialogues.rooms.schule || []).length === 9);
 check('Schulraum: Toere nach Maschinenraum/Buero/Bar', ['maschinenraum','buerro','bar'].every(t => SW.Rooms.find(r => r.id === t).toren.includes('schule')));
 check('Schulraum: NPCs Diskettens + Archiv', SW.World.npcInRoom('schule').length >= 2);
 
+// Die kleine Karte ist als Wanddisplay im Raum platziert und öffnet per Klick
+// den separaten, großen Deckplan.
+SW.Game.state = 'SHIP';
+SW.Ship.currentRoom = 'bar';
+SW.Ship.render(ctxStub);
+const wallMap = SW.Ship._mapRect;
+check('SHIP: Minimap bleibt kleine Wandkarte', !!wallMap && wallMap.w <= 60 && wallMap.h <= 30);
+if (wallMap) SW.Ship.handleClick(wallMap.x + wallMap.w / 2, wallMap.y + wallMap.h / 2);
+check('SHIP: Klick auf Wandkarte öffnet großen Deckplan', SW.Game.state === 'CHEAT_MAP');
+
 // --- 4. CHEAT_MAP (Wandkarte) ---
 SW.Game.state = 'CHEAT_MAP'; pump(3);
-check('Cheat-Map rendert, 13 Klick-Regionen', SW.Ship._cheatMapRects.length === 13);
+check('Deckplan rendert, 14 Klick-Regionen auf 3 Decks', SW.Ship._cheatMapRects.length === 14 &&
+  [1,2,3].every(deck => SW.Ship._cheatMapRects.filter(rect =>
+    SW.Rooms.find(room => room.id === rect.room).deck === deck).length > 0));
 const first = SW.Ship._cheatMapRects[0];
 SW.Ship.handleCheatMapClick(first.x + 5, first.y + 5);
 check('Klick auf Raum -> SHIP', SW.Game.state === 'SHIP' && SW.Ship.currentRoom === SW.Rooms[0].id);
@@ -166,6 +329,15 @@ const star0 = SW.Engine.stars.find(s => s.z > 5);
 const starZ0 = star0.z;
 SW.Engine.updateStars();
 check('IM RAUM: Sterne fließen mit dem Vorschub', star0.z < starZ0);
+const previousStars = SW.Engine.stars;
+const previousPlayerZ = SW.Player.z;
+let projectedStarCount = 0;
+SW.Player.z = 5000;
+SW.Engine.stars = [{ x: SW.Player.x, y: SW.Player.y, z: 100 }];
+SW.Engine.renderStars({ fillRect: () => { projectedStarCount++; } }, 0, 0);
+check('IM RAUM: Sternfeld bleibt auch nach langem Flug vor dem Cockpit', projectedStarCount === 1);
+SW.Engine.stars = previousStars;
+SW.Player.z = previousPlayerZ;
 // Brains + Wingman: frische Mission (Takeoff → COCKPIT)
 SW.Game.startMission('m1');
 SW.Game.setState('TAKEOFF');
@@ -225,6 +397,16 @@ check('_hangarLines gefuellt (' + (SW.Game._hangarLines||[]).length + ' Zeilen)'
 pump(5);
 check('Hangar rendert', SW.Game.state === 'HANGAR');
 SW.Game._hangarTimer = 99999;
+SW.Player.systems.engines=42;
+SW.Player.frontShield=20;
+SW.Game._hangarLines=SW.Game._hangarDialog();
+check('Hangar: Diagnose nennt beschädigte Schiffssysteme',
+  SW.Game._hangarLines.some(line => line.includes('ANTRIEB')));
+SW.Input.keys['KeyR'] = true; pump(1);
+SW.Input.keys['KeyR'] = false; pump(1);
+check('Hangar: R repariert Systeme und Schilde', SW.Game._hangarRepaired &&
+  ['engines','weapons','shields','sensors'].every(key => SW.Player.systems[key] === 100) &&
+  SW.Player.frontShield === SW.SHIELD_MAX && SW.Player.rearShield === SW.SHIELD_MAX);
 SW.Input.keys['Space'] = true; pump(1);
 SW.Input.keys['Space'] = false;
 check('Hangar -> DEBRIEFING (Taste)', SW.Game.state === 'DEBRIEFING');
@@ -368,6 +550,20 @@ check('index.html: js/newspaper.js eingebunden', fs.readFileSync(path.join(root,
 // --- 14. Kamera-System + Launch-Tube (v0.6.9-dev) ---
 check('ViewState existiert (SW.Engine.view)', !!SW.Engine.view && SW.Engine.view.mode === 'cockpit');
 SW.Game.setState('COCKPIT'); pump(2);
+SW.Comm.clear();
+SW.Comm.add('COMMANDER: Kurs bestätigt. Öffentlicher Funk steht.');
+SW.Comm.add('SECHS: Staffel hört dich. Bleib auf meiner Flanke.');
+SW.Comm.update(); SW.Comm.update();
+check('Cockpit-Funk trennt Public und Staffelfunk', SW.Comm.messages.some(m => m.channel === 'public') &&
+  SW.Comm.messages.some(m => m.channel === 'squadron'));
+let oversizedVideoCalls = 0;
+const cockpitVideoRenderer = SW.NPC.renderCockpitVideo;
+SW.NPC.renderCockpitVideo = function() { oversizedVideoCalls++; };
+SW.Comm.render(ctxStub);
+SW.NPC.renderCockpitVideo = cockpitVideoRenderer;
+check('Cockpit-Funk rendert ohne bildschirmfuellendes NPC-Fenster',
+  typeof SW.Comm.renderChannel === 'function' && oversizedVideoCalls === 0);
+SW.Comm.clear();
 SW.Engine.nextView();
 check('V: cockpit -> chase (weitere Brennweite)', SW.Engine.view.mode === 'chase' && SW.Engine.view.focal === SW.Engine.view.chaseFocal);
 pump(3);

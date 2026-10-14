@@ -20,7 +20,8 @@ Kein Server nötig. Kein Internet. Kein Tracking. Nur Fax.
 **Steuerung:**
 | Eingabe | Funktion |
 |---------|----------|
-| W/S/D oder Pfeile | Bewegen (Drift) |
+| W/A/S/D oder Pfeile | Bewegen (Drift) |
+| SHIFT | Nachbrenner / höherer Vorschub |
 | Q / E | Rollen |
 | Maus | Zielen |
 | Leertaste / Klick | Feuer |
@@ -29,7 +30,7 @@ Kein Server nötig. Kein Internet. Kein Tracking. Nur Fax.
 | M | TTS ein/aus |
 | O | Sound ein/aus |
 | ESC | Menü |
-| Klick (im Träger) | Türen / NPCs / START / Wandkarte / Spinde-Tür |
+| Klick (im Träger) | Türen / NPCs / START / Deckplan / Savegame-Terminal im persönlichen Pilotenzimmer |
 
 > **Multi-Input:** Jedes aktive Gerät = +1 Laser-Slot (max 3).
 > Wer mehr hat, der kann mehr. Das ist kein Bug. Das ist Physik.
@@ -55,9 +56,11 @@ Tod:     COCKPIT → DEBRIEFING (KONTAKT VERLOREN) → SHIP
 - **INTRO:** Asteroidenfeld (Drift + Ausweichen, nicht tot) → Pilotenname → Zuordnung
 - **AKADEMIE:** Tutorial (Steuerung in der Story erklärt), Sim-Flug
 - **BAR:** Scoreboard, Crew-Dialoge
-- **SHIP:** 13 Räume (12 besetzt + SPINDE, Tür-Klick, Minimap, NPC-Dialoge)
-- **SPINDE:** Eigene Kabine (13. Raum) — Bunker-Tür öffnet das Save/Load-Panel
-- **COCKPIT:** WC1-Style, Radar, Shields, Score, Weapon/Target
+- **SHIP:** 14 Räume auf drei Decks, Tür-Klick, Deckplan-Minimap und NPC-Dialoge
+- **QUARTIERE:** Crew-Kabinen-Hub; zuerst ist das eigene, nach Pilotennamen benannte Quartier zugänglich
+- **SAVE/LOAD:** Persönliches Terminal im Pilotenzimmer; Migration alter Kabinen-IDs erhält ältere Spielstände
+- **COCKPIT:** WC1-Style mit Radar, Schilden, dynamischem Zielpanel, getrenntem Public- und Staffelfunk sowie persistentem Systemschaden mit optionaler Hangar-Reparatur
+- **HANDBUCH:** Ingame- und Web-Handbuch mit sieben Kapiteln; Kapitel 7 erklärt Flug, Navigation, Schaden und Reparatur
 
 ---
 
@@ -103,11 +106,11 @@ solo_wing_1990/
 | `js/sprites.js` | Prozedurale Pixel-Art (Schiffe, Carrier, Cockpit-Frame) |
 | `js/entities.js` | Player, ShipRegistry, Enemies, Projectiles, Explosions, Carrier |
 | `js/systems.js` | Collision, Autopilot, Flight, Briefing, Comm |
-| `js/ship.js` | Träger-Interior (13 Räume, Tür-Klick, NPC-Dialoge, Save/Load-Panel) |
+| `js/ship.js` | Träger-Interior (14 Räume auf 3 Decks, Quartiere, Deckplan und Save/Load-Panel) |
 | `js/ui.js` | Cockpit-Overlay, Radar, Space Map, Comm, Briefing Board |
 | `js/states.js` | State Machine (Game), Rendering pro State |
 | `js/world.js` | World-State (Seed, System, Nachrufe, NPC-Placements) |
-| `js/savegame.js` | Save/Load (localStorage, Export, Delete — SPINDE-Panel) |
+| `js/savegame.js` | Save/Load (localStorage, Export, Delete, rückwärtskompatible Schema-Migration) |
 | `js/quests.js` | Quest-System (Overlay, Event-basiert) |
 | `js/akademie.js` | Tutorial (Sim-Flug, Pro-forma) |
 | `js/intro.js` | Intro (Asteroidenfeld, Name, Zuordnung) |
@@ -118,7 +121,7 @@ solo_wing_1990/
 | `js/npc.js` | NPC-Registry (11 Charaktere, prozedurale Gesichter, `drawFace`-API, Cockpit-Video) |
 | `js/dialogue.js` | Smart-Dialogue-Engine (Context, req-Gates, Cooldown, Subplot-Stufen) |
 | `js/newspaper.js` | Schiffszeitung (Generierung, Rendering, 5 Artikel-Typen) |
-| `js/manual.js` | Ingame-Handbuch (6 Kapitel, progressiv freigeschaltet, Taste [H]) |
+| `js/manual.js` | Ingame-Handbuch (7 Kapitel, progressiv freigeschaltet, Taste [H]) |
 
 **Data-Dateien (reine Daten, kein DOM):**
 | Datei | Inhalt |
@@ -127,7 +130,7 @@ solo_wing_1990/
 | `data/dialogues.js` | NPC-Dialoge (Bar, Räume, Briefings, Funkstörungs) |
 | `data/systems.js` | 3 Sektoren (Sektor 7, 9, 12) |
 | `data/crew.js` | 18 Crew-Charaktere + 5 Piloten |
-| `data/rooms.js` | 13 Räume (Artstyle, NPCs, Türen) |
+| `data/rooms.js` | 14 Räume (Decks, Artstyle, NPCs, Türen) |
 | `data/lore.js` | Worldbuilding (Audit, Piraten, Optimierer, KLO, Alien) |
 | `data/ships.js` | 4 Schiffsklassen, 3 Cockpit-Layouts |
 | `data/quests.js` | 5 Quests (Fax-basiert) |

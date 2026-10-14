@@ -21,54 +21,84 @@ SW.UI = {
     if (SW.Sprites.cockpitFrame) {
       ctx.drawImage(SW.Sprites.cockpitFrame, 0, 0);
     } else {
-      // Fallback-Cockpit (braune Rahmen)
-      ctx.fillStyle = '#8a6d3b';
+      // Fallback-Cockpit (Schiffsstahl-Rahmen)
+      ctx.fillStyle = '#536777';
       ctx.fillRect(0, 0, SW.W, 16);       // Top-HUD
       ctx.fillRect(0, 0, 5, SW.H-40);     // linke Strebe
       ctx.fillRect(SW.W-5, 0, 5, SW.H-40); // rechte Strebe
       ctx.fillRect(0, 150, SW.W, 50);      // Boden
-      ctx.fillStyle = '#1a1408';
+      ctx.fillStyle = '#111c25';
       ctx.fillRect(3, 48, 46, 99);         // linke Tafel
       ctx.fillRect(SW.W-49, 48, 46, 99);   // rechte Tafel
     }
 
-    // ===== DYNAMISCHE WERTE (über dem Frame) =====
-    // FRONT-Schild (linke Tafel, unter Waffen)
-    ctx.fillStyle = '#666'; ctx.font = '5px monospace';
-    ctx.fillText('FRONT', 5, 102);
-    const fw = (SW.Player.frontShield/SW.SHIELD_MAX)*17;
-    ctx.fillStyle = '#222'; ctx.fillRect(30, 97, 17, 5);
-    ctx.fillStyle = SW.Player.frontShield>30?'#0f0':'#f00';
-    ctx.fillRect(30, 97, fw, 5);
-    // REAR-Schild (linke Tafel)
-    ctx.fillStyle = '#666'; ctx.fillText('REAR', 5, 114);
-    const rw = (SW.Player.rearShield/SW.SHIELD_MAX)*17;
-    ctx.fillStyle = '#222'; ctx.fillRect(30, 109, 17, 5);
-    ctx.fillStyle = SW.Player.rearShield>30?'#0f0':'#f00';
-    ctx.fillRect(30, 109, rw, 5);
+    // Shield and speed readings live in the lower-left multifunction display.
+    const front = Math.max(0, Math.min(1, SW.Player.frontShield / SW.SHIELD_MAX));
+    const rear = Math.max(0, Math.min(1, SW.Player.rearShield / SW.SHIELD_MAX));
+    const speed = Math.max(0, Math.min(1,
+      (SW.Player.speed - SW.FORWARD_BASE) / (SW.FORWARD_BURN - SW.FORWARD_BASE)));
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#a9bbc5';
+    ctx.fillText('F', 80, 163); ctx.fillText('R', 80, 170);
+    ctx.fillStyle = '#26343d'; ctx.fillRect(89, 162, 30, 3); ctx.fillRect(89, 169, 30, 3);
+    ctx.fillStyle = front > 0.3 ? '#59d17d' : '#f05050'; ctx.fillRect(89, 162, 30 * front, 3);
+    ctx.fillStyle = rear > 0.3 ? '#59d17d' : '#f05050'; ctx.fillRect(89, 169, 30 * rear, 3);
+    ctx.fillStyle = '#a9bbc5'; ctx.fillText('V', 80, 181);
+    ctx.fillStyle = '#26343d'; ctx.fillRect(89, 178, 30, 3);
+    ctx.fillStyle = SW.Player.burning ? '#ff9b3d' : '#55bed5';
+    ctx.fillRect(89, 178, 30 * speed, 3);
+    ctx.fillStyle = SW.Player.burning ? '#ff9b3d' : '#dce7ed';
+    ctx.fillText(String(Math.round(SW.Player.speed * 12)).padStart(3, '0') + 'KT', 80, 188);
 
-    // IM RAUM: Vorschub (VORW) + Nachbrenner-Balken [SHIFT]
-    ctx.fillStyle = '#666'; ctx.font = '5px monospace';
-    ctx.fillText('VORW', 5, 126);
-    const vFrac = Math.max(0, Math.min(1, (SW.Player.speed - SW.FORWARD_BASE) / (SW.FORWARD_BURN - SW.FORWARD_BASE)));
-    ctx.fillStyle = '#222'; ctx.fillRect(30, 121, 17, 5);
-    ctx.fillStyle = SW.Player.burning ? '#ff8800' : '#0f0';
-    ctx.fillRect(30, 121, vFrac * 17, 5);
-    ctx.fillStyle = SW.Player.burning ? '#ff8800' : '#888';
-    ctx.fillText(String(Math.round(SW.Player.speed * 12)).padStart(3, '0') + 'KT', 5, 134);
+    // Radar is the round center instrument, with contacts relative to the player.
+    ctx.strokeStyle = '#45c97a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(160, 173, 14, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(146, 173); ctx.lineTo(174, 173);
+    ctx.moveTo(160, 159); ctx.lineTo(160, 187); ctx.stroke();
+    ctx.fillStyle = '#45c97a'; ctx.fillRect(159, 172, 2, 2);
+    for (const enemy of SW.Enemies.list) {
+      if (SW.Player.systems.sensors<=0) break;
+      if (!enemy.alive || enemy.z <= SW.Player.z) continue;
+      const dx = Math.max(-12, Math.min(12, (enemy.x - SW.Player.x) * 0.08));
+      const dy = Math.max(-12, Math.min(12, (enemy.y - SW.Player.y) * 0.08));
+      ctx.fillStyle = '#ff5b58';
+      ctx.fillRect(Math.round(160 + dx), Math.round(173 + dy), 2, 2);
+    }
 
-    // Score (rechte Tafel, unten)
-    ctx.fillStyle = '#0f0'; ctx.font = '7px monospace';
-    ctx.fillText('SCORE', SW.W-47, 150);
-    ctx.fillStyle = '#fff'; ctx.font = '8px monospace';
-    ctx.fillText(String(SW.Game.score).padStart(5,'0'), SW.W-47, 160);
+    // The right instrument reports only a real, live contact ahead of the ship.
+    const target = SW.Player.systems.sensors<=0 ? null : SW.Enemies.list
+      .filter(enemy => enemy.alive && enemy.z > SW.Player.z)
+      .sort((a, b) => (a.z - SW.Player.z) - (b.z - SW.Player.z))[0];
+    ctx.fillStyle = SW.Player.systems.sensors>50 ? '#57c8df' : '#e49b4b';
+    ctx.font = '5px monospace';
+    if (SW.Player.systems.sensors<=0) {
+      ctx.fillText('SENSOREN AUS', SW.W - 59, 69);
+    } else if (target) {
+      const targetInfo = SW.ShipRegistry[target.shipId];
+      const targetName = (targetInfo ? target.shipId : 'KONTAKT').toUpperCase().substring(0, 11);
+      const dx = target.x - SW.Player.x, dy = target.y - SW.Player.y, dz = target.z - SW.Player.z;
+      const range = Math.round(Math.sqrt(dx * dx + dy * dy + dz * dz));
+      const maxHp = targetInfo ? targetInfo.hp : Math.max(1, target.hp);
+      const health = Math.max(0, Math.min(1, target.hp / maxHp));
+      ctx.fillText(targetName, SW.W - 59, 66);
+      ctx.fillText('RNG ' + String(range).padStart(3, '0'), SW.W - 59, 74);
+      ctx.fillStyle = '#26343d'; ctx.fillRect(SW.W - 59, 78, 50, 4);
+      ctx.fillStyle = health > 0.5 ? '#65d481' : '#f0a64a';
+      ctx.fillRect(SW.W - 59, 78, 50 * health, 4);
+    } else {
+      ctx.fillText('KEIN KONTAKT', SW.W - 59, 69);
+      ctx.fillStyle = '#26343d'; ctx.fillRect(SW.W - 59, 78, 50, 4);
+    }
 
-    // Laser-Slots + Autopilot + TTS (unten Mitte, über Beinen)
+    // Weapon state and score sit inside the lower-right multifunction display.
     const slots = SW.Input.getLaserSlots();
-    const ap = SW.Autopilot.active?'[AP]':'';
-    const tts = SW.TTS.enabled?'[TTS]':'';
-    ctx.fillStyle = '#0f0'; ctx.font = '6px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('LASER:'+slots+' '+ap+' '+tts, SW.CX, 198);
+    ctx.fillStyle = '#9bb0bd'; ctx.font = '4px monospace';
+    ctx.fillText('L' + (SW.Player.systems.weapons>0?slots:0), 260, 177);
+    ctx.fillStyle = '#0f0'; ctx.font = '5px monospace';
+    ctx.fillText(String(SW.Game.score).padStart(5,'0'), 260, 186);
+    ctx.font = '3px monospace'; ctx.fillStyle = '#9bb0bd';
+    ctx.fillText('E'+Math.round(SW.Player.systems.engines)+' W'+Math.round(SW.Player.systems.weapons)+
+      ' S'+Math.round(SW.Player.systems.shields)+' R'+Math.round(SW.Player.systems.sensors), 198, 164);
     ctx.textAlign = 'left';
   },
 
@@ -115,11 +145,13 @@ SW.UI = {
     const P=SW.Player;
     // Blips (der Kreis ist im Frame) — IM RAUM: RELATIV zum Spieler
     ctx.fillStyle='#fff'; ctx.fillRect(rx-1,ry-1,2,2);
-    ctx.fillStyle='#f00';
-    for (const e of SW.Enemies.list) {
-      if (!e.alive) continue;
-      const bx=rx+((e.x-P.x)*0.08), by=ry+((e.y-P.y)*0.08);
-      if (Math.sqrt((bx-rx)*(bx-rx)+(by-ry)*(by-ry))<rr) ctx.fillRect(Math.round(bx),Math.round(by),2,2);
+    if (SW.Player.systems.sensors>0) {
+      ctx.fillStyle='#f00';
+      for (const e of SW.Enemies.list) {
+        if (!e.alive) continue;
+        const bx=rx+((e.x-P.x)*0.08), by=ry+((e.y-P.y)*0.08);
+        if (Math.sqrt((bx-rx)*(bx-rx)+(by-ry)*(by-ry))<rr) ctx.fillRect(Math.round(bx),Math.round(by),2,2);
+      }
     }
     ctx.fillStyle='#0af';
     for (const np of SW.Autopilot.navPoints) {
@@ -142,8 +174,10 @@ SW.UI = {
       if (np.z!==undefined && np.z-P.z<-100) continue;
       ctx.fillRect(cx+((np.x-P.x)*sx),cy+((np.y-P.y)*sy),2,2);
     }
-    ctx.fillStyle='#ff0000';
-    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    if (SW.Player.systems.sensors>0) {
+      ctx.fillStyle='#ff0000';
+      for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    }
     ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
     ctx.fillStyle='#004455';ctx.font='5px monospace';ctx.fillText('TAKTISCH',mx+2,my+mh-2);
   },
@@ -182,8 +216,10 @@ SW.UI = {
       ctx.fillText(label,px+4,py+2);
     }
     // Feinde
-    ctx.fillStyle='#ff0000';
-    for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    if (SW.Player.systems.sensors>0) {
+      ctx.fillStyle='#ff0000';
+      for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+    }
     // Spieler (Mitte)
     ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
   },
@@ -199,18 +235,24 @@ SW.UI = {
 SW.Comm = {
   messages:[],queue:[],radioTimer:0,
   clear(){this.messages=[];this.queue=[];this.radioTimer=0;this.showFace=false;this.faceTimer=0;this.lastNpc='commander';this.lastText='';},
-  add(text){this.queue.push({text,timer:300});SW.Audio.playCommBeep();
-    // TTS: extract NPC name from text (e.g. "COMMANDER: ...")
+  add(text, channel){
     const colonIdx=text.indexOf(':');
+    const speaker=colonIdx>0?text.substring(0,colonIdx).trim():'';
+    const squadronSpeakers=['SECHS','NEUN','ZWO','VIER','WINGMAN'];
+    const inferredChannel=squadronSpeakers.some(name=>speaker.toUpperCase()===name||speaker.toUpperCase().startsWith(name+' '))
+      ?'squadron':'public';
+    this.queue.push({text,timer:300,channel:channel==='squadron'?'squadron':(channel==='public'?'public':inferredChannel)});
+    SW.Audio.playCommBeep();
+    // TTS: extract NPC name from text (e.g. "COMMANDER: ...")
     if(colonIdx>0){ const npc=text.substring(0,colonIdx); SW.TTS.speak(text.substring(colonIdx+1).trim(), npc); }
     else { SW.TTS.speak(text, 'commander'); }
-    this.lastNpc = colonIdx>0?text.substring(0,colonIdx):'commander';
+    this.lastNpc = colonIdx>0?speaker:'commander';
     this.lastText = colonIdx>0?text.substring(colonIdx+1).trim():text;
     this.showFace = true;
     this.faceTimer = 120; // show face for 2 seconds
   },
   update() {
-    if (this.queue.length>0&&this.messages.length<2) this.messages.push(this.queue.shift());
+    if (this.queue.length>0&&this.messages.length<4) this.messages.push(this.queue.shift());
     for (let i=this.messages.length-1;i>=0;i--) {
       this.messages[i].timer--;
       if (this.messages[i].timer<=0) this.messages.splice(i,1);
@@ -221,24 +263,56 @@ SW.Comm = {
     if (this.radioTimer>600&&this.messages.length===0&&this.queue.length===0&&SW.Enemies.waveActive) {
       this.radioTimer=0;
       const lines=SW.Dialogues.radioStatic;
-      if (lines&&lines.length>0) this.queue.push({text:'[STÖRUNG] '+lines[Math.floor(Math.random()*lines.length)],timer:200});
+      if (lines&&lines.length>0) this.queue.push({text:'[STÖRUNG] '+lines[Math.floor(Math.random()*lines.length)],timer:200,channel:'public'});
     }
   },
+  renderChannel(ctx, message, bounds, label, color) {
+    const {x,y,w,h}=bounds;
+    ctx.fillStyle=color;
+    ctx.font='bold 5px monospace';
+    if (!message) {
+      ctx.fillStyle='#627984';
+      ctx.font='4px monospace';
+      ctx.fillText('KANAL BEREIT',x+4,y+h-4);
+      return;
+    }
+
+    const colonIdx=message.text.indexOf(':');
+    const speaker=colonIdx>0?message.text.substring(0,colonIdx).trim():'FUNK';
+    const text=colonIdx>0?message.text.substring(colonIdx+1).trim():message.text;
+    ctx.fillStyle='#dce7ed';
+    ctx.font='bold 4px monospace';
+    ctx.fillText(speaker.substring(0,15),x+4,y+15);
+    const faceId=SW.NPC?SW.NPC.resolve(speaker):null;
+    if (faceId && SW.NPC.registry[faceId]) {
+      SW.NPC.drawFace(ctx,faceId,x+w-9,y+h-8,10,{animated:true,frame:this.radioTimer});
+    } else {
+      ctx.fillStyle=color;
+      ctx.fillRect(x+w-12,y+h-12,6,6);
+      ctx.fillStyle='#14232e';
+      ctx.fillRect(x+w-11,y+h-11,4,4);
+      ctx.fillStyle=color;
+      ctx.fillRect(x+w-10,y+h-10,2,2);
+    }
+
+    ctx.fillStyle='#b8d4df';
+    ctx.font='4px monospace';
+    const words=text.split(/\s+/), lines=[];
+    let line='';
+    for (const word of words) {
+      if ((line+word).length>18 && line) { lines.push(line.trim()); line=word+' '; }
+      else line+=word+' ';
+    }
+    if (line) lines.push(line.trim());
+    const visible=lines.slice(0,4);
+    if (lines.length>4) visible[3]=visible[3].substring(0,15)+'...';
+    for (let i=0;i<visible.length;i++) ctx.fillText(visible[i],x+4,y+22+i*5);
+  },
   render(ctx) {
-    ctx.font='7px monospace';ctx.fillStyle='#00ff00';
-    for (let i=0;i<this.messages.length;i++) {
-      const msg=this.messages[i];
-      const words=msg.text.split(' ');let line='';const lines=[];
-      for (const w of words) { if((line+w).length>45){lines.push(line);line=w+' ';}else{line+=w+' ';} }
-      lines.push(line);
-      const yStart=28+i*16;
-      for (let j=0;j<Math.min(lines.length,2);j++) ctx.fillText(lines[j].trim(),60,yStart+j*9);
-    }
-    // Cockpit-Video (v0.6.6): jede Funkzeile "NAME: Text" zeigt 2 s (faceTimer)
-    // das Gesicht des Sprechers. Name→Gesicht-Auflösung: SW.NPC.resolve().
-    if (this.showFace && this.faceTimer > 0 && SW.NPC) {
-      SW.NPC.renderCockpitVideo(ctx, this.lastNpc, this.lastText, this.radioTimer);
-    }
+    const publicMessage=this.messages.slice().reverse().find(message=>message.channel!=='squadron');
+    const squadronMessage=this.messages.slice().reverse().find(message=>message.channel==='squadron');
+    this.renderChannel(ctx,publicMessage,{x:5,y:47,w:57,h:45},'PUBLIC','#57c8df');
+    this.renderChannel(ctx,squadronMessage,{x:5,y:100,w:57,h:45},'STAFFEL','#8bdc74');
   }
 };
 

@@ -153,7 +153,7 @@
       if (!anyKey) SW._infoHeld = false;
     }
     if (SW.Game.state==='SHIP') {
-      // Save/Load-Panel (SPINDE): [1]-[5] bedienen, ESC schließt (global oben)
+      // Save/Load-Panel im persönlichen Quartier: [1]-[5] bedienen, ESC schließt
       if (SW.Ship.savePanelOpen) {
         const SK = SW.Input.keys;
         if (SK['Digit1'] && !SW._sp1) { SW._sp1 = true; SW.Ship.saveAction('1'); }
@@ -226,7 +226,13 @@
     if (SW.Game.state==='HANGAR') {
       const t = SW.Game._hangarTimer||0;
       const lines = SW.Game._hangarLines||[];
-      const anyKey = SW.Input.getFirePressed()||SW.Input.getAnyKeyPressed();
+      const repairKey=!!SW.Input.keys['KeyR'];
+      if (repairKey&&!SW.Game._hangarRepairHeld) {
+        SW.Game._hangarRepairHeld=true;
+        SW.Game.repairShip();
+      }
+      if (!repairKey) SW.Game._hangarRepairHeld=false;
+      const anyKey = !repairKey&&(SW.Input.getFirePressed()||SW.Input.getAnyKeyPressed());
       if (SW._hangarHeld === undefined) SW._hangarHeld = anyKey;
       if (t > 60 + lines.length*120 && anyKey && !SW._hangarHeld) {
         SW._hangarHeld = true;
@@ -317,5 +323,5 @@
   SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.75-dev (IM RAUM: Flugmodell & Kampfspür, Wingman Sechs, Nachbrenner, Abspann, SPINDE, Handbuch)');
+  console.log('[SOLO WING 1990] Engine geladen. Version 0.75-dev (IM RAUM: Flugmodell & Kampfspür, Wingman Sechs, Nachbrenner, Abspann, Quartiere, Handbuch)');
 })();

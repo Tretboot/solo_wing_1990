@@ -16,11 +16,13 @@
   <a href="crew.html">Crew</a>
   <a href="raeume.html" class="active">Räume</a>
   <a href="konzepte.html">Konzepte</a>
+  <a href="wiki.html">Wiki</a>
+  <a href="overhaul.html">Overhaul</a>
   <a href="entwicklung.html">Entwicklung</a>
 </nav>
 <div class="wrap">
 <h1>RÄUME</h1>
-<div class="subtitle">Der Träger als fliegendes Dorf. 12 statische Räume + 4 "hinter der Tür". Konferenz: No Thinking + Lead Story Writer.</div>
+<div class="subtitle">Der Träger als fliegendes Dorf. 14 Räume auf drei Decks; die Quartiere führen in das persönliche Zimmer mit dem Namen des Piloten.</div>
 
 <h2>STATISCHE RÄUME (implementiert)</h2>
 <div class="room-grid">
@@ -35,6 +37,23 @@
   <div class="room-card"><div class="name"><span class="swatch" style="background:#2a2a3a"></span>MASCHINENRAUM</div><div class="zweck">Antrieb, Warpcraft, Kassetten-Tape-Loop</div><div class="npc">NPC: Diskettens</div><div class="art">Artstyle: Rohre, Hebel, brummende Motoren</div></div>
   <div class="room-card"><div class="name"><span class="swatch" style="background:#2a3a3a"></span>KRANKENSTATION</div><div class="zweck">Heilung, Verletzungen, Check-ups</div><div class="npc">NPC: Frau Pflaster</div><div class="art">Artstyle: steriles Weiß, grüne Akzente, Bettreihen</div></div>
   <div class="room-card"><div class="name"><span class="swatch" style="background:#1a2a1a"></span>SCHULRAUM "ZWEIG"</div><div class="zweck">Git-Unterricht, Weiterbildung, Unfall-Analyse</div><div class="npc">NPC: Diskettens, Archiv</div><div class="art">Artstyle: Tafel mit Git-Tree, Schülertische, Formular-14-C-Poster, Katze am Fenster</div></div>
+  <div class="room-card"><div class="name"><span class="swatch" style="background:#1a2a2a"></span>KLO</div><div class="zweck">Wasser. Immer Wasser. Und dann kommt das, was nach Wasser kommt.</div><div class="npc">NPC: KLO</div><div class="art">Artstyle: Kacheln, Spülung, Wischmopp</div></div>
+</div>
+
+<h2>QUARTIERE (DECK 3)</h2>
+<div class="room-grid">
+  <div class="room-card"><div class="name"><span class="swatch" style="background:#202a3a"></span>QUARTIERE</div><div class="zweck">Crew-Gang mit privaten, personalisierten Kabinentüren</div><div class="npc">Die erste Tür ist für den aktuellen Piloten offen; fremde Quartiere sind gesperrt.</div><div class="art">Artstyle: Druckschotten, nummerierte Türen und Deckaufzüge</div></div>
+  <div class="room-card"><div class="name"><span class="swatch" style="background:#30283a"></span>QUARTIER {spielername}</div><div class="zweck">Persönlicher Rückzugsraum und Savegame-Konsole</div><div class="npc">Der Raum gehört dem Piloten, nicht dem Captain.</div><div class="art">Artstyle: Schlafnische, Namensschild und persönliches Terminal</div></div>
+</div>
+
+<h2>DECKPLAN</h2>
+<div class="card">
+<ul>
+<li><b>Deck 1 — Wohndeck:</b> Bar, Kantine, Kapelle, Friseur und Sanitär.</li>
+<li><b>Deck 2 — Dienstdeck:</b> Flugdeck, Kapitän-Büro, Maschinenraum, Werft und Krankenstation.</li>
+<li><b>Deck 3 — Oberdeck:</b> Beobachtung, Schulraum, Quartiere und das persönliche Quartier des Piloten.</li>
+<li><b>Aufzüge:</b> Die Deckkarte zeigt verbundene Aufzugsschächte; Türen zwischen Decks führen als Aufzug weiter.</li>
+</ul>
 </div>
 
 <h2>HINTER DER TÜRE (erwähnt, nicht implementiert)</h2>
@@ -48,7 +67,8 @@
 </div>
 
 <h2>NAVIGATION</h2>
-<div class="rule"><b>Tür-Klick:</b> In jedem Raum sind Türen zu Nachbarräumen. Klick → Übergang. Die Minimap (oben rechts) zeigt alle 10 Räume + aktuelle Position + Türen.</div>
+<div class="rule"><b>Tür-Klick:</b> In jedem Raum sind integrierte Schotts zu Nachbarräumen. Klick → Übergang. Im Quartiergang zeigen gesperrte Türen einen kurzen Zugangs- oder Privatsphärenhinweis. Die kleine Minimap an der Wand zeigt drei Decks und Aufzüge; ein Klick öffnet den vollständigen Deckplan.</div>
+<div class="rule"><b>Raumgrafik:</b> Alle Innenräume teilen Spanten, Paneelfugen, Bodenplatten und farbcodierte Deckleuchten. Eigene Raumobjekte und Crew bleiben prozedural gezeichnet.</div>
 <div class="rule"><b>START:</b> Im Flugdeck gibt es einen START-Button. Klick → Briefing-Tafel → Takeoff → Cockpit. Die Mission startet dort, wo es Sinn macht.</div>
 <div class="rule"><b>Rückkehr:</b> Nach der Mission (Debriefing) → "ZURÜCK ZUM TRÄGER" → wieder roamen. Der Träger ist die Heimat, nicht das Menü.</div>
 

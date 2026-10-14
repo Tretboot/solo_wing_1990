@@ -65,6 +65,66 @@ SW.NPC = {
       uniform: '#3a3a2a', rank: 'janitor', features: ['wrinkles', 'kind-smile'],
       personality: 'wise', videoPose: 'holding-mop', briefingPos: null
     },
+    ragnhild: {
+      id: 'ragnhild', name: 'RAGNHILD', voice: 'female-mature',
+      age: 49, skin: '#d8b18b', hair: '#8a4b2b', hairStyle: 'bun',
+      uniform: '#75433b', rank: 'cook', features: ['freckles', 'serious'],
+      personality: 'grumpy', videoPose: 'standing', briefingPos: null
+    },
+    klopstock: {
+      id: 'klopstock', name: 'KLOPSTOCK', voice: 'male-older',
+      age: 71, skin: '#d2b99d', hair: '#c0c0b4', hairStyle: 'short-grey',
+      uniform: '#34344a', rank: 'chaplain', features: ['mustache', 'wrinkles'],
+      personality: 'stoic', videoPose: 'standing', briefingPos: null
+    },
+    scherenflick: {
+      id: 'scherenflick', name: 'SCHERENFLICK', voice: 'female-mature',
+      age: 42, skin: '#e2bd9e', hair: '#422d50', hairStyle: 'ponytail',
+      uniform: '#58385a', rank: 'barber', features: ['ear-rings', 'smirk'],
+      personality: 'sarcastic', videoPose: 'standing', briefingPos: null
+    },
+    archiv: {
+      id: 'archiv', name: 'ARCHIV', voice: 'synthetic',
+      age: 0, skin: '#b7a98c', hair: '#77776f', hairStyle: 'side-part',
+      uniform: '#4b493f', rank: 'clerk', features: ['glasses', 'wrinkles'],
+      personality: 'literal', videoPose: 'holding-datapad', briefingPos: null
+    },
+    loeffel: {
+      id: 'loeffel', name: 'LÖFFEL', voice: 'male-middle-flat',
+      age: 38, skin: '#c99e77', hair: '#433027', hairStyle: 'short-brown',
+      uniform: '#633d32', rank: 'waiter', features: ['mustache', 'serious'],
+      personality: 'neutral', videoPose: 'behind-counter', briefingPos: null
+    },
+    stille: {
+      id: 'stille', name: 'STILLE', voice: 'female-older-whisper',
+      age: 29, skin: '#e0c3aa', hair: '#342b34', hairStyle: 'short-brown',
+      uniform: '#35374a', rank: 'novice', features: ['kind-eyes'],
+      personality: 'wise', videoPose: 'standing', briefingPos: null
+    },
+    mutters: {
+      id: 'mutters', name: 'MUTTERS', voice: 'female-mature',
+      age: 46, skin: '#c89f78', hair: '#514137', hairStyle: 'bun',
+      uniform: '#51442d', rank: 'welder', features: ['oil-smudge', 'serious'],
+      personality: 'grumpy', videoPose: 'holding-wrench', briefingPos: null
+    },
+    spiegel: {
+      id: 'spiegel', name: 'SPIEGEL', voice: 'male-middle-flat',
+      age: 58, skin: '#d1b89d', hair: '#a2a2a0', hairStyle: 'side-part',
+      uniform: '#344660', rank: 'astronomer', features: ['glasses', 'wrinkles'],
+      personality: 'technical', videoPose: 'holding-datapad', briefingPos: null
+    },
+    rohr: {
+      id: 'rohr', name: 'ROHR', voice: 'male-middle',
+      age: 51, skin: '#bd956f', hair: '#4b4234', hairStyle: 'short-brown',
+      uniform: '#354d42', rank: 'plumber', features: ['mustache', 'oil-smudge'],
+      personality: 'stoic', videoPose: 'holding-wrench', briefingPos: null
+    },
+    nadel: {
+      id: 'nadel', name: 'NADEL', voice: 'female-mature-soft',
+      age: 36, skin: '#dfb998', hair: '#342b28', hairStyle: 'ponytail',
+      uniform: '#34534c', rank: 'medic', features: ['stethoscope', 'serious'],
+      personality: 'professional', videoPose: 'holding-medkit', briefingPos: null
+    },
     system: {
       id: 'system', name: 'SYSTEM', voice: 'synthetic-neutral',
       age: 0, skin: null, hair: null, hairStyle: 'none',
@@ -122,8 +182,8 @@ SW.NPC = {
 
   // Gesichtszüge zeichnen
   _drawFeatures(ctx, x, y, size, npc) {
-    const eyeSize = size * 0.08, eyeY = y + size * 0.05;
-    ctx.fillStyle = '#fff';
+    const eyeSize = size * 0.05, eyeY = y + size * 0.05;
+    ctx.fillStyle = '#eee2ca';
     ctx.beginPath(); ctx.ellipse(x - size * 0.15, eyeY, eyeSize * 1.2, eyeSize, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(x + size * 0.15, eyeY, eyeSize * 1.2, eyeSize, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = this._getEyeColor(npc);
@@ -221,6 +281,7 @@ SW.NPC = {
     // Reihenfolge: Körper (hinten) → Kopf → Accessoires (vorne)
     if (options.showBody && npc.uniform) this._drawBody(ctx, x, py, size, npc.uniform, pose, npc);
     this._drawHead(ctx, x, py, size, npc);
+    this._drawFeatures(ctx, x, py, size, npc);
     this._drawAccessories(ctx, x, py, size, npc, pose, frame);
   },
 

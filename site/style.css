@@ -60,6 +60,12 @@ td { color:#aaa; padding:5px; border-bottom:1px solid #111; }
 .room-card .art { font-size:10px; color:#888; }
 .room-card .swatch { display:inline-block; width:10px; height:10px; margin-right:5px; vertical-align:middle; }
 
+/* Wiki image captures */
+.wiki-gallery { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin:12px 0; }
+.wiki-gallery figure { min-width:0; background:#080a0d; border:1px solid #24313d; padding:6px; }
+.wiki-gallery img { display:block; width:100%; height:auto; image-rendering:pixelated; border:1px solid #1a222b; }
+.wiki-gallery figcaption { color:#9ba9b6; font-size:9px; line-height:1.5; margin-top:6px; }
+
 /* Design-Bibel */
 .swatches { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
 .swatch-box { text-align:center; font-size:9px; color:#888; }

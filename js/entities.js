@@ -3,15 +3,33 @@ SW.Player = {
   x:0,y:0,z:0,vx:0,vy:0,speed:0,burning:false,
   frontShield:SW.SHIELD_MAX,rearShield:SW.SHIELD_MAX,
   frontLastHit:-999,rearLastHit:-999,laserCooldown:0,alive:true,
+  systems:null,_systemDamageIndex:0,_weaponsOfflineReported:false,
   autopilot:false,autopilotTarget:null,
   rollAngle:0,
+  defaultSystems() { return {engines:100,weapons:100,shields:100,sensors:100}; },
+  isValidSystems(systems) {
+    return systems !== null && typeof systems === 'object' && !Array.isArray(systems) &&
+      ['engines','weapons','shields','sensors'].every(key =>
+        systems[key] === undefined || (typeof systems[key] === 'number' &&
+          Number.isFinite(systems[key]) && systems[key] >= 0 && systems[key] <= 100));
+  },
+  shieldCapacity() {
+    return SW.SHIELD_MAX * (0.5 + 0.5 * ((this.systems && this.systems.shields) || 0) / 100);
+  },
   init() {
     this.x=0;this.y=0;this.z=0;this.vx=0;this.vy=0;
     this.speed=SW.FORWARD_BASE;this.burning=false;
-    this.frontShield=SW.SHIELD_MAX;this.rearShield=SW.SHIELD_MAX;
+    if (!SW.World.shipSystems || !this.isValidSystems(SW.World.shipSystems)) {
+      SW.World.shipSystems=this.defaultSystems();
+    }
+    for (const key of ['engines','weapons','shields','sensors']) {
+      if (SW.World.shipSystems[key] === undefined) SW.World.shipSystems[key]=100;
+    }
+    this.systems=SW.World.shipSystems;
+    this.frontShield=this.shieldCapacity();this.rearShield=this.shieldCapacity();
     this.frontLastHit=-999;this.rearLastHit=-999;this.laserCooldown=0;
     this.alive=true;this.autopilot=false;this.autopilotTarget=null;
-    this.rollAngle=0;
+    this.rollAngle=0;this._systemDamageIndex=0;this._weaponsOfflineReported=false;
   },
   update(frame) {
     if (!this.alive) return;
@@ -44,7 +62,8 @@ SW.Player = {
     // IM RAUM (v0.75-dev): Vorschub — Cruise oder Nachbrenner [SHIFT]
     // (und Autopilot-Flyby). Sterne + Motor-Sound + HUD spiegeln wider.
     this.burning = !!sh || this.burnAuto;
-    const tSpd = this.burning ? SW.FORWARD_BURN : SW.FORWARD_BASE;
+    const engineOutput = 0.65 + 0.35 * this.systems.engines / 100;
+    const tSpd = (this.burning ? SW.FORWARD_BURN : SW.FORWARD_BASE) * engineOutput;
     this.speed += (tSpd - this.speed) * SW.FORWARD_ACCEL;
     this.z += this.speed;
     // Inertial: thrust adds to velocity, drag slows down (space drift)
@@ -58,24 +77,56 @@ SW.Player = {
     this.x+=this.vx; this.y+=this.vy;
     this.x=Math.max(-SW.PLAYER_MAX_X,Math.min(SW.PLAYER_MAX_X,this.x));
     this.y=Math.max(-SW.PLAYER_MAX_Y,Math.min(SW.PLAYER_MAX_Y,this.y));
-    if (frame-this.frontLastHit>SW.SHIELD_REGEN_DELAY&&this.frontShield<SW.SHIELD_MAX) this.frontShield=Math.min(SW.SHIELD_MAX,this.frontShield+1);
-    if (frame-this.rearLastHit>SW.SHIELD_REGEN_DELAY&&this.rearShield<SW.SHIELD_MAX) this.rearShield=Math.min(SW.SHIELD_MAX,this.rearShield+1);
+    const shieldCapacity=this.shieldCapacity();
+    if (frame-this.frontLastHit>SW.SHIELD_REGEN_DELAY&&this.frontShield<shieldCapacity) this.frontShield=Math.min(shieldCapacity,this.frontShield+1);
+    if (frame-this.rearLastHit>SW.SHIELD_REGEN_DELAY&&this.rearShield<shieldCapacity) this.rearShield=Math.min(shieldCapacity,this.rearShield+1);
     if (this.laserCooldown>0) this.laserCooldown--;
     if (SW.Input.getFirePressed()&&this.laserCooldown<=0) { this.fire(); this.laserCooldown=SW.LASER_COOLDOWN; }
   },
   fire() {
+    if (this.systems.weapons<=0) {
+      if (!this._weaponsOfflineReported) {
+        SW.Comm.add('SYSTEM: Waffensteuerung ausgefallen. Reparatur im Hangar erforderlich.');
+        this._weaponsOfflineReported=true;
+      }
+      return;
+    }
     const slots=SW.Input.getLaserSlots(), dir=SW.Input.getAimDirection();
     for (let i=0;i<slots;i++) {
       const spread=(i-(slots-1)/2)*0.05, dx=dir.x+spread, dy=dir.y;
       const len=Math.sqrt(dx*dx+dy*dy+dir.z*dir.z);
       // IM RAUM: Startposition = Weltkoordinate des Spielers (Kamera steht am Spieler)
-      SW.Projectiles.add({x:this.x,y:this.y,z:this.z+1,dx:dx/len,dy:dy/len,dz:dir.z/len,speed:SW.LASER_SPEED,friendly:true,life:100});
+      const damage=SW.LASER_DAMAGE*(0.5+0.5*this.systems.weapons/100);
+      SW.Projectiles.add({x:this.x,y:this.y,z:this.z+1,dx:dx/len,dy:dy/len,dz:dir.z/len,speed:SW.LASER_SPEED,friendly:true,damage,life:100});
     }
     SW.Audio.playLaser();
+  },
+  damageSystem(amount) {
+    const keys=['engines','weapons','shields','sensors'];
+    const key=keys[this._systemDamageIndex%keys.length];
+    this._systemDamageIndex++;
+    const previous=this.systems[key];
+    this.systems[key]=Math.max(0,previous-Math.max(1,Math.round(amount)));
+    if (previous>50&&this.systems[key]<=50) {
+      const labels={engines:'ANTRIEB',weapons:'WAFFEN',shields:'SCHILDE',sensors:'SENSOREN'};
+      SW.Comm.add('SYSTEM: '+labels[key]+' beschädigt. Status '+this.systems[key]+'%.');
+    }
+    if (key==='shields') {
+      const capacity=this.shieldCapacity();
+      this.frontShield=Math.min(this.frontShield,capacity);
+      this.rearShield=Math.min(this.rearShield,capacity);
+    }
+    return key;
+  },
+  repairSystems() {
+    for (const key of ['engines','weapons','shields','sensors']) this.systems[key]=100;
+    this.frontShield=SW.SHIELD_MAX;this.rearShield=SW.SHIELD_MAX;
+    this._weaponsOfflineReported=false;
   },
   takeHit(dmg,isFront,frame) {
     if (isFront) { this.frontShield-=dmg; this.frontLastHit=frame; }
     else { this.rearShield-=dmg; this.rearLastHit=frame; }
+    this.damageSystem(Math.max(1,Math.round(dmg*1.5)));
     SW.Audio.playShieldHit();
     if (this.frontShield<=0||this.rearShield<=0) this.alive=false;
   }

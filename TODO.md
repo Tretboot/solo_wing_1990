@@ -1,6 +1,6 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.75-dev (2026-10-13). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + IM RAUM + Freies Universum).
+> Stand: v0.75-dev (2026-10-14). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + IM RAUM + Freies Universum).
 
 ---
 
@@ -10,6 +10,9 @@
 > wirklichen Gegner, keine anderen Schiffe auf der Karte.")
 > Konzept + Recherche: KONZEPTE.md → "v0.75 — IM RAUM" (wc1-re/wc2-re/
 > OpenReliant/FreeSpace Open).
+- [x] **Copilot-Handover dokumentiert:** `site/entwicklung.html` + `site/index.html` vermerken den neuen Agenten-Context und die Regeln des Handoffs
+- [x] **Lesbarkeits- und Kommentierungsregeln verankert:** `Agents.md` verlangt nachvollziehbaren, menschlich lesbaren Code als Qualitätskriterium
+- [x] **Projekt-Status als LLM-Test dokumentiert:** Entwicklungsseite notiert, dass das Projekt chaotisch, aber noch nicht kaputt ist — genau das ist der aktuelle Zustand
 - [x] **Recherche:** Open-Source-WC-Clones analysiert — wc1-re (WC1-Quellrekonstruktion:
       3D-Flugmodell, brains-Manöver-Vokabular, Formation/Wingman, Autopilot)
       → Konzept + Prinzipien in KONZEPTE.md
@@ -39,12 +42,20 @@
       P1–P5, Mathematik, Konstanten, Akzeptanzkriterien, Datei-Map).
       P1 (NAV) steht; P2 = Vektor-Flugmodell (vel + yaw/pitch + Trägheit),
       P4 = Bewegung auf der Karte (Sektor-Geometrie)
+- [x] **Systemschaden & Hangar-Reparatur:** Treffer beschädigen Antrieb,
+      Waffen, Schilde oder Sensoren; Zustand bleibt in Savegames erhalten,
+      Bolt repariert nach der Landung auf Wunsch mit [R]
 - [ ] **M4 Missionen & Balance (Rest):** Wellen an den WPs feintunen
       (Typen-Mix pro WP, Stagger), Schwierigkeitskurve,
       Damage/HP/Fire-Rate-Balance (Playtest)
 - [ ] **M5 Polish:** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
-      Ereignis (Radar + Nachruf), Träger-Funk im Feld, Burn-Flash, Handbuch-
-      Kapitel "Fliegen", Top-Down-Balancing mit Brains
+      Ereignis (Radar + Nachruf), Träger-Funk im Feld, Burn-Flash,
+      Top-Down-Balancing mit Brains
+- [x] **Handbuch-Kapitel "Fliegen":** Ingame- und Web-Handbuch erklären
+      Vorschub, Navigation, Systemschaden und Reparatur
+- [ ] **Cockpit-Pass nach Schiffsklassen:** Layout, Anzeigen und Schaden
+      später je Klasse gestalten, sobald Klassen und ihre Systeme feststehen;
+      bis dahin keine weitere visuelle Cockpit-Überarbeitung
 - [ ] **Playtest im Browser:** Speed-Gefühl, Nachbrenner, Brains, Wingman,
       Funk, Träger im Feld, alle drei Ansichten
 - [ ] **RC-Paket v0.75-rc** (inkl. offener v0.70-Punkte, siehe unten)
@@ -219,8 +230,8 @@
 - [ ] **v0.81 Komplett:** NPC-Rivalen im Freiflug (Sechs/Neun/Zwo), Subplot-Fortsetzung,
       Zufalls-Lore, mehrere Enden
 
-## BACKLOG (später, unverändert)
-- [ ] **Cockpit-UI-Pass** (Weapon Display, Target Data, Throttle, grüner Radar) — Mittel
+## BACKLOG (später)
+- [ ] **Klassenbezogener Cockpit-UI-Pass** (Weapon Display, Target Data, Throttle, Radar und Schadensoptik erst mit echten Schiffsklassen abstimmen) — Mittel
 - [ ] **Würfelspiel** (Bar, Minispiel) — Klein
 - [ ] **Simulator-Nachholung** (für Nicht-Bestandene) — Klein
 - [ ] **Kältekammer-Ende** (Alien wird real, Futurion-Logik) — Mittel

@@ -13,7 +13,7 @@ SW.Collision = {
           if (!e.alive) continue;
           const dx=p.x-e.x,dy=p.y-e.y,dz=p.z-e.z;
           if (dx*dx+dy*dy+dz*dz<SW.COLLISION_DIST*SW.COLLISION_DIST) {
-            e.hp-=SW.LASER_DAMAGE; projs.splice(i,1);
+            e.hp-=p.damage||SW.LASER_DAMAGE; projs.splice(i,1);
             if (e.hp<=0) {
               e.alive=false; SW.Game.score+=100;
               SW.Explosions.add(e.x,e.y,e.z);

@@ -1,100 +1,107 @@
 // ===== SOLO WING 1990 — RÄUME (Phase 6.1) =====
-// Der Träger als "fliegendes Dorf". 13 statische Räume.
-// v0.6.9-final: + SPINDE (Bunker) — eigene Kabine, Save/Load.
+// Der Träger als "fliegendes Dorf". 14 statische Räume auf drei Decks.
+// Die frühere Spind-Kabine wurde zum Quartier-System ausgebaut.
 // Jeder Raum: Artstyle (prozedural), NPCs, Türen (Nachbarn), Zweck.
 // Konferenz: No Thinking + Lead Story Writer, 2 Runden.
 
 SW.Rooms = [
   {
-    id: 'bar', name: 'BAR', zweck: 'Piloten, Scoreboard, Dialoge',
+    id: 'bar', name: 'BAR', zweck: 'Piloten, Scoreboard, Dialoge', deck: 1, mapLabel: 'BAR',
     farbe: '#8a6d3b', akzent: '#ffcc00',
     npcs: ['Sechs','Neun','Zwo'],
     toren: ['flugdeck','kantine','kapelle','schule'],
     art: 'bar' // prozedural: Theke, Fenster, Scoreboard
   },
   {
-    id: 'flugdeck', name: 'FLUGDECK', zweck: 'Mission-Start, Carrier-Kontrolle',
+    id: 'flugdeck', name: 'FLUGDECK', zweck: 'Mission-Start, Carrier-Kontrolle', deck: 2, mapLabel: 'FLUGDECK',
     farbe: '#2a3a4a', akzent: '#00ccff',
     npcs: ['Commander'],
     toren: ['bar','buerro','maschinenraum'],
     art: 'flugdeck' // prozedural: Konsole, Screens, Start-Button
   },
   {
-    id: 'buerro', name: 'KAPITÄN-BÜRO', zweck: 'Akten, Befehle, Formulare',
+    id: 'buerro', name: 'KAPITÄN-BÜRO', zweck: 'Akten, Befehle, Formulare', deck: 2, mapLabel: 'BÜRO',
     farbe: '#3a2a1a', akzent: '#ff9900',
     npcs: ['Commander','Archiv'],
     toren: ['flugdeck','kantine','beobachtung','schule'],
     art: 'buerro' // prozedural: Schreibtisch, Aktenregale, Fax
   },
   {
-    id: 'kantine', name: 'KANTINE', zweck: 'Essen, Klatsch, Missionsbriefing mit Resten',
+    id: 'kantine', name: 'KANTINE', zweck: 'Essen, Klatsch, Missionsbriefing mit Resten', deck: 1, mapLabel: 'KANTINE',
     farbe: '#4a3a2a', akzent: '#ff6644',
     npcs: ['Ragnhild','Löffel'],
-    toren: ['bar','buerro','krankenstation','spinde'],
+    toren: ['bar','buerro','krankenstation','quartiere'],
     art: 'kantine' // prozedural: Tische, Neon, Speisekarte
   },
   {
-    id: 'kapelle', name: 'KAPELLE', zweck: 'Beerdigung der Gefallenen, Kerzen zünden',
+    id: 'kapelle', name: 'KAPELLE', zweck: 'Beerdigung der Gefallenen, Kerzen zünden', deck: 1, mapLabel: 'KAPELLE',
     farbe: '#1a1a2a', akzent: '#6666aa',
     npcs: ['Klopstock','Stille'],
     toren: ['bar','krankenstation','beobachtung'],
     art: 'kapelle' // prozedural: dunkles Holz, Kreuz aus Schraubenziehern, Kerzen
   },
   {
-    id: 'reparatur', name: 'REPARATUerraum', zweck: 'Schadensreparatur, meckert bei Beschädigung',
+    id: 'reparatur', name: 'REPARATUerraum', zweck: 'Schadensreparatur, meckert bei Beschädigung', deck: 2, mapLabel: 'WERFT',
     farbe: '#3a3a2a', akzent: '#ffcc00',
     npcs: ['Bolt','Mutters'],
     toren: ['maschinenraum','flugdeck','kantine'],
     art: 'reparatur' // prozedural: Öl, Kabelsalat, Warnleuchten, alles schief
   },
   {
-    id: 'friseur', name: 'FRISUR "SCHNITTSTELLE"', zweck: 'Haarschnitt, Frisuren=Rangabzeichen',
+    id: 'friseur', name: 'FRISUR "SCHNITTSTELLE"', zweck: 'Haarschnitt, Frisuren=Rangabzeichen', deck: 1, mapLabel: 'FRISEUR',
     farbe: '#4a2a4a', akzent: '#ff66cc',
     npcs: ['Scherenflick'],
     toren: ['bar','kantine','beobachtung'],
     art: 'friseur' // prozedural: Spiegelwände, bunte Tücher, Stühle
   },
   {
-    id: 'beobachtung', name: 'BEOBACHTUNGSDT', zweck: 'Ausblick ins Nichts, Ruhe, Automata "Sicht 50 Pfennig"',
+    id: 'beobachtung', name: 'BEOBACHTUNGSDT', zweck: 'Ausblick ins Nichts, Ruhe, Automata "Sicht 50 Pfennig"', deck: 3, mapLabel: 'FENSTER',
     farbe: '#0a0a1a', akzent: '#3366ff',
     npcs: ['Spiegel'],
-    toren: ['buerro','kapelle','friseur'],
+    toren: ['buerro','kapelle','friseur','quartiere'],
     art: 'beobachtung' // prozedural: Scheibewand ins Nichts, Sterne, Automata
   },
   {
-    id: 'maschinenraum', name: 'MASCHINENRAUM', zweck: 'Antrieb, Warpcraft, Kassetten-Tape-Loop',
+    id: 'maschinenraum', name: 'MASCHINENRAUM', zweck: 'Antrieb, Warpcraft, Kassetten-Tape-Loop', deck: 2, mapLabel: 'MASCHINE',
     farbe: '#2a2a3a', akzent: '#00ff00',
     npcs: ['Diskettens','Rohr'],
     toren: ['flugdeck','reparatur','krankenstation','schule'],
     art: 'maschinenraum' // prozedural: Rohre, Hebel, brummende Motoren
   },
   {
-    id: 'krankenstation', name: 'KRANKENSTATION', zweck: 'Heilung, Verletzungen, Check-ups',
+    id: 'krankenstation', name: 'KRANKENSTATION', zweck: 'Heilung, Verletzungen, Check-ups', deck: 2, mapLabel: 'MEDIZIN',
     farbe: '#2a3a3a', akzent: '#00ccaa',
     npcs: ['Pflaster','Nadel'],
     toren: ['kantine','kapelle','maschinenraum'],
     art: 'krankenstation' // prozedural: steriles Weiß, grüne Akzente, Bettreihen
   },
   {
-    id: 'klo', name: 'KLO', zweck: 'Wasser. Immer Wasser. Und dann kommt das, was nach Wasser kommt.',
+    id: 'klo', name: 'KLO', zweck: 'Wasser. Immer Wasser. Und dann kommt das, was nach Wasser kommt.', deck: 1, mapLabel: 'SANITÄR',
     farbe: '#1a2a2a', akzent: '#88ccaa',
     npcs: ['KLO'],
     toren: ['bar','krankenstation'],
     art: 'klo' // prozedural: Kacheln, Spülung, Wischmopp
   },
   {
-    id: 'schule', name: 'SCHULRAUM "ZWEIG"', zweck: 'Git-Unterricht, Weiterbildung, Unfall-Analyse',
+    id: 'schule', name: 'SCHULRAUM "ZWEIG"', zweck: 'Git-Unterricht, Weiterbildung, Unfall-Analyse', deck: 3, mapLabel: 'SCHULE',
     farbe: '#1a2a1a', akzent: '#ccff66',
     npcs: ['Diskettens','Archiv'],
     toren: ['maschinenraum','buerro','bar'],
     art: 'schule' // prozedural: Tafel mit Git-Tree, Schülertische, Formular-14-C-Poster, Katze am Fenster
   },
   {
-    id: 'spinde', name: 'SPINDE', zweck: 'Eigene Kabine. Save/Load. Hier kommen keine rein.',
-    farbe: '#3a3a4a', akzent: '#ffaa00',
+    id: 'quartiere', name: 'QUARTIERE', zweck: 'Zugang zu den Crew-Kabinen. Der eigene Raum ist freigegeben.',
+    farbe: '#202a3a', akzent: '#77bbff', deck: 3, mapLabel: 'QUARTIERE',
     npcs: [],
-    toren: ['kantine'],
-    art: 'spinde' // prozedural: Spindwand, eigener Spind mit Namensschild, Lagerbett, Bunker-Tür
+    toren: ['player_quarters','beobachtung','kantine'],
+    art: 'quartiere'
+  },
+  {
+    id: 'player_quarters', name: 'QUARTIER {spielername}', zweck: 'Dein privater Rückzugsraum. Persönliche Savegame-Konsole.',
+    farbe: '#30283a', akzent: '#ffaa66', deck: 3, mapLabel: '{spielername}',
+    npcs: [],
+    toren: ['quartiere'],
+    art: 'player_quarters'
   }
 ];
 
