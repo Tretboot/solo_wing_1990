@@ -60,6 +60,8 @@ SW.World = {
     const posting = SW.Transfers.getCurrentPosting();
     const assigned = posting.crewRooms && posting.crewRooms[roomId];
     const base = (assigned || room.npcs).filter(name => posting.crew.indexOf(name) >= 0);
+    // Quartiere bleiben privat (keine gastierenden Piloten vor den Kabinentüren)
+    if (roomId === 'quartiere' || roomId === 'player_quarters') return base;
     // Nach m4_sieg (bzw. Subplot-Stufe optimierer >= 1) taucht der Optimierer in der Bar auf
     const optActive = (SW.SmartDialogues && SW.SmartDialogues.stage('optimierer') >= 1) ||
       (this.missionResults && this.missionResults.m4 === 'sieg');
@@ -113,6 +115,7 @@ SW.Ship = {
   _frame: 0,
   _doorRects: [],
   _npcRects: [],
+  _choiceRects: [],
   _missionRects: [],
   _aktenschrankRect: null,
   _faxRect: null,
@@ -121,6 +124,8 @@ SW.Ship = {
   _moppRect: null,
   _kerzeRect: null,
   _akteIdx: 0,
+  _npcClickCount: 0,
+  _lastRoomId: null,
   newspaperOpen: false,
   _lockedQuartersRects: [],
   _ownQuartersRect: null,
@@ -134,6 +139,7 @@ SW.Ship = {
     this._frame = 0;
     this.dialogueActive = false;
     this.talkingNPC = null;
+    this._choiceRects = [];
     this.savePanelOpen = false; // Raumwechsel schließt das Save-Panel
     this.newspaperOpen = false;
     if (systemId && /^m\d$/.test(systemId)) this.selectedMissionId = systemId;
@@ -166,6 +172,7 @@ SW.Ship = {
     this._roomNotice = null;
     this.dialogueActive = false;
     this.talkingNPC = null;
+    this._choiceRects = [];
     this.newspaperOpen = false;
     if (SW.Quests) SW.Quests.tick({ typ: 'raum', raum: roomId });
     SW.Audio.playCommBeep();
@@ -182,33 +189,72 @@ SW.Ship = {
     this.charIndex = 0;
     this.typing = true;
     this.dialogueActive = true;
+    this._choiceRects = [];
     const line = lines[0];
     SW.TTS.speak(line.text, line.npc);
   },
 
-  // Smart-Dialog für einen angeklickten NPC + automatische Quest-Vergabe
+  // Smart-Dialog für einen angeklickten NPC + automatische Quest-Vergabe + WC3-Auswahl
   startNpcDialogue(npcName) {
     const room = this.getRoom();
     const npcId = SW.NPC ? SW.NPC.resolve(npcName) : String(npcName || '').toLowerCase();
     const speaker = String(npcName || 'SYSTEM').toUpperCase();
+    this._npcClickCount = (this._npcClickCount || 0) + 1;
     if (SW.Quests && SW.Quests.startForNpc) {
       SW.Quests.startForNpc(speaker);
     }
     const lines = [];
+    let firstId = null;
     if (SW.SmartDialogues && npcId && SW.Dialogues.smart && SW.Dialogues.smart[npcId]) {
       const s1 = SW.SmartDialogues.get(npcId);
-      const s2 = SW.SmartDialogues.get(npcId);
-      if (s1) lines.push({ npc: speaker, text: s1 });
-      if (s2 && s2 !== s1) lines.push({ npc: speaker, text: s2 });
+      const t1 = typeof s1 === 'string' ? s1 : (s1 && s1.text);
+      firstId = s1 && s1.id;
+      if (t1) lines.push({ npc: speaker, text: t1 });
     }
-    const roomLines = (SW.Dialogues.rooms[room.id] || []).filter(l => String(l.npc).toUpperCase() === speaker);
-    if (roomLines.length > 0) {
-      const pick = roomLines[this._frame % roomLines.length];
-      if (!lines.some(l => l.text === pick.text)) lines.push(pick);
+
+    // Wing Commander 3-Stil Entscheidungs-Frage für diesen NPC prüfen
+    const choiceKey = (SW.Dialogues.choices && SW.Dialogues.choices[npcId]) ? npcId : speaker.toLowerCase();
+    const choicePool = (SW.Dialogues.choices && SW.Dialogues.choices[choiceKey]) || [];
+    let chosenPrompt = null;
+    for (const c of choicePool) {
+      if (!SW.Quests || !SW.Quests.getFlag(c.id)) {
+        chosenPrompt = c;
+        break;
+      }
     }
+    // Falls bereits beantwortet: bei jedem zweiten Klick erneut anbieten, damit Entscheidungen immer erlebbar bleiben
+    if (!chosenPrompt && choicePool.length > 0 && this._npcClickCount % 2 === 0) {
+      chosenPrompt = choicePool[this._npcClickCount % choicePool.length];
+    }
+
+    if (chosenPrompt) {
+      lines.push({
+        npc: speaker,
+        text: chosenPrompt.text,
+        choiceId: chosenPrompt.id,
+        choices: chosenPrompt.choices.map(ch => ({ label: ch.label, flag: ch.flag, reply: ch.reply }))
+      });
+    } else {
+      if (SW.SmartDialogues && npcId && SW.Dialogues.smart && SW.Dialogues.smart[npcId]) {
+        const s2 = SW.SmartDialogues.get(npcId, { excludeId: firstId });
+        const t2 = typeof s2 === 'string' ? s2 : (s2 && s2.text);
+        if (t2 && (!lines[0] || lines[0].text !== t2)) lines.push({ npc: speaker, text: t2 });
+      }
+      const roomLines = (SW.Dialogues.rooms[room.id] || []).filter(l => String(l.npc).toUpperCase() === speaker);
+      if (roomLines.length > 0) {
+        const pick = roomLines[(this._frame + this._npcClickCount) % roomLines.length];
+        if (!lines.some(l => l.text === pick.text)) lines.push({ npc: pick.npc, text: pick.text });
+      }
+    }
+
     if (lines.length === 0) {
-      this.startDialogue();
-      return;
+      const roomAll = SW.Dialogues.rooms[room.id] || [];
+      if (roomAll.length > 0) {
+        const fallback = roomAll[this._npcClickCount % roomAll.length];
+        lines.push({ npc: fallback.npc || speaker, text: fallback.text });
+      } else {
+        lines.push({ npc: speaker, text: 'Keine besonderen Vorkommnisse auf diesem Deck. Formular 08/15 liegt bereit.' });
+      }
     }
     this.dialogueLines = lines;
     this.dialogueIndex = 0;
@@ -216,14 +262,48 @@ SW.Ship = {
     this.charIndex = 0;
     this.typing = true;
     this.dialogueActive = true;
+    this._choiceRects = [];
     SW.TTS.speak(lines[0].text, lines[0].npc);
+  },
+
+  hasActiveChoices() {
+    if (!this.dialogueActive || this.typing) return false;
+    const line = this.dialogueLines && this.dialogueLines[this.dialogueIndex];
+    if (!line || !Array.isArray(line.choices) || line.choices.length === 0) return false;
+    const pages = this._dialoguePages || 1;
+    return this.dialoguePage >= pages - 1;
+  },
+
+  selectDialogueChoice(index) {
+    if (!this.dialogueActive) return false;
+    const line = this.dialogueLines && this.dialogueLines[this.dialogueIndex];
+    if (!line || !Array.isArray(line.choices) || !line.choices[index]) return false;
+    const chosen = line.choices[index];
+    if (SW.Quests) {
+      if (line.choiceId) SW.Quests.setFlag(line.choiceId, true);
+      if (chosen.flag) SW.Quests.setFlag(chosen.flag, true);
+    }
+    line.choices = null;
+    this._choiceRects = [];
+    if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+    if (chosen.reply && chosen.reply.text) {
+      this.dialogueLines.splice(this.dialogueIndex + 1, 0, {
+        npc: chosen.reply.npc || line.npc,
+        text: chosen.reply.text
+      });
+    }
+    this.typing = false;
+    this.advanceDialogue();
+    return true;
   },
 
   advanceDialogue() {
     if (!this.dialogueActive) { this.dialogueActive = false; return; }
+    const curLine = this.dialogueLines[this.dialogueIndex];
+    const curText = typeof curLine?.text === 'string' ? curLine.text : String(curLine?.text?.text || '');
     if (this.typing) {
       this.typing = false;
-      this.charIndex = this.dialogueLines[this.dialogueIndex].text.length;
+      this.charIndex = curText.length;
       return;
     }
     // Weiter: erst durch die Seiten scrollen (keine neue TTS), dann nächste Zeile
@@ -232,11 +312,14 @@ SW.Ship = {
       this.dialoguePage++;
       return;
     }
+    // Wenn auf der letzten Seite eine WC3-Entscheidung offen ist, wartet der Dialog auf Option [1] oder [2]
+    if (this.hasActiveChoices()) return;
     this.dialogueIndex++;
     this.dialoguePage = 0;
     if (this.dialogueIndex >= this.dialogueLines.length) {
       this.dialogueActive = false;
       this.talkingNPC = null;
+      this._choiceRects = [];
       return;
     }
     this.charIndex = 0;
@@ -252,9 +335,11 @@ SW.Ship = {
       if (this._roomNotice.timer <= 0) this._roomNotice = null;
     }
     if (!this.dialogueActive) return;
+    const curLine = this.dialogueLines[this.dialogueIndex];
+    const curText = typeof curLine?.text === 'string' ? curLine.text : String(curLine?.text?.text || '');
     if (this.typing) {
       this.charIndex++;
-      if (this.charIndex >= this.dialogueLines[this.dialogueIndex].text.length) this.typing = false;
+      if (this.charIndex >= curText.length) this.typing = false;
     }
   },
 
@@ -263,6 +348,33 @@ SW.Ship = {
     // Save/Load-Panel oder Träger-Post-Overlay hat Vorrang
     if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
     if (this.newspaperOpen) { this.newspaperOpen = false; SW.Audio.playCommBeep(); return; }
+    // Offene Wing Commander 3-Entscheidung: Klick auf Option [1] oder [2]
+    if (this.dialogueActive && this.hasActiveChoices()) {
+      for (const cr of (this._choiceRects || [])) {
+        if (this._contains(cr, mx, my)) {
+          this.selectDialogueChoice(cr.index);
+          return;
+        }
+      }
+      if (my >= SW.H - 128) return;
+    }
+    // Klick direkt auf die offene Dialogbox blättert weiter (oder beendet das Tippen)
+    if (this.dialogueActive && mx >= 15 && mx <= SW.W - 15 && my >= SW.H - 92 && my <= SW.H - 28) {
+      this.advanceDialogue();
+      return;
+    }
+    // NPC geklickt? (Hat Vorrang vor Hintergrund-Möbeln, damit Klick auf NPC immer den Dialog startet!)
+    for (const n of this._npcRects) {
+      if (mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + n.h) {
+        if (this.dialogueActive && this.talkingNPC === n.name) {
+          this.advanceDialogue();
+        } else {
+          this.talkingNPC = n.name;
+          this.startNpcDialogue(n.name);
+        }
+        return;
+      }
+    }
     if (this.currentRoom === 'quartiere') {
       if (this._ownQuartersRect && this._contains(this._ownQuartersRect, mx, my)) {
         this.navigateTo('player_quarters');
@@ -344,6 +456,7 @@ SW.Ship = {
           this.charIndex = 0;
           this.typing = true;
           this.dialogueActive = true;
+          this._choiceRects = [];
           SW.TTS.speak(akte.lines[0].text, akte.lines[0].npc);
         }
         return;
@@ -379,6 +492,7 @@ SW.Ship = {
         { npc: 'KLO', text: 'Hör zu: In Kältekammer 7 liegt der erste Pilot von 1984. Er atmet zweimal pro Minute, weil Formular 83-B noch keine Unterschrift hat.' }
       ];
       this.dialogueIndex = 0; this.dialoguePage = 0; this.charIndex = 0; this.typing = true; this.dialogueActive = true;
+      this._choiceRects = [];
       SW.TTS.speak(this.dialogueLines[0].text, 'KLO');
       return;
     }
@@ -388,6 +502,7 @@ SW.Ship = {
       if (nachrufe.length > 0) {
         this.dialogueLines = nachrufe.map(n => ({ npc: 'KLOPSTOCK', text: 'NACHRUF ' + n.name.toUpperCase() + ': ' + n.text }));
         this.dialogueIndex = 0; this.dialoguePage = 0; this.charIndex = 0; this.typing = true; this.dialogueActive = true;
+        this._choiceRects = [];
         SW.TTS.speak(this.dialogueLines[0].text, 'KLOPSTOCK');
       }
       return;
@@ -396,14 +511,6 @@ SW.Ship = {
     for (const d of this._doorRects) {
       if (mx >= d.x && mx <= d.x + d.w && my >= d.y && my <= d.y + d.h) {
         this.navigateTo(d.to);
-        return;
-      }
-    }
-    // NPC geklickt?
-    for (const n of this._npcRects) {
-      if (mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + n.h) {
-        this.talkingNPC = n.name;
-        this.startNpcDialogue(n.name);
         return;
       }
     }
@@ -424,6 +531,12 @@ SW.Ship = {
   // ===== RENDER =====
   render(ctx) {
     const room = this.getRoom();
+    if (this._lastRoomId && this._lastRoomId !== room.id) {
+      this.dialogueActive = false;
+      this.talkingNPC = null;
+      this._choiceRects = [];
+    }
+    this._lastRoomId = room.id;
     this._doorRects = [];
     this._npcRects = [];
     this._missionRects = [];
@@ -1327,7 +1440,9 @@ SW.Ship = {
   // ===== DIALOG BOX =====
   renderDialogue(ctx, room) {
     const line = this.dialogueLines[this.dialogueIndex];
-    const displayText = this.typing ? line.text.substring(0, this.charIndex) : line.text;
+    if (!line) return;
+    const rawText = typeof line.text === 'string' ? line.text : String((line.text && line.text.text) || '');
+    const displayText = this.typing ? rawText.substring(0, this.charIndex) : rawText;
     // Box (62px) für 4 Zeilen — Paging verhindert abgeschnittenen Text
     const boxY = SW.H-92, boxH = 62;
     ctx.fillStyle = 'rgba(0,0,0,0.92)';
@@ -1388,13 +1503,39 @@ SW.Ship = {
       ctx.fillStyle = room.akzent;
       ctx.fillRect(tx, thumbY, 3, thumbH);
     }
+    this._choiceRects = [];
+    if (this.hasActiveChoices()) {
+      const cBoxY = boxY - 34, cBoxH = 32;
+      ctx.fillStyle = 'rgba(6,12,20,0.96)';
+      ctx.fillRect(15, cBoxY, SW.W - 30, cBoxH);
+      ctx.strokeStyle = '#ffcc00';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(15, cBoxY, SW.W - 30, cBoxH);
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = 'bold 5px monospace';
+      ctx.fillText('ENTSCHEIDUNG TREFFEN [1/2 ODER KLICK]:', 21, cBoxY + 8);
+      for (let i = 0; i < Math.min(2, line.choices.length); i++) {
+        const ch = line.choices[i];
+        const ry = cBoxY + 10 + i * 10;
+        ctx.fillStyle = 'rgba(255,204,0,0.12)';
+        ctx.fillRect(19, ry, SW.W - 38, 9);
+        ctx.fillStyle = '#00ffcc';
+        ctx.font = 'bold 5px monospace';
+        ctx.fillText('[' + (i + 1) + '] ' + String(ch.label || '').substring(0, 72), 22, ry + 7);
+        this._choiceRects.push({ x: 19, y: ry, w: SW.W - 38, h: 9, index: i });
+      }
+    }
     if (!this.typing) {
       const blink = Math.floor(this._frame/30)%2===0;
-      ctx.fillStyle = blink?'#fff':'#666';
+      const more = this.dialoguePage < this._dialoguePages-1;
+      const waitingChoice = !more && this.hasActiveChoices();
+      ctx.fillStyle = waitingChoice ? (blink ? '#ffcc00' : '#997700') : (blink ? '#fff' : '#666');
       ctx.font = '6px monospace';
       ctx.textAlign='right';
-      const more = this.dialoguePage < this._dialoguePages-1;
-      ctx.fillText(more ? ('[LEER: WEITER] '+(this.dialoguePage+1)+'/'+this._dialoguePages) : '[LEER: weiter]', SW.W-22, boxY+boxH-4);
+      const promptLabel = more
+        ? ('[LEER: WEITER] '+(this.dialoguePage+1)+'/'+this._dialoguePages)
+        : (waitingChoice ? '[1 / 2 WÄHLEN]' : '[LEER/KLICK: weiter]');
+      ctx.fillText(promptLabel, SW.W-22, boxY+boxH-4);
       ctx.textAlign='left';
     }
   },

@@ -668,85 +668,120 @@ check('Glass-Design: style-fancy.css mit backdrop-filter', fancyCss.indexOf('bac
 check('Glass-Design: Umschalter-Label GLASS', fs.readFileSync(path.join(root, 'site', 'theme.js'), 'utf8').includes('GLASS'));
 check('Aufsatz entwicklung.html existiert', fs.existsSync(path.join(root, 'site', 'entwicklung.html')));
 check('Aufsatz: Nav-Link in index.html', fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('entwicklung.html'));
-const inRc = /v0\.6\.9-rc$/.test(path.basename(root));
-const rcSelf = fs.existsSync(path.join(root, 'index.html')) && fs.existsSync(path.join(root, 'js', 'main.js')) &&
-  fs.existsSync(path.join(root, 'data', 'missions.js')) && fs.existsSync(path.join(root, 'site', 'style.css'));
-if (inRc) {
-  check('RC: dieser Ordner ist das komplette Spiel (index.html+js+data+site)', rcSelf);
-} else {
-  const rcDir = path.join(root, 'release', 'v0.6.9-rc');
-  check('RC: release/v0.6.9-rc komplett (index.html+js+data+site+Test)',
-    fs.existsSync(path.join(rcDir, 'index.html')) && fs.existsSync(path.join(rcDir, 'js', 'main.js')) &&
-    fs.existsSync(path.join(rcDir, 'data', 'missions.js')) && fs.existsSync(path.join(rcDir, 'site', 'style.css')) &&
-    fs.existsSync(path.join(rcDir, '_smoke_test.js')));
-  check('RC: Zip vorhanden (release/v0.6.9-rc.zip)', fs.existsSync(path.join(root, 'release', 'v0.6.9-rc.zip')));
+  const inRc = /^v0\.\d+(\.\d+)?-rc$/.test(path.basename(root));
+  const rcSelf = fs.existsSync(path.join(root, 'index.html')) && fs.existsSync(path.join(root, 'js', 'main.js')) &&
+    fs.existsSync(path.join(root, 'data', 'missions.js')) && fs.existsSync(path.join(root, 'site', 'style.css'));
+  if (inRc) {
+    check('RC: dieser Ordner ist das komplette Spiel (index.html+js+data+site)', rcSelf);
+  } else {
+    const rcDir = path.join(root, 'release', 'v0.6.9-rc');
+    check('RC: release/v0.6.9-rc komplett (index.html+js+data+site+Test)',
+      fs.existsSync(path.join(rcDir, 'index.html')) && fs.existsSync(path.join(rcDir, 'js', 'main.js')) &&
+      fs.existsSync(path.join(rcDir, 'data', 'missions.js')) && fs.existsSync(path.join(rcDir, 'site', 'style.css')) &&
+      fs.existsSync(path.join(rcDir, '_smoke_test.js')));
+    check('RC: Zip vorhanden (release/v0.6.9-rc.zip)', fs.existsSync(path.join(root, 'release', 'v0.6.9-rc.zip')));
 
-  // --- 18. Gemini 4 Argon Pass (v0.75 Integration, Missionsbaum, 3 Enden, Target-Bracket) ---
-  SW.Transfers.transferTo('fax-traegodie', 'Test');
-  check('Argon: Stamm-Crew (Commander, Sechs, Neun, Zwo) auf Fax-Tragödie an Bord',
-    SW.World.npcInRoom('buerro').includes('Commander') &&
-    SW.World.npcInRoom('bar').includes('Sechs') &&
-    SW.World.npcInRoom('bar').includes('Neun') &&
-    SW.World.npcInRoom('bar').includes('Zwo'));
-  SW.Game.setState('SHIP');
-  SW.Ship.currentRoom = 'flugdeck';
-  pump(2);
-  check('Argon: Flugdeck rendert 4 Missions-Buttons (M1–M4)',
-    Array.isArray(SW.Ship._missionRects) && SW.Ship._missionRects.length === 4);
-  const m3Btn = SW.Ship._missionRects[2];
-  SW.Ship.handleClick(m3Btn.x + 2, m3Btn.y + 2);
-  check('Argon: Klick auf M3 im Flugdeck wählt m3', SW.Ship.selectedMissionId === 'm3');
-  const stRect = SW.Ship._startRect;
-  SW.Ship.handleClick(stRect.x + 2, stRect.y + 2);
-  check('Argon: Phantom-Start-Bug behoben (START im Flugdeck öffnet BRIEFING_BOARD)',
-    SW.Game.state === 'BRIEFING_BOARD' && SW.Game.mission && SW.Game.mission.id === 'm3');
-  check('Argon: Mission m3 hat zivile Siedler-Eskorte in Welle 0',
-    SW.Missions.get('m3').waves[0].civilian === true);
+    // --- 18. Gemini 4 Argon Pass (v0.75 Integration, Missionsbaum, 3 Enden, Target-Bracket) ---
+    SW.Transfers.transferTo('fax-traegodie', 'Test');
+    check('Argon: Stamm-Crew (Commander, Sechs, Neun, Zwo) auf Fax-Tragödie an Bord',
+      SW.World.npcInRoom('buerro').includes('Commander') &&
+      SW.World.npcInRoom('bar').includes('Sechs') &&
+      SW.World.npcInRoom('bar').includes('Neun') &&
+      SW.World.npcInRoom('bar').includes('Zwo'));
+    SW.Game.setState('SHIP');
+    SW.Ship.currentRoom = 'flugdeck';
+    pump(2);
+    check('Argon: Flugdeck rendert 4 Missions-Buttons (M1–M4)',
+      Array.isArray(SW.Ship._missionRects) && SW.Ship._missionRects.length === 4);
+    const m3Btn = SW.Ship._missionRects[2];
+    SW.Ship.handleClick(m3Btn.x + 2, m3Btn.y + 2);
+    check('Argon: Klick auf M3 im Flugdeck wählt m3', SW.Ship.selectedMissionId === 'm3');
+    const stRect = SW.Ship._startRect;
+    SW.Ship.handleClick(stRect.x + 2, stRect.y + 2);
+    check('Argon: Phantom-Start-Bug behoben (START im Flugdeck öffnet BRIEFING_BOARD)',
+      SW.Game.state === 'BRIEFING_BOARD' && SW.Game.mission && SW.Game.mission.id === 'm3');
+    check('Argon: Mission m3 hat zivile Siedler-Eskorte in Welle 0',
+      SW.Missions.get('m3').waves[0].civilian === true);
 
-  // Büro-Hotspots: 5 Geheimakten, Fax/Zeitung, 3. Posting (outpost-31)
-  SW.Game.setState('SHIP');
-  SW.Ship.currentRoom = 'buerro';
-  pump(2);
-  check('Argon: Büro hat Aktenschrank-, Fax- und Versetzungs-Hotspots',
-    !!SW.Ship._aktenschrankRect && !!SW.Ship._faxRect && !!SW.Ship._transferRect);
-  check('Argon: 5 lesbare Geheimakten vorhanden',
-    Array.isArray(SW.Dialogues.akten) && SW.Dialogues.akten.length === 5);
-  SW.Ship.handleClick(SW.Ship._aktenschrankRect.x + 2, SW.Ship._aktenschrankRect.y + 2);
-  check('Argon: Klick auf Aktenschrank öffnet Akten-Dialog & setzt akten_gelesen',
-    SW.Ship.dialogueActive === true && SW.Quests.flags.akten_gelesen === true);
-  SW.Ship.dialogueActive = false;
-  SW.Ship.handleClick(SW.Ship._faxRect.x + 2, SW.Ship._faxRect.y + 2);
-  pump(2);
-  check('Argon: Klick aufs Büro-Fax öffnet DIE TRÄGER-POST Overlay', SW.Ship.newspaperOpen === true);
-  SW.Ship.newspaperOpen = false;
-  check('Argon: 3. Posting (outpost-31 / Außenposten 31) im Katalog',
-    !!SW.Transfers.getById('outpost-31') && SW.Transfers.transferTo('outpost-31', 'Test') === true);
-  SW.Transfers.transferTo('fax-traegodie', 'Test');
+    // Büro-Hotspots: 5 Geheimakten, Fax/Zeitung, 3. Posting (outpost-31)
+    SW.Game.setState('SHIP');
+    SW.Ship.currentRoom = 'buerro';
+    pump(2);
+    check('Argon: Büro hat Aktenschrank-, Fax- und Versetzungs-Hotspots',
+      !!SW.Ship._aktenschrankRect && !!SW.Ship._faxRect && !!SW.Ship._transferRect);
+    check('Argon: 5 lesbare Geheimakten vorhanden',
+      Array.isArray(SW.Dialogues.akten) && SW.Dialogues.akten.length === 5);
+    SW.Ship.handleClick(SW.Ship._aktenschrankRect.x + 2, SW.Ship._aktenschrankRect.y + 2);
+    check('Argon: Klick auf Aktenschrank öffnet Akten-Dialog & setzt akten_gelesen',
+      SW.Ship.dialogueActive === true && SW.Quests.flags.akten_gelesen === true);
+    SW.Ship.dialogueActive = false;
+    SW.Ship.handleClick(SW.Ship._faxRect.x + 2, SW.Ship._faxRect.y + 2);
+    pump(2);
+    check('Argon: Klick aufs Büro-Fax öffnet DIE TRÄGER-POST Overlay', SW.Ship.newspaperOpen === true);
+    SW.Ship.newspaperOpen = false;
+    check('Argon: 3. Posting (outpost-31 / Außenposten 31) im Katalog',
+      !!SW.Transfers.getById('outpost-31') && SW.Transfers.transferTo('outpost-31', 'Test') === true);
+    SW.Transfers.transferTo('fax-traegodie', 'Test');
 
-  // Optimierer nach m4_sieg in der Bar + 3 Enden (sieg / tod / geheim)
-  SW.SmartDialogues.noteMission('m4', 'sieg');
-  check('Argon: Optimierer erscheint nach m4_sieg in der Bar & hat Gesicht im Registry',
-    SW.World.npcInRoom('bar').includes('Optimierer') && !!SW.NPC.registry.optimierer);
-  SW.Game.victory = true;
-  SW.Quests.flags.klo_wahrheit_gehoert = true;
-  check('Argon: 3 Enden — Geheimes Ende (Akte 99-Z) wird erkannt', SW.Game.getEndingType() === 'geheim');
-  SW.Game.setState('DEBRIEFING');
-  pump(2);
-  SW.Game.startCredits();
-  check('Argon: Geheimes Ende baut speziellen Abspann',
-    SW.Game._credits && SW.Game._credits.lines.some(l => String(l.t || '').includes('GEHEIMES ENDE')));
+    // NPC-Klick-Dialog & Wing Commander 3-Entscheidungen
+    SW.Ship.currentRoom = 'bar';
+    SW.Ship.dialogueActive = false;
+    pump(2);
+    const sechsRect = SW.Ship._npcRects.find(r => r.name === 'Sechs');
+    check('Argon: Sechs hat Klick-Region in der Bar', !!sechsRect);
+    SW.Ship.handleClick(sechsRect.x + 5, sechsRect.y + 5);
+    pump(2);
+    check('Argon: Klick auf NPC startet Dialog mit echtem String-Text (kein Objekt-Crash)',
+      SW.Ship.dialogueActive === true && typeof SW.Ship.dialogueLines[0].text === 'string');
+    // Zur WC3-Entscheidungs-Zeile blättern und Option 1 wählen
+    const choiceLineIdx = SW.Ship.dialogueLines.findIndex(l => Array.isArray(l.choices) && l.choices.length === 2);
+    check('Argon: NPC-Dialog enthält Wing Commander 3-Stil A/B-Entscheidung', choiceLineIdx >= 0);
+    SW.Ship.dialogueIndex = choiceLineIdx;
+    SW.Ship.dialoguePage = 0;
+    SW.Ship.typing = false;
+    pump(2);
+    check('Argon: WC3-Entscheidung rendert 2 klickbare Auswahl-Rechtecke',
+      SW.Ship.hasActiveChoices() === true && SW.Ship._choiceRects.length === 2);
+    SW.Ship.selectDialogueChoice(0);
+    check('Argon: WC3-Auswahl [1] setzt Entscheidungs-Flag & fügt NPC-Antwort ein',
+      SW.Quests.getFlag('wc3_sechs_loyal') === true &&
+      SW.Ship.dialogueLines[SW.Ship.dialogueIndex].npc === 'SECHS');
+    // 12-mal hintereinander NPC anklicken -> darf nie stumm werden
+    let alwaysStarts = true;
+    for (let c = 0; c < 12; c++) {
+      SW.Ship.dialogueActive = false;
+      SW.Ship.startNpcDialogue('Sechs');
+      if (!SW.Ship.dialogueActive || !SW.Ship.dialogueLines.length || typeof SW.Ship.dialogueLines[0].text !== 'string') {
+        alwaysStarts = false;
+      }
+    }
+    check('Argon: Mehrfaches Anklicken (12x) startet immer einen Dialog (Cooldown-Reset)', alwaysStarts);
+    SW.Ship.dialogueActive = false;
 
-  // WC1 Target-Bracket & Fax-Banner im Flug
-  SW.Game.startMission('m1');
-  SW.Game.setState('COCKPIT');
-  SW.Fax.push('FAX-TEST', 'Formular 91-X gedruckt.');
-  pump(3);
-  check('Argon: Target-Bracket & Fax-Overlay rendern im Cockpit fehlerfrei',
-    typeof SW.UI.renderTargetBracket === 'function' && !!SW.Fax.current);
-  check('Argon: Website dokumentiert Gemini 4 Argon Pass',
-    fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('Gemini 4 Argon') &&
-    fs.readFileSync(path.join(root, 'site', 'entwicklung.html'), 'utf8').includes('GEMINI 4 ARGON'));
-}
+    // Optimierer nach m4_sieg in der Bar + 3 Enden (sieg / tod / geheim)
+    SW.SmartDialogues.noteMission('m4', 'sieg');
+    check('Argon: Optimierer erscheint nach m4_sieg in der Bar & hat Gesicht im Registry',
+      SW.World.npcInRoom('bar').includes('Optimierer') && !!SW.NPC.registry.optimierer);
+    SW.Game.victory = true;
+    SW.Quests.flags.klo_wahrheit_gehoert = true;
+    check('Argon: 3 Enden — Geheimes Ende (Akte 99-Z) wird erkannt', SW.Game.getEndingType() === 'geheim');
+    SW.Game.setState('DEBRIEFING');
+    pump(2);
+    SW.Game.startCredits();
+    check('Argon: Geheimes Ende baut speziellen Abspann',
+      SW.Game._credits && SW.Game._credits.lines.some(l => String(l.t || '').includes('GEHEIMES ENDE')));
+
+    // WC1 Target-Bracket & Fax-Banner im Flug
+    SW.Game.startMission('m1');
+    SW.Game.setState('COCKPIT');
+    SW.Fax.push('FAX-TEST', 'Formular 91-X gedruckt.');
+    pump(3);
+    check('Argon: Target-Bracket & Fax-Overlay rendern im Cockpit fehlerfrei',
+      typeof SW.UI.renderTargetBracket === 'function' && !!SW.Fax.current);
+    check('Argon: Website dokumentiert Gemini 4 Argon Pass',
+      fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('Gemini 4 Argon') &&
+      fs.readFileSync(path.join(root, 'site', 'entwicklung.html'), 'utf8').includes('GEMINI 4 ARGON'));
+  }
 
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');
 process.exit(failures === 0 ? 0 : 1);

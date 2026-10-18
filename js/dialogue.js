@@ -111,7 +111,7 @@ SW.SmartDialogues = {
       if (r.indexOf('quest:') === 0) return (SW.Quests?.active || []).indexOf(r.slice(6)) !== -1;
       if (r.indexOf('event:') === 0) return this.hasEvent(r.slice(6));
       if (r.indexOf('stage:') === 0) {
-        const m = r.slice(6).match(/^(\w+)(?:>(\d+))?$/);
+        const m = r.slice(6).match(/^(\w+)(?:>=?(\d+))?$/);
         if (!m) return false;
         return this.stage(m[1]) >= (m[2] ? parseInt(m[2]) : 1);
       }
@@ -124,7 +124,7 @@ SW.SmartDialogues = {
     return true;
   },
 
-  // ===== AUFWÄHLEN: was sagt der NPC JETZT? =====
+  // ===== AUSWÄHLEN: was sagt der NPC JETZT? =====
   get(npcId, opts) {
     opts = opts || {};
     const pools = SW.Dialogues.smart?.[npcId];
@@ -134,13 +134,29 @@ SW.SmartDialogues = {
     const seen = this.recent[npcId] || (this.recent[npcId] = []);
     const cands = [];
 
-    const consider = (lines, weight) => {
+    const consider = (lines, weight, ignoreSeen) => {
       if (!Array.isArray(lines)) return;
       for (const l of lines) {
         if (!this.checkReq(l.req)) continue;            // A/B-Gate: Spoiler bleiben zu
-        if (l.id && seen.indexOf(l.id) !== -1) continue; // Cooldown: keine Wiederholung
+        const lid = l.id || (l.text ? l.text.slice(0, 40) : '');
+        if (opts.excludeId && lid === opts.excludeId) continue;
+        if (!ignoreSeen && lid && seen.indexOf(lid) !== -1) continue; // Cooldown: keine Wiederholung
         cands.push({ line: l, w: (l.w || 1) * weight });
       }
+    };
+
+    const collectAll = (ignoreSeen) => {
+      if (pools.events) {
+        for (const e of this.eventLog) {
+          if ((SW.Game?.frame || 0) - e.frame < (opts.eventWindow || this.EVENT_WINDOW)) {
+            if (pools.events[e.typ]) consider(pools.events[e.typ], 5, ignoreSeen);
+          }
+        }
+      }
+      consider(pools.quest, 3, ignoreSeen);
+      consider(pools.mission, 3, ignoreSeen);
+      consider(pools.subplot, 2.5, ignoreSeen);
+      consider(pools.base, 1, ignoreSeen);
     };
 
     // Prioritäten (hohes Gewicht = wird eher gewählt):
@@ -148,17 +164,14 @@ SW.SmartDialogues = {
     // 3.0 Quest-Zustand + 3.0 Mission-Reaktionen
     // 2.5 Subplot-Stufen
     // 1.0 Base (eigener Ton, immer da)
-    if (pools.events) {
-      for (const e of this.eventLog) {
-        if ((SW.Game?.frame || 0) - e.frame < (opts.eventWindow || this.EVENT_WINDOW)) {
-          if (pools.events[e.typ]) consider(pools.events[e.typ], 5);
-        }
-      }
+    collectAll(false);
+
+    // Falls alle verfügbaren Zeilen im Cooldown-Speicher liegen: Cooldown zurücksetzen,
+    // damit ein NPC bei mehrfachem Anklicken niemals stumm wird.
+    if (!cands.length && seen.length > 0) {
+      seen.length = 0;
+      collectAll(true);
     }
-    consider(pools.quest, 3);
-    consider(pools.mission, 3);
-    consider(pools.subplot, 2.5);
-    consider(pools.base, 1);
 
     if (!cands.length) return null;
 
@@ -173,7 +186,7 @@ SW.SmartDialogues = {
 
     const id = chosen.id || chosen.text.slice(0, 40);
     seen.push(id);
-    if (seen.length > 8) seen.shift();
+    if (seen.length > 6) seen.shift();
     this.lastSpoke = { npc: npcId, frame: SW.Game?.frame || 0 };
     return { npc: npcId, text: chosen.text, id };
   },

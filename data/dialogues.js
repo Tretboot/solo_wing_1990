@@ -720,3 +720,173 @@ SW.Dialogues.smartSubplots = {
   optimierer: { start: 0 }
 };
 
+// ===== WING COMMANDER 3-STIL DIALOG-ENTSCHEIDUNGEN (A/B-Auswahl im Raum-Dialog) =====
+// Wenn man einen NPC anklickt, stellt er am Ende des Gesprächs eine Frage mit
+// zwei Antwortmöglichkeiten ([1] / [2] oder Mausklick), die eine passende
+// Reaktion auslösen und ein Entscheidungs-Flag setzen.
+SW.Dialogues.choices = {
+  commander: [
+    {
+      id: 'wc3_cmd_einsatzstil',
+      text: 'Pilot, kurze Dienstfrage vor dem nächsten Start: Wie gedenken Sie da draußen im Sektor zu fliegen?',
+      choices: [
+        {
+          label: '„Streng nach Dienstvorschrift 12-A, Commander.“',
+          flag: 'wc3_cmd_vorschrift',
+          reply: { npc: 'COMMANDER', text: 'Vorbildlich. Weniger Papierkram für mich, weniger Beulen im Hangar. Weitermachen.' }
+        },
+        {
+          label: '„Nachbrenner rein und erst fragen, wenn nichts mehr blinkt.“',
+          flag: 'wc3_cmd_draufgaenger',
+          reply: { npc: 'COMMANDER', text: '*seufzt und greift zum Stempel* Ich lege schon mal das Schadensformular 44-C bereit. Aber kommen Sie lebend wieder.' }
+        }
+      ]
+    }
+  ],
+  sechs: [
+    {
+      id: 'wc3_sechs_flanke',
+      text: 'Sag mal, Neuer — wenn es da draußen brennt: Hältst du deine Formation oder lässt du mich allein mit den Prüfsonden tanzen?',
+      choices: [
+        {
+          label: '„Ich halte dir den Rücken frei, Sechs. Versprochen.“',
+          flag: 'wc3_sechs_loyal',
+          reply: { npc: 'SECHS', text: '*schiebt die Sonnenbrille hoch* Gut zu hören. Dann schulde ich dir auf dem nächsten Flug eine Salve.' }
+        },
+        {
+          label: '„Jeder jagt sein eigenes Ziel. Mehr Abschüsse für das Scoreboard.“',
+          flag: 'wc3_sechs_solo',
+          reply: { npc: 'SECHS', text: 'Ein echter Solo-Flieger, was? Na schön — aber wehe, du klagst mir meine Abschüsse vor der Nase weg.' }
+        }
+      ]
+    }
+  ],
+  neun: [
+    {
+      id: 'wc3_neun_kassette',
+      text: 'Ich hab noch eine B-Seite auf meiner Kassette frei. Was soll ich für den nächsten Anflug aufnehmen?',
+      choices: [
+        {
+          label: '„Synthesizer-Bass von 1987. Gut für den Nachbrenner.“',
+          flag: 'wc3_neun_synth',
+          reply: { npc: 'NEUN', text: 'Gute Wahl. 120 BPM passen exakt zum Blinktakt der Zielerfassung.' }
+        },
+        {
+          label: '„Funkstille. Ich will im Cockpit nur den Reaktor hören.“',
+          flag: 'wc3_neun_stille',
+          reply: { npc: 'NEUN', text: '60 Minuten Bandrauschen. Sehr künstlerisch. Ich beschrifte die Kassette mit „Nichts“.' }
+        }
+      ]
+    }
+  ],
+  zwo: [
+    {
+      id: 'wc3_zwo_schlagzeile',
+      text: 'Ich tippe gerade die nächste Ausgabe der TRÄGER-POST. Wie soll ich dich im Leitartikel nennen?',
+      choices: [
+        {
+          label: '„Schreib einfach: Der Pilot, der seine Formulare pünktlich abgibt.“',
+          flag: 'wc3_zwo_bescheiden',
+          reply: { npc: 'ZWO', text: 'Solide. Bürokratisch unangreifbar. Das gibt mindestens drei Zeilen auf Seite 1.' }
+        },
+        {
+          label: '„Schreib: Der Schrecken von Sektor 7!“',
+          flag: 'wc3_zwo_held',
+          reply: { npc: 'ZWO', text: 'Oho! Große Worte für jemanden, dessen Spind noch nach Akademie-Seife riecht. Ist gedruckt!' }
+        }
+      ]
+    }
+  ],
+  bolt: [
+    {
+      id: 'wc3_bolt_schiff',
+      text: 'Bevor du wieder in den Jäger steigst: Soll ich die Energie eher auf die Schilde oder auf die Kühlung klemmen?',
+      choices: [
+        {
+          label: '„Alles in die Schilde, Bolt. Ich fliege gern nah ran.“',
+          flag: 'wc3_bolt_schilde',
+          reply: { npc: 'BOLT', text: '*zieht den Schraubenschlüssel fest* Ist überbrückt. Wenn es im Cockpit nach Waffeleisen riecht: Das gehört so.' }
+        },
+        {
+          label: '„Lass die Werkseinstellung. Keine Experimente mit Klebeband.“',
+          flag: 'wc3_bolt_standard',
+          reply: { npc: 'BOLT', text: 'Langweilig, aber ehrlich. Dann hält das Klebeband wenigstens bis Freitag.' }
+        }
+      ]
+    }
+  ],
+  klo: [
+    {
+      id: 'wc3_klo_geheimnis',
+      text: 'Du stehst hier schon wieder rum. Willst du endlich wissen, was wirklich unter Kältekammer 7 klopft, oder suchst du nur Seife?',
+      choices: [
+        {
+          label: '„Sag mir die Wahrheit über Kältekammer 7 und Akte 99-Z.“',
+          flag: 'klo_wahrheit_gehoert',
+          reply: { npc: 'KLO', text: 'Also gut: Der Frachter kühlt keinen Proviant. Da unten schläft der erste Pilot von 1984 — eingefroren, weil sein Entlassungsformular fehlt.' }
+        },
+        {
+          label: '„Ich suche wirklich nur Seife. Manche Akten bleiben besser zu.“',
+          flag: 'wc3_klo_seife',
+          reply: { npc: 'KLO', text: 'Kluger Pilot. Wer nichts weiß, muss auch keinen Durchschlag unterschreiben. Seife ist trotzdem alle.' }
+        }
+      ]
+    }
+  ],
+  optimierer: [
+    {
+      id: 'wc3_opt_abwicklung',
+      text: 'Ihr Träger verbraucht 14 Prozent zu viel Toner. Unterschreiben Sie meinen Abwicklungsplan oder legen Sie etwa Widerspruch ein?',
+      choices: [
+        {
+          label: '„Hier ist Formular 91-X: Offizieller Widerspruch gegen die Stilllegung!“',
+          flag: 'widerspruch_eingelegt',
+          reply: { npc: 'OPTIMIERER', text: '*starrt auf den Stempel* Formular 91-X?! Das erfordert einen 30-jährigen Prüfausschuss! Sie haben meine Bilanz ruiniert!' }
+        },
+        {
+          label: '„Sparen Sie am Papier, aber lassen Sie unsere Jäger im Hangar.“',
+          flag: 'wc3_opt_kompromiss',
+          reply: { npc: 'OPTIMIERER', text: 'Hm. Wenn wir die Servietten in der Kantine halbieren, bleibt der Träger vorerst im Haushaltsplan.' }
+        }
+      ]
+    }
+  ],
+  loeffel: [
+    {
+      id: 'wc3_loeffel_menue',
+      text: 'Heute gibt es Grauen Eintopf oder Kalten Braten von Dienstag. Was kommt auf das Tablett?',
+      choices: [
+        {
+          label: '„Den Grauen Eintopf. Der sieht wenigstens warm aus.“',
+          flag: 'wc3_loeffel_eintopf',
+          reply: { npc: 'LÖFFEL', text: '*klatscht eine Kelle auf das Blech* Gute Wahl. Hält auch die Hülle dicht, wenn man ihn außen draufschmiert.' }
+        },
+        {
+          label: '„Nur einen schwarzen Kaffee, bitte.“',
+          flag: 'kaffee_abgeholt',
+          reply: { npc: 'LÖFFEL', text: 'Hier, der letzte warme Becher. Falls der Commander fragt: Du hast ihn ehrlich erkämpft.' }
+        }
+      ]
+    }
+  ],
+  klopstock: [
+    {
+      id: 'wc3_klopstock_kerze',
+      text: 'Mein Sohn, vor dem Start zünden manche Piloten eine Kerze an, andere prüfen nur ihr Visier. Wie hältst du es?',
+      choices: [
+        {
+          label: '„Zünden wir eine Kerze für die Staffel an, Pfarrer.“',
+          flag: 'wc3_klopstock_kerze_an',
+          reply: { npc: 'KLOPSTOCK', text: 'Sie brennt. Möge dein Rückspiegel frei und dein Schildgenerator gnädig sein.' }
+        },
+        {
+          label: '„Ich vertraue lieber auf gute Schilde und volle Kondensatoren.“',
+          flag: 'wc3_klopstock_technik',
+          reply: { npc: 'KLOPSTOCK', text: 'Auch ein gelöteter Kondensator ist ein kleines Wunder in dieser Flotte. Flieg vorsichtig.' }
+        }
+      ]
+    }
+  ]
+};
+
+

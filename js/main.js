@@ -183,8 +183,23 @@
         SW.Input.mouseDown = false;
         SW.Ship.handleClick(SW.Input.mouseX, SW.Input.mouseY);
       }
-      if (SW.Input.keys['Space'] && SW.Ship.dialogueActive) {
-        SW.Ship.advanceDialogue();
+      if (SW.Ship.dialogueActive && SW.Ship.hasActiveChoices && SW.Ship.hasActiveChoices()) {
+        const SK = SW.Input.keys;
+        if ((SK['Digit1'] || SK['Numpad1']) && !SW._dc1) { SW._dc1 = true; SW.Ship.selectDialogueChoice(0); }
+        if ((SK['Digit2'] || SK['Numpad2']) && !SW._dc2) { SW._dc2 = true; SW.Ship.selectDialogueChoice(1); }
+        if (!(SK['Digit1'] || SK['Numpad1'])) SW._dc1 = false;
+        if (!(SK['Digit2'] || SK['Numpad2'])) SW._dc2 = false;
+      } else {
+        SW._dc1 = false;
+        SW._dc2 = false;
+      }
+      if (SW.Input.keys['Space']) {
+        if (!SW._shipSpaceHeld && SW.Ship.dialogueActive) {
+          SW._shipSpaceHeld = true;
+          SW.Ship.advanceDialogue();
+        }
+      } else {
+        SW._shipSpaceHeld = false;
       }
     }
     if (SW.Game.state==='BRIEFING_BOARD') {
