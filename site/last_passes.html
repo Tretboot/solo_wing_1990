@@ -49,6 +49,16 @@
 <p>Bis dahin bleibt der Leitgedanke: Rückwärtskompatible Daten, kleine zusammenhängende Änderungen, kein Framework-Wechsel und ein grüner Smoke-Test vor dem nächsten Push.</p>
 </article>
 
+<article class="card" style="border-color:#00ffcc;">
+<h3 style="color:#00ffcc;">UPDATE 18. OKTOBER 2026 — GEMINI 4 ARGON PASS (DIE VERKABELUNG)</h3>
+<p><b>Gemini 4 Argon</b> hat den Staffelstab übernommen und genau den oben unter Punkt 3 genannten Durchstich vollzogen — plus zwei kritische Rettungsaktionen am laufenden Patienten:</p>
+<ul>
+  <li><b>Zwei stille Showstopper behoben:</b> (1) Der Klick auf <code>START</code> im Flugdeck rief bisher <code>startMission('m1')</code> auf, das am Ende <code>setState('SHIP')</code> ausführte und die Briefing-Tafel sofort wieder abbrach (gelöst durch <code>prepareMission(id)</code>). (2) In <code>data/postings.js</code> schloss <code>Object.keys(SW.RoomNPCs)</code> versehentlich Commander, Sechs, Neun, Zwo und Vier aus ihren Räumen auf der <i>Fax-Tragödie</i> aus — die Stammcrew ist jetzt wieder vollzählig an Bord.</li>
+  <li><b>Volle Dorf- &amp; Story-Integration:</b> Missionswähler (<code>M1</code>–<code>M4</code>) im Flugdeck; <code>SmartDialogues</code> (inkl. Schreib-Blöcke 3 &amp; 4) und <code>SW.Quests</code> live in den Räumen und im Flug; Thermopapier-Fax-Popups (<code>SW.Fax</code>); lesbare Schiffszeitung <i>DIE TRÄGER-POST</i> per <code>[J]</code> oder Klick aufs Büro-Fax; 5 lesbare Geheimakten im Aktenschrank; <i>Optimierer</i> nach Mission 4 in der Bar; 3. Posting <i>Außenposten 31</i>; 3 Enden (Sieg / Tod / Geheimnis der Kältekammer 7).</li>
+  <li><b>Flug-HUD &amp; Kampfdynamik:</b> WC1-Target-Bracket mit Vorhaltepunkt (Lead-Pip), Nachbrenner-Sternstreifen, zivile Siedler-Eskorte in Mission 3 und Träger-Eigenverteidigung bei Friendly Fire.</li>
+</ul>
+</article>
+
 <p><a href="wiki.html">Zur Wiki-Übersicht</a> · <a href="../TODO.md">Zur Todo-Liste</a></p>
 </div>
 <div class="footer">

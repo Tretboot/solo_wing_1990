@@ -150,10 +150,18 @@ SW.ShipRegistry = {
 
 SW.Enemies = {
   list:[],waveIndex:0,waveTimer:0,waveActive:false,allWavesDone:false,missionData:null,
-  init(mission) { this.list=[];this.waveIndex=0;this.waveTimer=0;this.waveActive=false;this.allWavesDone=false;this.missionData=mission; },
+  pendingSpawns:[],waveElapsed:0,
+  init(mission) {
+    this.list=[];this.waveIndex=0;this.waveTimer=0;this.waveActive=false;
+    this.allWavesDone=false;this.missionData=mission;this.pendingSpawns=[];this.waveElapsed=0;
+  },
   spawnWave(idx) {
     const waves=this.missionData.waves; if (idx>=waves.length) return;
-    const cfg=waves[idx], count=cfg.count||3, spacing=50;
+    const cfg=waves[idx];
+    const groups=Array.isArray(cfg.groups)&&cfg.groups.length
+      ? cfg.groups
+      : [{count:cfg.count||3,ship:cfg.ship||'d_b'}];
+    const count=groups.reduce((total,group)=>total+(group.count||0),0), spacing=50;
     // IM RAUM (NAV): Welle i steht am Nav-Punkt i — Gegner an den
     // Waypoints der Route (Weltkoordinaten, deterministisch).
     // Ohne Nav-Punkt: alt, relativ vor dem Spieler (z.B. Akademie-Sim).
@@ -167,24 +175,85 @@ SW.Enemies = {
       }
     }
     const startX=-(count-1)*spacing/2;
-    for (let i=0;i<count;i++) {
-      const shipId=cfg.ship||'d_b'; const sp=SW.ShipRegistry[shipId]||SW.ShipRegistry.d_b;
-      // IM RAUM: Spawn in Weltkoordinaten (relative Projektion rechnet den Rest)
-      this.list.push({x:baseX+startX+i*spacing+(Math.random()-0.5)*10,y:baseY+(Math.random()-0.5)*20,z:baseZ,hp:sp.hp,fireTimer:sp.fireMin+Math.random()*(sp.fireMax-sp.fireMin),speed:sp.speed,damage:sp.damage,fireMin:sp.fireMin,fireMax:sp.fireMax,pattern:sp.pattern,strafeAmp:sp.strafeAmp,strafeFreq:sp.strafeFreq,shipId:shipId,alive:true,state:'approach',t:0,strafeDir:(i%2?1:-1),wab:0,range:sp.range||120,burst:sp.burst||1});
+    const staggerFrames=Math.max(0,Math.floor(cfg.staggerFrames||0));
+    this.pendingSpawns=[];
+    let index=0;
+    for (const group of groups) {
+      const shipId=group.ship||cfg.ship||'d_b';
+      for (let i=0;i<(group.count||0);i++) {
+        this.pendingSpawns.push({
+          at:index*staggerFrames,
+          x:baseX+startX+index*spacing+(Math.random()-0.5)*10,
+          y:baseY+(Math.random()-0.5)*20,
+          z:baseZ,
+          shipId:shipId,
+          index:index,
+          civilian:!!(group.civilian||cfg.civilian)
+        });
+        index++;
+      }
     }
+    this.waveElapsed=0;
     this.waveActive=true;
+    this._spawnDueMembers();
+  },
+  _spawnDueMembers() {
+    while (this.pendingSpawns.length && this.pendingSpawns[0].at<=this.waveElapsed) {
+      const member=this.pendingSpawns.shift();
+      const sp=SW.ShipRegistry[member.shipId]||SW.ShipRegistry.d_b;
+      this.list.push({
+        x:member.x,y:member.y,z:member.z,hp:sp.hp,
+        fireTimer:sp.fireMin+Math.random()*(sp.fireMax-sp.fireMin),
+        speed:sp.speed,damage:sp.damage,fireMin:sp.fireMin,fireMax:sp.fireMax,
+        pattern:sp.pattern,strafeAmp:sp.strafeAmp,strafeFreq:sp.strafeFreq,
+        shipId:member.shipId,alive:true,state:'approach',t:0,
+        strafeDir:(member.index%2?1:-1),wab:0,range:sp.range||120,burst:sp.burst||1,
+        civilian:!!member.civilian,_vx:0,_vy:0,_screenPos:null,_screenSize:12
+      });
+    }
+  },
+  _announceWaveMessage(msg) {
+    if (!msg) return;
+    SW.Comm.add(msg);
+    if (msg.indexOf('KUGELSCHREIBER') !== -1 && SW.Quests && SW.Quests.flight) {
+      SW.Quests.flight({ typ: 'heard_rap' });
+    }
   },
   update(frame) {
+    if (this.waveActive && this.pendingSpawns.length) {
+      this.waveElapsed++;
+      this._spawnDueMembers();
+    }
     if (!this.waveActive&&!this.allWavesDone) {
       this.waveTimer++;
-      if (this.waveIndex===0&&frame>SW.FIRST_WAVE_DELAY) { this.spawnWave(0);this.waveTimer=0;const m=this.missionData.waveMessages?.[0];if(m)SW.Comm.add(m); }
-      else if (this.waveIndex>0&&this.waveTimer>=SW.WAVE_SPACING) { this.spawnWave(this.waveIndex);this.waveTimer=0;const m=this.missionData.waveMessages?.[this.waveIndex];if(m)SW.Comm.add(m); }
+      if (this.waveIndex===0&&frame>SW.FIRST_WAVE_DELAY) {
+        this.spawnWave(0);this.waveTimer=0;
+        const m=this.missionData.waveMessages?.[0];
+        if(m) this._announceWaveMessage(m);
+      } else if (this.waveIndex>0&&this.waveTimer>=SW.WAVE_SPACING) {
+        this.spawnWave(this.waveIndex);this.waveTimer=0;
+        const m=this.missionData.waveMessages?.[this.waveIndex];
+        if(m) this._announceWaveMessage(m);
+      }
     }
     const p=SW.Player;
     for (const e of this.list) {
       if (!e.alive) continue;
+      const prevX=e.x, prevY=e.y;
       e.t++;
       const rz=e.z-p.z, rx=e.x-p.x, ry=e.y-p.y;
+      if (e.civilian) {
+        // Zivile Siedler-Schiffe: halten ruhigen Kurs, feuern nie, Eskorte bei Annäherung erledigt
+        e.z += p.speed * 0.35;
+        e.x += Math.sin(e.t * 0.02 + (e.strafeDir || 1)) * 0.25;
+        e._vx = e.x - prevX; e._vy = e.y - prevY;
+        if (rz < 55 && e.t > 45) {
+          e.alive = false;
+          SW.Game.score += 50;
+          SW.Comm.add('SIEDLER: Eskorte bestätigt. Danke, Sternenkorps. Wir melden uns bei Sektor 12.');
+        }
+        continue;
+      }
       const ai=SW.ShipRegistry[e.shipId]?SW.ShipRegistry[e.shipId].ai:'drone';
       if (ai==='drone') {
         // Drohne: gradeaus auf den Spieler zu, leichte Nachführung (Selbstmörder)
@@ -214,6 +283,7 @@ SW.Enemies = {
           if (rz>240) { e.state='approach'; e.t=0; }
         }
       }
+      e._vx = e.x - prevX; e._vy = e.y - prevY;
       // Feuer: Vorhaltschuss (Interpunkt auf Spielerposition + Drift)
       e.fireTimer--;
       const fireMax=e.range>0?e.range+150:300;
@@ -235,18 +305,30 @@ SW.Enemies = {
     }
     if (this.waveActive) {
       const alive=this.list.filter(e=>e.alive).length;
-      if (alive===0) {
-        this.waveActive=false; this.waveIndex++;
-        if (this.waveIndex>=(this.missionData.waves?.length||3)&&SW.Player.alive) { this.allWavesDone=true; SW.Game.triggerVictory(); }
+      if (alive===0 && this.pendingSpawns.length===0) {
+        this.waveActive=false; this.waveIndex++; this.waveElapsed=0;
+        if (this.waveIndex>=(this.missionData.waves?.length||3)&&SW.Player.alive) {
+          this.allWavesDone=true; SW.Game.triggerVictory();
+        } else if (SW.Carrier.visible && !SW.Game._simMode) {
+          SW.Comm.add("TRÄGER: Welle bereinigt. Nächster Sektor-Wegpunkt freigegeben.");
+        }
       }
     }
   },
   render(ctx) {
+    for (const e of this.list) e._screenPos = null;
     const sorted=SW.Engine.zSort(this.list.filter(e=>e.alive));
     for (const e of sorted) {
       const p=SW.Engine.screenPos(e.x,e.y,e.z); if(!p) continue;
       if (p.sx<-20||p.sx>SW.W+20||p.sy<-20||p.sy>SW.H+20) continue;
-      const spr=SW.Sprites.shipVariants[e.shipId]||SW.Sprites.enemy; SW.Sprites.draw(ctx,spr,p.sx,p.sy,p.scale);
+      e._screenPos = p;
+      e._screenSize = Math.max(8, 12 * p.scale);
+      const spr=SW.Sprites.shipVariants[e.shipId]||SW.Sprites.enemy;
+      SW.Sprites.draw(ctx,spr,p.sx,p.sy,p.scale);
+      if (e.civilian) {
+        ctx.fillStyle='#44ff88';
+        ctx.fillRect(Math.round(p.sx)-2, Math.round(p.sy)-Math.round(8*p.scale)-3, 4, 2);
+      }
     }
   }
 };
@@ -301,8 +383,21 @@ SW.Explosions = {
 };
 
 SW.Carrier = {
-  x:SW.CARRIER_X,y:SW.CARRIER_Y,z:SW.CARRIER_Z,visible:false,
-  init(){this.x=SW.CARRIER_X;this.y=SW.CARRIER_Y;this.z=SW.CARRIER_Z;this.visible=false;},
+  x:SW.CARRIER_X,y:SW.CARRIER_Y,z:SW.CARRIER_Z,visible:false,friendlyHits:0,
+  init(){this.x=SW.CARRIER_X;this.y=SW.CARRIER_Y;this.z=SW.CARRIER_Z;this.visible=false;this.friendlyHits=0;},
+  onFriendlyHit() {
+    this.friendlyHits++;
+    if (this.friendlyHits === 1) {
+      SW.Comm.add("TRÄGER: Stellen Sie das Feuer auf den eigenen Träger ein! Formular 66-F!");
+    } else if (this.friendlyHits === 2) {
+      SW.Comm.add("COMMANDER: Noch ein Treffer auf mein Flugdeck und die Bordgeschütze antworten!");
+    } else {
+      SW.Comm.add("TRÄGER: Bordgeschütz-Erwiderung nach Dienstvorschrift 1984 ausgelöst.");
+      const dx=SW.Player.x-this.x, dy=SW.Player.y-this.y, dz=SW.Player.z-this.z;
+      const len=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+      SW.Projectiles.add({x:this.x,y:this.y,z:this.z,dx:dx/len,dy:dy/len,dz:dz/len,speed:SW.ENEMY_LASER_SPEED*1.3,friendly:false,damage:18,life:90});
+    }
+  },
   // IM RAUM: z wird bei Mission/Flight-Wechseln als Weltkoordinate gesetzt
   // (relative Projektion in SW.Engine.project rechnet den Rest)
   render(ctx) {
@@ -321,6 +416,7 @@ SW.Wingman = {
   active:false, x:0,y:0,z:0,
   offX:-60, offY:20, offZ:80,   // Formation: vorn-links (relativ zum Spieler)
   fireTimer:120, chatterTimer:900, _hitCd:0,
+  get alive() { return this.active; },
   reset(){ this.active=false; },
   init() {
     if (SW.Game._simMode) return;
@@ -336,12 +432,12 @@ SW.Wingman = {
     this.x += (p.x+this.offX-this.x)*0.08;
     this.y += (p.y+this.offY-this.y)*0.08;
     this.z += (p.z+this.offZ-this.z)*0.15;
-    // Deckung: feuert auf den nächsten Gegner (freundlich)
+    // Deckung: feuert auf den nächsten Gegner (freundlich, ignoriert Zivilisten)
     this.fireTimer--;
     if (this.fireTimer<=0) {
       let best=null, bd=Infinity;
       for (const e of SW.Enemies.list) {
-        if (!e.alive) continue;
+        if (!e.alive || e.civilian) continue;
         const d=(e.x-this.x)*(e.x-this.x)+(e.y-this.y)*(e.y-this.y)+(e.z-this.z)*(e.z-this.z);
         if (d<bd) { bd=d; best=e; }
       }

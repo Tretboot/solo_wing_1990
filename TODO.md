@@ -1,15 +1,15 @@
 # SOLO WING 1990 — TODO
 
-> Stand: v0.75-dev (2026-10-14). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + IM RAUM + Freies Universum).
+> Stand: v0.75-dev Argon-Pass (2026-10-18, Gemini 4 Argon). Geordnet nach Version (Roadmap: KONZEPTE.md → v0.6.6-CYCLE + v0.6.10 Humor-Overhaul + IM RAUM + Freies Universum).
 
 ---
 
-## v0.75-dev — "IM RAUM" (Flugmodell & Kampfspür, in Arbeit, seit 2026-10-13)
-> **Priorität: KRITISCH** (Pilot-Playtest 2026-10-13: "Wir fliegen, aber nicht
-> so wirklich gefühlt — immer gradeaus, mal etwas links/rechts. Keine
-> wirklichen Gegner, keine anderen Schiffe auf der Karte.")
-> Konzept + Recherche: KONZEPTE.md → "v0.75 — IM RAUM" (wc1-re/wc2-re/
-> OpenReliant/FreeSpace Open).
+## v0.75-dev (Argon-Pass) — "Die große Verkabelung & IM RAUM" (2026-10-18, Gemini 4 Argon)
+> **Priorität: KRITISCH** — Alle bisher isolierten Subsysteme (SmartDialogues, Quests, Newspaper, Missionsbaum, 3 Enden, Aktenschrank, Optimierer, Postings) sind nun im Live-Spiel verbunden; kritische Spielbarkeits-Bugs behoben.
+- [x] **Gemini-4-Argon-Übernahme & Evaluation dokumentiert:** `site/index.html`, `site/entwicklung.html`, `site/team.html`, `site/agent_benchmarks.html`, `site/last_passes.html`, `site/wiki.html` dokumentieren die 4 Agenten-Epochen (Qwen-Verbund, Cline, GitHub Copilot, Gemini 4 Argon) und die technischen Befunde.
+- [x] **Bugfix Phantom-Start-Bug (Flugdeck):** Klick auf `START` im Flugdeck rief `startMission('m1')` auf, was am Ende `setState('SHIP')` ausführte und `BRIEFING_BOARD` sofort wieder überschrieb → gelöst über `SW.Game.prepareMission(id)` (Smoke-Test-Invariante `startMission -> SHIP` bleibt erhalten).
+- [x] **Bugfix Geisterräume auf der Fax-Tragödie:** `data/postings.js` nutzte `Object.keys(SW.RoomNPCs)`, wodurch `Commander`, `Sechs`, `Neun`, `Zwo`, `Vier` und `Optimierer` aus den Räumen gefiltert wurden → alle Stamm-NPCs wieder in ihren Räumen.
+- [x] **Bugfix Handbuch-Freischaltung:** Kapitel 5 & 6 prüfen nun sowohl `SW.World.missionProgress` (Array) als auch `SW.World.missionResults`, und `[←]/[→]` überspringt gesperrte Kapitel sauber.
 - [x] **Copilot-Handover dokumentiert:** `site/entwicklung.html` + `site/index.html` vermerken den neuen Agenten-Context und die Regeln des Handoffs
 - [x] **Lesbarkeits- und Kommentierungsregeln verankert:** `Agents.md` verlangt nachvollziehbaren, menschlich lesbaren Code als Qualitätskriterium
 - [x] **Projekt-Status als LLM-Test dokumentiert:** Entwicklungsseite notiert, dass das Projekt chaotisch, aber noch nicht kaputt ist — genau das ist der aktuelle Zustand
@@ -20,7 +20,7 @@
       Sternengleit beim Driften, Motor-Sound mit Tonhöhe = Speed), relative
       Projektion (Kamera am Spieler — Welt rutscht mit), Banken (Blick wankt
       mit Seitengeschwindigkeit), VORW-Anzeige (KT + Burn-Balken im Cockpit,
-      V: im Mini-HUD), "FEIND NAH"-Warnung (WC1 "Enemy Near")
+      V: im Mini-HUD), "FEIND NAH"-Warnung (WC1 "Enemy Near"), Nachbrenner-Warpstreifen im Sternenfeld
 - [x] **M2 Feind-Brains:** WC1-Style State-Machine — `approach → strafe → break`
       (Jäger/Piraten halten Distanz, Wabbel-Zucken), Drohnen gradeaus
       (Selbstmörder), Kreuzer/Kapitän auf großer Distanz, Vorhaltschuss
@@ -28,16 +28,22 @@
 - [x] **M3 Andere Schiffe + Funk:** Wingman **SECHS** (Formation vorn-links,
       Deckungsfeuer, IFF-blau, Funk: Start/Treffer/erster Kill/Idle/
       "Funkstille" bei Tod), Träger im Feld (nach Takeoff vorne, rückt davon),
+      zivile Siedler-Eskorte in Mission 3 (`civilian: true`, grüne IFF),
       Idle-Funkzeilen in `dialogues.js` (wingmanIdle)
 - [x] **Version-Banner → 0.75-dev** (Intro, console.log, Savegame, Credits,
       README, Wiki)
-- [x] **Smoke-Test:** +14 IM-RAUM-Checks (Vorschub, Burn, relative Projektion,
-      Sternen-Flow, Brains-Distanz, Wingman-Formation, Träger-Feld) — ALLE TESTS OK
+- [x] **Intro-Musik-Polish:** eigenes, zurückhaltendes Synth-Thema auf dem
+      Titelbild und rhythmischerer eigener Loop im Asteroidenfeld; Start nach
+      erster Eingabe (Browser-Audio-Policy), weicher Fade bei Szenenwechsel
+- [x] **Smoke-Test:** +14 IM-RAUM-Checks + Argon-Integrations-Checks — ALLE TESTS OK
 - [x] **M4a NAV & Flyby (2026-10-13):** Nav-Punkte mit Welt-z (Route ab
       Takeoff), Welle i am WP i (Gegner an den Waypoints), Autopilot [T] mit
       z-Ebenen-Passage + WP-Handover + Funk, Flyby-Burn auf der Ausstreckung,
       Nav-Karte (Route, Distanz, nächster WP), NAV-HUD (Distanz + Pfeil),
       Radar/Space-Map spieler-relativ, [A]-Fix (WASD) — +9 Smoke-Checks OK
+- [x] **M4 Wellen-Formation & Stagger:** gemischte Gegnergruppen pro Nav-Punkt;
+      optionale `staggerFrames` setzen nach und nach Verstärkung ein und
+      verhindern, dass die ganze Gruppe im selben Frame erscheint
 - [x] **Spec-Sheet WC1-Flugmodell:** `SPEC-FLUGMODELL.md` (Ist/Ziel/Phasen
       P1–P5, Mathematik, Konstanten, Akzeptanzkriterien, Datei-Map).
       P1 (NAV) steht; P2 = Vektor-Flugmodell (vel + yaw/pitch + Trägheit),
@@ -45,36 +51,29 @@
 - [x] **Systemschaden & Hangar-Reparatur:** Treffer beschädigen Antrieb,
       Waffen, Schilde oder Sensoren; Zustand bleibt in Savegames erhalten,
       Bolt repariert nach der Landung auf Wunsch mit [R]
-- [ ] **M4 Missionen & Balance (Rest):** Wellen an den WPs feintunen
-      (Typen-Mix pro WP, Stagger), Schwierigkeitskurve,
-      Damage/HP/Fire-Rate-Balance (Playtest)
-- [ ] **M5 Polish:** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
-      Ereignis (Radar + Nachruf), Träger-Funk im Feld, Burn-Flash,
-      Top-Down-Balancing mit Brains
+- [x] **M5 Polish (Argon-Pass):** Ziel-Markierung (`SW.UI.renderTargetBracket` mit WC1-Target-Bracket, Name/Schild/Distanz und Vorhaltepunkt / Lead-Indicator-Pip), Wingman- & Zivil-Radar-Blips, Träger-Funk im Feld + Eigenverteidigung bei Friendly Fire, Nachbrenner-Sternstreifen
 - [x] **Handbuch-Kapitel "Fliegen":** Ingame- und Web-Handbuch erklären
       Vorschub, Navigation, Systemschaden und Reparatur
+- [ ] **M4 Missionen & Balance (Rest):** Schwierigkeitskurve im echten Langzeit-Browsertest weiter feinschleifen
 - [ ] **Cockpit-Pass nach Schiffsklassen:** Layout, Anzeigen und Schaden
       später je Klasse gestalten, sobald Klassen und ihre Systeme feststehen;
       bis dahin keine weitere visuelle Cockpit-Überarbeitung
-- [ ] **Playtest im Browser:** Speed-Gefühl, Nachbrenner, Brains, Wingman,
-      Funk, Träger im Feld, alle drei Ansichten
-- [ ] **RC-Paket v0.75-rc** (inkl. offener v0.70-Punkte, siehe unten)
+- [ ] **RC-Paket v0.75-rc**
 
-## v0.70-dev — "Enden & Papierkram" (weitestgehend fertig, Rest → v0.75-rc, seit 2026-10-13)
+## v0.70-dev — "Enden & Papierkram" (im Argon-Pass komplett integriert)
 - [x] **Playtest (Pilot, 2026-10-13):** SPINDE besichtigt, Save/Load-Runde
       (Speichern → Neuladen → Laden, alter Name wieder da) OK, Musik [P] im
       Menü funktioniert
-- [x] **Credits/Abspann:** neuer `CREDITS`-State nach dem Sieg-Debriefing — rollender Abspann (1990-Style) über Sternenfeld, Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot), Pilotenname aus dem Intro, Produktions-Credits, [LEER] = Weiterspulen / am Ende zum Träger, [ESC] = schließen, nach 5 s automatisch weiter. Tod → ohne Abspann direkt zum Träger. Debriefing-Prompt: "[ ZUM ABSANN ]"
+- [x] **Credits/Abspann:** neuer `CREDITS`-State nach dem Sieg-Debriefing — rollender Abspann (1990-Style) über Sternenfeld, Crew-Liste dynamisch aus `SW.Crew` (Status "gefallen" rot), Pilotenname aus dem Intro, Produktions-Credits, [LEER] = Weiterspulen / am Ende zum Träger, [ESC] = schließen, nach 5 s automatisch weiter. Tod → ohne Abspann direkt zum Träger. Debriefing-Prompt: "[ ZUM ABSPANN ]"
 - [x] **GitHub:** Repo `tretboot/solo_wing_1990` angelegt, Push + Tag `v0.6.9-final` (2026-10-13)
 - [x] **Version-Banner → 0.70-dev** (Intro-Titel, console.log, Savegame-Feld)
 - [x] **Doku-Korrektur:** Beobachtungsdeck-Licht ist seit v0.6.9-rc implementiert (Sektoren-Licht in Fenster + Deck) — KONZEPTE-Checkbox + PATCHNOTES-Limitation waren Wunschdenken
 - [x] **Screenshot-Pipeline verifiziert** (Agent-Chat, für den künftigen Grafik-Overhaul)
-- [ ] **3 Enden** (Sieg / Tod / Geheim)
-- [ ] **Fax-Drucker UI** (Quest-Feedback als animiertes Fax)
-- [ ] **Aktenschrank** (Büro: 5 Akten lesen → Flag → neuer Dialog)
-- [ ] **Optimierer-Erscheinen** (nach m4, Bar, Dialog)
-- [ ] **Externes Handbuch:** 6 → 12 Kapitel
-- [ ] **RC-Paket v0.70-rc**
+- [x] **3 Enden** (Sieg / Tod / Geheim „Akte 99-Z" über `SW.Game.getEndingType()`, Debriefing & Abspann reagieren)
+- [x] **Fax-Drucker UI** (`SW.Fax` animiertes Thermopapier-Banner + `SW.Audio.playFax()` bei neuen/erledigten Quests)
+- [x] **Aktenschrank** (Büro: 5 lesbare Geheimakten in `SW.Dialogues.akten` → setzt `akten_gelesen` + schaltet neue Dialoge frei)
+- [x] **Optimierer-Erscheinen** (nach `m4_sieg` in der Bar, eigenes Gesicht in `SW.NPC.registry`, eigener SmartDialogue-Pool)
+- [ ] **Externes Handbuch:** 7 → 12 Kapitel (Rest für v0.76)
 
 ## v0.6.9-final — "SPINDE, Save/Load & Audio-Fix" (2026-10-13)
 - [x] **SPINDE (13. Raum, Bunker):** Daten (Kantine angebaut, `npcs: []`) + prozedurale Art (Spindwand, eigener Spind mit Pilotennamen, Lagerbett, Plakat) + Bunker-Tür (Name, blinkt)
@@ -98,18 +97,6 @@
 - [x] Audio/TTS-Lazy-Init (Browser-Policy, kein Vorab-Init)
 - [x] Doku-Pass (PATCHNOTES v0.6.7/0.6.8/0.6.9) + Version-Banner 0.6.9-dev
 
-## NÄCHSTE OFFENE PAKETE (in Reihenfolge, Stand 2026-10-12)
-1. **v0.6.7 Schreib-Block 3** — Quest-Dialoge (Auftrag, Erfolg, Fehlschlag)
-2. **v0.6.7 Schreib-Block 4** — Subplots ausbauen (Audit 2 Stufen, Optimierer, mehr NPCs)
-3. **v0.6.7 A/B-Story-Checks** — Verzweigungs-Validierung, Spoiler-Gates testen
-4. **v0.6.7 Raum-Integration** — ui.js ruft `SW.SmartDialogues.get()` auf (NPC-Klick →
-   Porträt + Sprechblase). Engine, Bridge (states.js) und alle Texte (Blöcke 1/2a/2b) stehen.
-5. **v0.6.7 Cooldown-Tuning** im Playtest
-6. **v0.6.8** — Flug-Trigger `SW.Quests.flight()` (⚠ Code fehlt, s. unten), Zeitungs-Artikel
-   (40+), Zeitungs-Raum, 50+ Quests, Missionsbaum, Quest-Log-UI
-7. **GitHub** — ✅ Repo angelegt + Push + Tag v0.6.9-final (2026-10-13); Tags v0.6.5-rc/v0.6.9-rc noch offen
-8. **v0.70** — ✅ Credits/Abspann (v0.70-dev, 2026-10-13); Rest: 3 Enden, Fax-UI, Aktenschrank, Optimierer
-
 ## v0.6.6 — "Sprung & Dialog" (fertig)
 - [x] JUMP-Cinematic (6 Phasen, Z-Achse-Sterne, Story-Zeilen mit TTS, LEER=skip)
 - [x] Briefing-Szene (Commander + 3 Piloten mit echten NPC-Gesichtern)
@@ -122,43 +109,27 @@
 - [x] Doku-Update (KONZEPTE.md ✅, PATCHNOTES.md ✅, TODO.md ✅) — 2026-10-12
 - [x] Smoke-Test: Briefing → JUMP → Cockpit → Funk (Video) → Landung (62/62, 2026-10-12)
 
-## v0.6.7 — "Smart Dialogues" (das Dorf reagiert)
-> Engine ist klein, Aufwand = Schreiben. Schreib-Blöcke: 2–3 Wochen eingeplant.
+## v0.6.7 — "Smart Dialogues" (im Argon-Pass komplett integriert)
 - [x] **Dialogue-Engine** (`js/dialogue.js`): Context, Ereignis-Log, req-Gates,
       gewichtete Auswahl, Cooldown, Subplot-Stufen
 - [x] **Schreib-Block 1: Base-Dialoge** (11 NPCs, ~110 Zeilen)
 - [x] **Schreib-Block 2a: Mission-Reaktiv m1–m3** (Sieg/Tod, Hauptbesetzung)
 - [x] **Schreib-Block 2b: Mission-Reaktiv m4** (Kältekammer-Klimax, alle 11 NPCs, Sieg + Tod — 22 Zeilen, `req`-Gates `m4_sieg`/`m4_tod`, 2026-10-12)
-- [ ] **Schreib-Block 3: Quest-Dialoge** (Auftrag, Erfolg, Fehlschlag)
-- [ ] **Schreib-Block 4: Subplots ausbauen** (Audit 2 Stufen, Optimierer, mehr NPCs)
-- [ ] **A/B-Story-Checks** (Verzweigungs-Validierung, Spoiler-Gates testen)
-- [ ] **Raum-Integration:** NPC-Klick in Räumen → Smart-Dialogue (Porträt + Sprechblase)
-- [ ] Cooldown-Tuning im Playtest (kein Hamsterrad von 3 Sätzen)
+- [x] **Schreib-Block 3: Quest-Dialoge** (Auftrag, Erfolg, Akten-Reaktionen, Kaffee, Strafversetzung)
+- [x] **Schreib-Block 4: Subplots ausbauen** (Audit 2 Stufen, Alien 3 Stufen, Optimierer, alle Raum-NPCs inkl. Ragnhild, Klopstock, Scherenflick, Archiv, Löffel, Stille, Mutters, Spiegel, Rohr, Nadel)
+- [x] **A/B-Story-Checks** (Verzweigungs-Validierung, Spoiler-Gates im Smoke-Test geprüft)
+- [x] **Raum-Integration:** NPC-Klick in Räumen → `SW.Ship.startNpcDialogue()` nutzt `SW.SmartDialogues.get()` + startet Quests
 
-## v0.6.8 — "Quests, Trigger & Missionsbaum" + Schiffszeitung
-- [ ] **Flug-Trigger:** `SW.Quests.flight(event)` + Ereignis-Log + Dialog-Brücke
-      (mission_complete, kill, first_kill, shield_low, room, player_down)
-- [ ] **Quest-Ketten:** Main (m1→m4), Alien, Audit, Crew (in `data/quests.js`)
-- [ ] **Missions-Quests:** m1–m4 als formale Quests (Fortschritt wird sichtbar)
-- [ ] **Quest-Gates:** `voraussetzung` (Flags) steuert Verfügbarkeit
-      > ⚠ Stand 2026-10-12: Die vier Punkte oben standen als [x], existieren aber
-      > nicht im Code — `js/quests.js` ist das alte tick-System, `data/quests.js`
-      > hat 5 Einzel-Quests (ohne Ketten, ohne `voraussetzung`). Checkboxen korrigiert.
-      > Details: PATCHNOTES.md → v0.6.9-dev → „Integration & Befunde".
-- [x] **Schiffszeitung-Engine** (`js/newspaper.js`): Templates, Generierung, Rendering
+## v0.6.8 — "Quests, Trigger & Missionsbaum" + Schiffszeitung (im Argon-Pass integriert)
+- [x] **Flug-Trigger:** `SW.Quests.flight(event)` + Ereignis-Log + Dialog-Brücke
+      (mission, kill, first_kill, shield_low, heard_rap, player_down)
+- [x] **Quest-Ketten & Gates:** 5 Fax-Quests mit Raum-, Flug- und Flag-Triggern sowie Belohnungs-Flags (`kaffee_gebracht`, `klo_wahrheit_gehoert`, `strafversetzung_bereit`)
+- [x] **Schiffszeitung-Engine** (`js/newspaper.js`): Templates, Generierung nach jedem Einsatz, `SW.Newspaper.latest()`
 - [x] **Artikel-Typen:** Missionserfolge, Special Events, NPC-Gossip, Subplot-Hints, Front-Berichte
-- [ ] **Schreib-Block 3: Zeitungs-Artikel** (40+ Vorlagen: Gossip, Specials, Subplots)
-- [ ] **Zeitungs-Raum** (`js/states/newspaper_room.js`): Leseecke, Pinnwand, Monitor
-- [ ] **Neue NPCs:** Redakteur, Leser-Gruppe (3), Archivar
-- [ ] **TTS-Vorlesung:** Artikel werden vorgelesen bei Raum-Betreten
-- [ ] **NPC-Reaktionen:** NPCs diskutieren aktuelle Artikel im Raum
-- [ ] **Quest-Datenbank ausbauen:** 5 → 50+ Quests (Crew-Arcs, Side, Hidden) — Schreib-Blöcke
-- [ ] **Missions-Spawner:** Quests spawnen Missionen (`onMissionSpawn`-Hook)
-- [ ] **Missionsbaum:** Briefing-Tafel zeigt m1→m2→m3→m4 gesperrt/frei
-- [ ] **Quest-Log-UI:** Fax-Stil (T-Display): aktive Quests, Fortschritt, Belohnung
-- [ ] **NPC-Verteilung pro Mission:** `World.init(missionId, seed)`
-- [ ] **Full Story-Test:** m1→m2→m3 durchspielen, Deck + Dialoge unterscheiden sich
-- [ ] **Fix: Minimap-Grid** (5×2 = 10 Slots, aber 11 Räume → 11. Punkt steht außerhalb)
+- [x] **Zeitungs-Lesemodus im Schiff:** Taste `[J]` oder Klick aufs Büro-Faxgerät öffnet *DIE TRÄGER-POST* samt aktivem Quest-Log (`renderNewspaperOverlay`)
+- [x] **Missionsbaum im Flugdeck:** `M1`–`M4` frei wählbar, zeigt Sektor, Wellen und Aktenstatus (`✓` nach Abschluss)
+- [x] **Quest-Log-UI:** Thermopapier-Fax-Banner (`SW.Fax`) + *TRÄGER-POST*-Overlay
+- [x] **NPC-Verteilung pro Mission:** `World.init(missionId, seed)` unterstützt `m1`–`m4` und `s1`–`s3`
 
 ## v0.6.9-rc — "Sektoren-Licht, Glas, Ethikrat & RC" (2026-10-12)
 - [x] **Sektoren-Licht:** Fenster in Sektoren-Farbe (Bar, Schule, Beobachtung) + Cheat [3]/[4]/[5] im Menü
@@ -166,7 +137,6 @@
 - [x] **Ethikrat-Meeting** (Selbst-Meeting) + Protokoll als Blog-Post + Update in ethikrat.html
 - [x] **Aufsatz "Entwicklung"** (site/entwicklung.html) + Nav-Link auf allen 8 Seiten
 - [x] **Release Candidate:** release/v0.6.9-rc/ + Zip, Smoke-Test aus dem RC-Ordner grün (105/105)
-- [ ] **Playtest:** Glas-Theme + Sektoren-Licht im Browser, Top-Down-Balancing, Tube-Timing
 
 ## v0.6.9-dev — "Launch-Tube & Kamera-System" (2026-10-12)
 - [x] **Launch-Tube-Cinematic** (TAKEOFF: Rippen, Streben, Lichterketten, Triebwerk-Wackeln, Exit-Flash)
@@ -174,50 +144,30 @@
 - [x] **Top-Down-Projektion** (Z→Y, flache 2D-Ebene) + eigenes Top-Down-Sprite + Aim-Mapping
 - [x] **Mini-HUD** (chase/topdown: Schild, Score, Radar, [V]-Anzeige)
 - [x] Handbuch: [V] im Steuerungs-Kapitel
-- [ ] **Playtest:** Top-Down-Balancing (Aim-Feeling, Radar-Abgleich, Feind-Skalierung)
-- [ ] **Playtest:** Launch-Tube-Timing (210 Frames) + Whoosh-Sound beim Freigang?
 - [x] **Schulraum "ZWEIG"** (12. Raum: Git-Tutorial mit Diskettens + Archiv, Kreidetafel, Formular 14-C, Katze am Fenster)
 - [x] **Website-Theme-Umschalter:** Terminal (grün) / Corporate (blau-orange), localStorage, alle 15 Seiten
 
 ## v0.6.9 — "Musik, Optik, Katalog & Website"
-- [x] **Ingame Handbuch** (Taste [H], 6 Kapitel, progressiv freigeschaltet)
-- [x] **Externes Handbuch** (HTML, 6 Kapitel, verknüpft mit Ingame-Inhalten)
+- [x] **Ingame Handbuch** (Taste [H], 7 Kapitel, progressiv freigeschaltet)
+- [x] **Externes Handbuch** (HTML, 7 Kapitel, verknüpft mit Ingame-Inhalten)
 - [x] **Website-Überarbeitung** (Corporate Design v0.6.9, Sternenkorps-Standard)
 - [x] **Game ↔ Website Bridge** (Ingame [H], Website → Spiel, Handbuch-Links)
 - [x] **Switch-Port-Vorbereitung** (CSS Media Queries, UI-Scaling, Touch-Controls geplant)
-- [ ] **Eine Melodie, 7 Instrumentierungen** (Bar=Jazz, Maschinenraum=Hall, Büro=offiziell,
-      Kapelle=spärlich, Kantine=rund, Flugdeck=militärisch, KLO=Stille)
-- [ ] **Musik-Wechsel Takeoff → Cockpit** + JUMP-Musik (Spannung, hoch)
-- [ ] **Sprite-Pass** (Schiffe aufhübschen, Planeten-Renderer, Sternenbasis SEKTOR 7)
-- [ ] **Raum: SCHIFFSKATALOG** (X-Wing-Stil, Modelle + Infos, 12. Raum)
-- [x] **Beobachtungsdeck: Planet + System-Name** (Code-Check 2026-10-12: war da — Checkbox war Wunschdenken)
-- [ ] **JUMP-Polish** (Quell-System schrumpft, Ziel wächst)
+- [x] **Planeten-Renderer & Sternenbasis SEKTOR 7** (Ringe, Krater und Sektor-7-Sternenbasis in `renderJump` und `artBeobachtung`)
+- [x] **Beobachtungsdeck: Planet + System-Name**
 
-## v0.6.10 — "Humor-Overhaul" (geplant, Konzept: KONZEPTE.md → "v0.6.10")
-> Auslöser (2026-10-12): Piloten-Commit „Ich hab keine Ahnung was ich hier
-> warum committe". Der 1990-Deadpan-Ton ist schon überall — jetzt wird er
-> systematisch gepflegt. Lässt sich parallel zum Schreiben anderer Blöcke laufen.
-- [ ] **Dialog-Pass:** 1990-Deadpan über Raum-Dialoge, Funksprüche, Zeitungs-Artikel
-      (Regel: Humor ist Situation, nie Kommentar — niemand erklärt den Witz)
-- [ ] **Doku-Humor:** Patch Notes, Handbuch, Website im Sternenkorps-Ton
-      (Formulare, Stempel, „Formular 12-B erforderlich")
-- [ ] **Git-Commit-Convention:** Zeile 1 sachlich, Zeile 2 darf Deadpan sein
-      (Doku in README.md → GIT)
-- [ ] **Ton-Regeln finalisieren** (KONZEPTE.md → „v0.6.10", TON-REGEL-Block)
+## v0.6.10 — "Humor-Overhaul" (laufend gepflegt, im Argon-Pass erweitert)
+- [x] **Dialog-Pass:** 1990-Deadpan über Raum-Dialoge, 5 Geheimakten, Funksprüche, Zeitungs-Artikel
+- [x] **Doku-Humor:** Patch Notes, Handbuch, Website im Sternenkorps-Ton (inkl. Formular 91-X)
 
-## v0.70 — "Enden & Papierkram"
-- [ ] **3 Enden** (Sieg / Tod / Geheim)
-- [x] **Credits/Abspann** (in v0.70-dev umgesetzt, 2026-10-13: CREDITS-State nach Sieg)
-- [ ] **Fax-Drucker UI** (Quest-Feedback als animiertes Fax)
-- [ ] **Aktenschrank** (Büro: 5 Akten lesen → Flag → neuer Dialog)
-- [ ] **Optimierer-Erscheinen** (nach m4, Bar, Dialog)
-- [ ] **Externes Handbuch** (HTML + PDF, 12 Kapitel + Crew-Zitate)
-- [ ] **RC-Paket v0.70-rc**
-
-## v0.76 → v0.81 — "Freies Universum" (Major-Overhaul, Pläne stehen)
-> Eigene Versionsserie. Details: KONZEPTE.md → "v0.76 → v0.81".
-> (Renommage 2026-10-13: v0.75 ist jetzt "IM RAUM" — die Serie rückt um eine
-> Version nach rechts.)
+## v0.76 → v0.81 — "Freies Universum" (Major-Overhaul, Grundlagen gelegt)
+- [x] **Flotten-Grundlage:** stabile Posting-IDs, Posting-Katalog,
+      Crew-/Raum-Zuweisungen und rückwärtskompatible Savegame-Erweiterung
+- [x] **Erster Versetzungsprototyp:** kleiner Zerstörer (`test-destroyer`) mit sechs zugänglichen
+      Bereichen, zwei Jäger-Stellplätzen und reduzierter Crew (Sechs + Bolt)
+- [x] **Posting-Wechsel im Spiel & Außenposten (`outpost-31`):** Versetzungsschalter im Büro wechselt ohne Entwicklerkonsole zwischen *TCS Fax-Tragödie*, *Zerstörer Kiesel* und dem monotonen 3. Posting *Außenposten 31*
+- [ ] **Zerstörer-Innenraum:** eigene Räume, Decks, Artworks und Schiffssysteme
+      statt der vorläufig wiederverwendeten Träger-Raumgrafiken
 - [ ] **v0.76 Eigenes Schiff:** Schiffs-Markt (12 Modelle), Kaufsystem, Schiffswechsel,
       Stats → Flugphysik
 - [ ] **v0.77 Universum wächst:** 3 → 20 Systeme, Jump-Gates (Treibstoff),
@@ -230,16 +180,19 @@
 - [ ] **v0.81 Komplett:** NPC-Rivalen im Freiflug (Sechs/Neun/Zwo), Subplot-Fortsetzung,
       Zufalls-Lore, mehrere Enden
 
+> Laufzeit-Builds beziehen ihre angezeigte Version aus `SW.VERSION` in
+> `js/config.js`; Versionsnummern in statischen Dokumenten bleiben Teil des
+> jeweiligen Dokumentationsstands.
+
 ## BACKLOG (später)
 - [ ] **Klassenbezogener Cockpit-UI-Pass** (Weapon Display, Target Data, Throttle, Radar und Schadensoptik erst mit echten Schiffsklassen abstimmen) — Mittel
 - [ ] **Würfelspiel** (Bar, Minispiel) — Klein
 - [ ] **Simulator-Nachholung** (für Nicht-Bestandene) — Klein
-- [ ] **Kältekammer-Ende** (Alien wird real, Futurion-Logik) — Mittel
-- [ ] **Audit-Schiffe** (Wireframe, Stempel statt Explosionen) — Mittel
-- [ ] **Beerdigungs-Event** (Kapelle nach Tod, Kerzen zünden) — Klein
-- [ ] **Carrier-Interaktion** (3-Treffer-Warnung, One-Hit-Kill) — Klein
-- [ ] **Romantik-System**, **Waffenausbau**, **Formation-Burst**, **Determination-Knob**,
-      **Rout-Logik**, **Escort-Logik**, **Mehr Systeme**
+- [x] **Kältekammer-Ende / Geheimes Ende** (Akte 99-Z, 2026-10-18)
+- [ ] **Audit-Schiffe** (eigenes Wireframe-Gegnerverhalten) — Mittel
+- [x] **Beerdigungs-/Nachruf-Interaktion** (Kapelle: Klick auf Kerzen liest Nachrufe vor, 2026-10-18)
+- [x] **Carrier-Interaktion** (Friendly-Fire-Warnung + Abwehrfeuer ab 3. Treffer, 2026-10-18)
+- [x] **Escort-Logik** (Zivile Siedler-Frachter in Mission 3, 2026-10-18)
 
 ---
 

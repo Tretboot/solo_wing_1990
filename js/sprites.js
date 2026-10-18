@@ -167,7 +167,7 @@ SW.Sprites = {
     s.fillStyle = darkSteel; s.fillRect(0, 14, SW.W, 2);
     s.fillStyle = '#72d7e8'; s.font = '6px monospace';
     s.fillText('FLUG', 6, 10); s.fillText('HP', 69, 10);
-    s.fillText('LASER', 142, 10); s.fillText('FAX-TRAGÖDIE', 242, 10);
+    s.fillText('LASER', 142, 10); s.fillText('UNIT', 242, 10);
     s.fillStyle = '#0f0';
     for (let i=0;i<5;i++) s.fillRect(31+i*6, 5, 4, 6);
     for (let i=0;i<5;i++) s.fillRect(83+i*6, 5, 4, 6);

@@ -296,7 +296,16 @@ SW.Dialogues.smart = {
     events: {
       first_kill: [ { id:'cmd_e1', text:'Erster Abschuss. Angemerktes Notat. Das ist kein Lob. Das ist Buchhaltung.' } ],
       shield_low: [ { id:'cmd_e2', text:'Abschirmladung. Ich sehe es. Sie müssen es nicht. Kommen Sie runter.' } ]
-    }
+    },
+    quest: [
+      { id:'cmd_q_kaffee', text:'Der Kaffee ist... warm. Wie haben Sie das gemacht? Unterschreiben Sie nichts. Trinken Sie nicht davon. Er gehört mir.', req:{questDone:'kaffee_bringen'}, w:5 },
+      { id:'cmd_q_akte', text:'Sie waren am Aktenschrank. Die Akte von Sechs war ganz unten. Lassen Sie sie dort.', req:'flag:akte_gelesen_sechs', w:4 },
+      { id:'cmd_q_kalt', text:'Kältekammer 7 ist gesichert. Das Formular 99-Z habe ich selbst abgeheftet. Ohne Kopie.', req:'flag:kaltkammer_gesichert', w:5 }
+    ],
+    subplot: [
+      { id:'cmd_au1', text:'Die Revision hat heute gefaxt. Vier Seiten Schwarz. Das heißt: Sie kommen näher.', req:['m1_sieg','stage:audit>=1'] },
+      { id:'cmd_opt1', text:'Der Optimierer sitzt in der Bar. Er trinkt nichts. Er zählt Gläser. Reden Sie nicht mit ihm. Oder legen Sie Formular 91-X vor.', req:'stage:optimierer>=1', w:4 }
+    ]
   },
   sechs: {
     base: [
@@ -325,9 +334,13 @@ SW.Dialogues.smart = {
       heard_rap: [ { id:'s6_e2', text:'Rapmusik im Vakuum? Der Kugelschreiber hat keine Ahnung von Physik. Von Rhythmus schon gar nicht.' } ],
       player_down: [ { id:'s6_e3', text:'Ich sag es laut: Es hat sich nicht angefühlt. Ich sag es leise: Es hat sich angefühlt.' } ]
     },
+    quest: [
+      { id:'s6_q_akte', text:'Du hast meine Akte gelesen. Sektor 4, 1988. Ja, ich bin zurückgeflogen. Ohne Befehl. Sag es niemandem. Es ruiniert meinen Ruf.', req:'flag:akte_gelesen_sechs', w:6 }
+    ],
     subplot: [
       { id:'s6_al2', text:'Die Piraten wollten die Kältekammer. Nicht öffnen. HABEN. Das ist der Unterschied. Wer will eine Kältekammer haben?', req:'stage:alien>=2' },
-      { id:'s6_au1', text:'1986-Technik. Die Gegenseite. Ich frag mich, wer die stempelt. Stempeln ist doch 1990.', req:['m1_sieg','stage:audit>=1'] }
+      { id:'s6_au1', text:'1986-Technik. Die Gegenseite. Ich frag mich, wer die stempelt. Stempeln ist doch 1990.', req:['m1_sieg','stage:audit>=1'] },
+      { id:'s6_opt1', text:'Der Typ im grauen Anzug an der Theke hat meinen Sarkasmus als „unproduktive Abwärme“ eingestuft. Ich mag ihn nicht.', req:'stage:optimierer>=1' }
     ]
   },
   neun: {
@@ -357,7 +370,8 @@ SW.Dialogues.smart = {
       shield_low: [ { id:'s9_e2', text:'Meine Hände. Die sind nicht ruhig. Ich habe gezählt. Es wird besser.' } ]
     },
     subplot: [
-      { id:'s9_al2', text:'Ich habe gezählt, wie oft Kältekammer in der Mission vorkam. Es waren vier. Das Formular hatte nur drei.', req:'stage:alien>=2' }
+      { id:'s9_al2', text:'Ich habe gezählt, wie oft Kältekammer in der Mission vorkam. Es waren vier. Das Formular hatte nur drei.', req:'stage:alien>=2' },
+      { id:'s9_opt1', text:'Der Optimierer hat meinen Notizblock geprüft. Er sagt, weißes Papier ist Verschwendung, wenn man nicht zitternd draufschreibt.', req:'stage:optimierer>=1' }
     ]
   },
   zwo: {
@@ -385,7 +399,8 @@ SW.Dialogues.smart = {
       shield_low: [ { id:'s2_e1', text:'Schild unter dreißig. Formular 44-D: Drücken Sie die Daumen. Ich drücke sie.' } ]
     },
     subplot: [
-      { id:'s2_al3', text:'Die Priorität bleibt oben. Auch wenn es jetzt unten atmet.', req:'stage:alien>=3' }
+      { id:'s2_al3', text:'Die Priorität bleibt oben. Auch wenn es jetzt unten atmet.', req:'stage:alien>=3' },
+      { id:'s2_opt1', text:'Neun Dienstjahre. Und dann kommt ein Mann mit Klemmbrett und streicht die dritte Nachkommastelle unseres Schubvektors.', req:'stage:optimierer>=1' }
     ]
   },
   vier: {
@@ -456,7 +471,8 @@ SW.Dialogues.smart = {
       first_kill: [ { id:'bol_e2', text:'Feindliches Blei weniger. Mein Werkzeug ist mir lieber. Aber gut.' } ]
     },
     subplot: [
-      { id:'bol_al1', text:'Kältekammer 7. Die Dichtung ist neu. Seit wann? Ich hab die Rechnung nicht gefunden.', req:'stage:alien>=1' }
+      { id:'bol_al1', text:'Kältekammer 7. Die Dichtung ist neu. Seit wann? Ich hab die Rechnung nicht gefunden.', req:'stage:alien>=1' },
+      { id:'bol_al3', text:'Die Dichtung an Kältekammer 7 schwitzt nicht mehr. Sie atmet mit dem Rumpf. Ich fasse sie nicht an.', req:'stage:alien>=3' }
     ]
   },
   pflaster: {
@@ -531,9 +547,13 @@ SW.Dialogues.smart = {
       player_down: [ { id:'klo_e1', text:'Wasser. Immer Wasser. Ich habe einen Platz frei gelassen. Den brauche ich jetzt.' } ],
       heard_rap: [ { id:'klo_e2', text:'Der Rhythmus. Den hat es schon mal gegeben. Vor dir. Ich habe ihn gewischt. Er kam zurück.' } ]
     },
+    quest: [
+      { id:'klo_q_done', text:'Du hast gewischt. Jetzt weißt du es: In Kältekammer 7 liegt kein Frachtgut. Es ist der erste Pilot von 1984. Er schläft nicht. Er wartet, bis Formular 83-B abläuft.', req:'flag:klo_geputzt', w:6 }
+    ],
     subplot: [
       { id:'klo_al1', text:'In Kältekammer 7 atmet etwas. Zweimal pro Minute. Wie die Rohre.', req:'stage:alien>=1' },
-      { id:'klo_al2', text:'Es atmet. Es hat immer geatmet. Ich wische um es herum. Das ist die ganze Geschichte. Bis jetzt.', req:'stage:alien>=2' }
+      { id:'klo_al2', text:'Es atmet. Es hat immer geatmet. Ich wische um es herum. Das ist die ganze Geschichte. Bis jetzt.', req:'stage:alien>=2' },
+      { id:'klo_al3', text:'Es weiß, dass du es beschützt hast. Das Wasser im Becken zittert zweimal pro Minute. Aus Dank.', req:'stage:alien>=3', w:5 }
     ]
   },
   system: {
@@ -556,12 +576,140 @@ SW.Dialogues.smart = {
       { id:'sys_al2', text:'SYSTEM: Kältekammer 7. Frage: Was atmet? Antwort: Formular 99-Z.', req:'stage:alien>=2' },
       { id:'sys_au1', text:'SYSTEM: Sektor 7. Vier Kontakte. Alle ohne Triebwerk. Alle mit Stempel.', req:['m1_sieg','stage:audit>=1'] }
     ]
+  },
+  optimierer: {
+    base: [
+      { id:'opt_b1', text:'Ihr Träger hat 14 Räume. Rechnerisch genügen 2,4. Ich streiche zuerst die Kapelle. Trauern kann man im Stehen.' },
+      { id:'opt_b2', text:'Ich habe Ihren Treibstoffverbrauch geprüft. Sie weichen Schüssen aus. Das kostet Kurvenenergie. Bitte geradeaus sterben.' },
+      { id:'opt_b3', text:'Formular 91-X liegt vor mir. Wenn Sie Widerspruch gegen die Abwicklung einlegen, versetze ich Sie auf den Testzerstörer.' }
+    ],
+    mission: [
+      { id:'opt_m4s', text:'Sie haben Kältekammer 7 gerettet. Unwirtschaftlich. Die Kühlung frisst 14 Watt. Unterschreiben Sie Formular 91-X oder wir schalten ab.', req:'m4_sieg', w:4 },
+      { id:'opt_m4t', text:'Mission gescheitert, Kältekammer treibt im All. Hervorragend für die Strombilanz.', req:'m4_tod' }
+    ],
+    quest: [
+      { id:'opt_q_widerspruch', text:'Sie haben Formular 91-X tatsächlich eingereicht. Mit Durchschlag. Genehmigt: Strafversetzung auf eigenen Wunsch. Die Akte ist geschlossen.', req:'flag:widerspruch_eingelegt', w:6 }
+    ],
+    subplot: [
+      { id:'opt_sub1', text:'Die Revision 1986 war mein Meisterstück. Ein ganzes Geschwader ersetzt durch einen einzigen Aktenschrank.', req:'stage:optimierer>=1' }
+    ]
+  },
+  ragnhild: {
+    base: [
+      { id:'rag_b1', text:'Die Kantine riecht nach Toner-Leck. Ist \'n Eigengeschmack, das. Gewöhnt euch dran.' },
+      { id:'rag_b2', text:'Suppe ist heute „Experiment“. Wenn sie leuchtet, nicht umrühren.' },
+      { id:'rag_b3', text:'Für den Commander steht hinten noch ein Becher Warmes. Wenn du ins Büro gehst, nimm ihn mit.' }
+    ],
+    quest: [
+      { id:'rag_q_kaffee', text:'Du hast den Becher wirklich ins Büro getragen? Mutig. Der Löffel darin ist vor drei Tagen geschmolzen.', req:'flag:kaffee_abgeholt', w:4 }
+    ]
+  },
+  klopstock: {
+    base: [
+      { id:'klo_p1', text:'In stiller Trauer. In stiller Trauer. Die 48. Rede liegt schon unter der Kerze.' },
+      { id:'klo_p2', text:'Das Kreuz ist aus zwei Schlitzschraubenziehern geschweißt. Bolt wollte sie zurück. Ich sagte: Sie halten jetzt die Ewigkeit.' }
+    ]
+  },
+  scherenflick: {
+    base: [
+      { id:'sch_b1', text:'Dein Haar ist wie ein ungelöstes Formular. Ich schneide es frei. Kostet drei Formulare.' },
+      { id:'sch_b2', text:'Seitengang kurz, Nacken nach Dienstvorschrift 1984. Wer lebt, darf scheiteln.' }
+    ]
+  },
+  archiv: {
+    base: [
+      { id:'arc_b1', text:'*Klicken.* Akte 4471-B. Teil B bleibt leer. *Stempel.*' },
+      { id:'arc_b2', text:'*Klicken.* Ordner „Noch nicht entschieden“ hat 99 Prozent Füllstand.' }
+    ]
+  },
+  loeffel: {
+    base: [
+      { id:'loe_b1', text:'*Klirren.* (Er deutet mit der Kelle auf die dampfende Kaffeekanne am Rand der Theke.)' },
+      { id:'loe_b2', text:'*Klirren.* *Klirren.*' }
+    ]
+  },
+  stille: {
+    base: [
+      { id:'sti_b1', text:'... (Die Kerze neben ihr flackert nicht, obwohl die Lüftung zieht.)' }
+    ]
+  },
+  mutters: {
+    base: [
+      { id:'mut_b1', text:'Das Isolierband ist MEINS. Wenn Bolt sagt, es gehört der Werft, lügt er.' },
+      { id:'mut_b2', text:'Ich schweiße Risse zu, die es laut Bauplan gar nicht gibt.' }
+    ]
+  },
+  spiegel: {
+    base: [
+      { id:'spi_b1', text:'Da draußen. Nichts. Aber im Nichts blinkt manchmal eine Positionslampe von 1984.' },
+      { id:'spi_b2', text:'Sektor 7 ist blau. Sektor 9 ist rot. Sektor 12 ist grau. Am Ende sind es nur drei Farben auf altem Phosphor.' }
+    ]
+  },
+  rohr: {
+    base: [
+      { id:'roh_b1', text:'Die Rohre atmen. Zweimal pro Minute. Genau wie Kältekammer 7. Frag mich nicht warum.' },
+      { id:'roh_b2', text:'Der Kaffee ist kalt, weil die Heizschlange an Kältekammer 7 hängt. Jemand hat das 1986 umgeleitet.' }
+    ]
+  },
+  nadel: {
+    base: [
+      { id:'nad_b1', text:'*Stechen.* (Sie hält ein Pflaster aus dem Jahr 1988 bereit.)' }
+    ]
   }
 };
 
+// ===== AKTEN IM BÜRO-AKTENSCHRANK (5 lesbare Personal- & Geheimakten) =====
+SW.Dialogues.akten = [
+  {
+    id: 'sechs',
+    titel: 'PERSONALAKTE: SECHS (AZ 06-88)',
+    flag: 'akte_gelesen_sechs',
+    lines: [
+      { npc: 'ARCHIV', text: '*Klicken.* PERSONALAKTE SECHS.Eintrag 1988, Sektor 4: Pilot verweigerte den Rückzugsbefehl, um zwei abgestürzte Mechaniker auf dem Außendeck einzusammeln.' },
+      { npc: 'ARCHIV', text: 'Disziplinarvermerk: „Treibt Aufwand ohne Formular.“ Sechs gab zu Protokoll, er habe nur seine Sonnenbrille gesucht. Akte gesperrt.' }
+    ]
+  },
+  {
+    id: 'vorganger',
+    titel: 'ORDNER: VORGÄNGER 1 BIS 4',
+    flag: 'akte_gelesen_vorganger',
+    lines: [
+      { npc: 'ARCHIV', text: '*Klicken.* ORDNER VORGÄNGER 1–4. Nr. 1: Versetzt nach Außenposten 31. Nr. 2: Hat Formular 83-B unterschrieben und wurde sofort pensioniert (ohne Bezüge).' },
+      { npc: 'ARCHIV', text: 'Nr. 3: Beim Versuch, das Faxgerät zu reparieren, in die Papierkathedrale gefallen. Nr. 4: Wurde Pirat. Nannte sich „Der Kugelschreiber“.' }
+    ]
+  },
+  {
+    id: 'kaltkammer',
+    titel: 'SONDERAKTE 99-Z: KÄLTEKAMMER 7',
+    flag: 'akte_gelesen_kaltkammer',
+    lines: [
+      { npc: 'ARCHIV', text: '*Klicken.* SONDERAKTE 99-Z. Frachtmanifest „DER FRACHTER“. Offizielle Ladung: 0 Tonnen Büroklammern. Tatsächliche Masse: 4,2 Tonnen in Kältekammer 7.' },
+      { npc: 'ARCHIV', text: 'Handschriftlicher Zusatz von Rohr (1986): „Atmet 2/min. Braucht die gesamte Abwärme der Kantine. Nicht auftauen — es erinnert sich an 1984.“' }
+    ]
+  },
+  {
+    id: 'revision',
+    titel: 'BERICHT: DIE REVISION VON 1986',
+    flag: 'akte_gelesen_revision',
+    lines: [
+      { npc: 'ARCHIV', text: '*Klicken.* REVISION 1986. Die feindlichen d_b-Drohnen in Sektor 7 sind keine Außerirdischen. Es sind automatisierte Buchprüfungs-Sonden der eigenen Zentrale.' },
+      { npc: 'ARCHIV', text: 'Ihr Feuerbefehl lautet: „Streichung beweglicher Posten.“ Unser Träger existiert nur noch, weil das Fax zur Stilllegung seit 1988 im Papierstau steckt.' }
+    ]
+  },
+  {
+    id: 'formular91x',
+    titel: 'FORMULAR 91-X: WIDERSPRUCH',
+    flag: 'widerspruch_eingelegt',
+    lines: [
+      { npc: 'ARCHIV', text: '*Klicken.* FORMULAR 91-X: Widerspruch gegen die restlose Optimierung der TCS Fax-Tragödie. Hiermit eingelegt und abgestempelt.' },
+      { npc: 'COMMANDER', text: 'Sie haben Formular 91-X gestempelt? Gut. Der Optimierer wird toben. Und falls er uns strafversetzt: Mein Tisch am Versetzungsschalter ist bereit.' }
+    ]
+  }
+];
+
 // ===== SUBPLOT-STUFEN (A/B-Story-Checks) =====
 // alien: 1 = erste Hinweise (Klo/Bolt/System wispern), 2 = nach m4 (Piraten
-//       wollten es haben), 3 = aufgedeckt (Quest kaltkammer_beschützen erledigt).
+//       wollten es haben), 3 = aufgedeckt (Quest kaltkammer_beschutzen erledigt).
 // audit: 1 = nach m1 (Sektor 7: Stempel statt Waffen).
 // optimierer: 0 = noch nie gehört. 1 = erscheint nach m4 (v0.70).
 // Stufen steigen NUR über SW.SmartDialogues.setStage() (in js/quests.js,
@@ -571,3 +719,4 @@ SW.Dialogues.smartSubplots = {
   audit: { start: 0 },
   optimierer: { start: 0 }
 };
+

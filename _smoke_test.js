@@ -2,8 +2,7 @@
 // Lädt alle Skripte in index.html-Reihenfolge in einer Node-VM (DOM-Stubs)
 // und fährt die State Machine durch: INTRO → SHIP → CHEAT_MAP → MENU →
 // COCKPIT (Nav-Karte + Roll) → LANDING → HANGAR → DEBRIEFING → CREDITS → SHIP.
-// Skript-Liste AMT 29 Dateien = index.html (2026-10-13 synchronisiert:
-// + js/savegame.js (Save-Load, Quartier-Deckplan und Schema-Migration).
+// Skript-Liste muss der Lade-Reihenfolge aus index.html entsprechen.
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -65,10 +64,10 @@ vm.createContext(sandbox);
 // --- Skripte in index.html-Reihenfolge laden ---
 const scripts = [
   'js/config.js', 'data/missions.js', 'data/dialogues.js', 'data/systems.js',
-  'data/crew.js', 'data/rooms.js', 'data/lore.js', 'data/ships.js',
+  'data/crew.js', 'data/rooms.js', 'data/postings.js', 'data/lore.js', 'data/ships.js',
   'data/quests.js', 'data/akademie.js',
   'js/audio.js', 'js/tts.js', 'js/npc.js', 'js/input.js', 'js/engine.js', 'js/sprites.js',
-  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/quests.js', 'js/dialogue.js', 'js/savegame.js',
+  'js/entities.js', 'js/systems.js', 'js/ship.js', 'js/transfers.js', 'js/quests.js', 'js/dialogue.js', 'js/savegame.js',
   'js/newspaper.js', 'js/akademie.js', 'js/intro.js', 'js/ui.js', 'js/states.js',
   'js/manual.js', 'js/main.js'
 ];
@@ -84,6 +83,14 @@ for (const s of scripts) {
 // SW ist ein globaler `const` (globaler lexikalischer Scope, kein Sandbox-Property)
 const SW = vm.runInContext('SW', sandbox);
 check('SW namespace existiert', !!SW);
+check('Version: eine zentrale Quelle', SW.VERSION === '0.75-dev');
+check('Intro-Musik: getrennte Titel- und Asteroiden-Themen vorhanden',
+  typeof SW.Audio.startMusic === 'function' &&
+  SW.Intro.toPhase1.toString().includes("startMusic('asteroid')") &&
+  SW.Intro.toPhase2.toString().includes('stopMusic()'));
+check('Musik: Intro-Loop und Musikschalter nutzen dieselbe API',
+  SW.Audio.playIntroMusic.toString().includes("startMusic('title')") &&
+  typeof SW.Audio.toggleMusic === 'function');
 function pump(n) { for (let i = 0; i < n; i++) { const cb = rafCb; rafCb = null; if (cb) cb(); } }
 
 // --- 1. Start in INTRO ---
@@ -208,6 +215,8 @@ check('Savegame: alter Kapitaensraum-Alias bleibt kompatibel',
   SW.SaveGame._canonicalRoomId('captains_quarters') === 'player_quarters');
 check('Savegame: Legacy-Spielstandsdaten bleiben erhalten', SW.World.pilotName === 'TESTPILOT' &&
   SW.World.systemId === 's2' && SW.Game.score === 42 && SW.World.missionProgress[0] === 'm1');
+check('Savegame: alte Spielstände behalten das bisherige Träger-Posting',
+  SW.World.postingId === 'fax-traegodie' && SW.World.transferHistory.length === 0);
 SW.Player.init();
 check('Savegame: Legacy-Saves ohne Systemdaten starten mit intakten Systemen',
   ['engines','weapons','shields','sensors'].every(key => SW.Player.systems[key] === 100));
@@ -223,6 +232,29 @@ SW.Ship.currentRoom = 'bar';
 SW.Player.systems.engines=100;
 check('Savegame: gespeicherte Raumposition wird wiederhergestellt',
   !!SW.SaveGame.load() && SW.Ship.currentRoom === 'player_quarters' && SW.Player.systems.engines === 63);
+check('Savegame: Version stammt aus zentraler Konfiguration',
+  JSON.parse(storedValues.get(SW.SaveGame.STORAGE_KEY)).version === SW.VERSION);
+check('Posting: unbekannte ID lässt Zuweisung unverändert',
+  SW.Transfers.transferTo('not-a-posting', 'Test') === false && SW.World.postingId === 'fax-traegodie');
+check('Posting: Testzerstörer hat zwei Jäger und begrenzte Crew',
+  SW.Transfers.transferTo('test-destroyer', 'Prototyp-Test') &&
+  SW.Transfers.getCurrentPosting().stationedCraft.length === 2 &&
+  SW.World.npcInRoom('bar').join(',') === 'Sechs' &&
+  SW.World.npcInRoom('maschinenraum').join(',') === 'Bolt' &&
+  !SW.Transfers.canVisit('kapelle'));
+check('Posting: nicht zugängliche Räume werden aus der großen Karte entfernt',
+  (SW.Ship.renderCheatMap(ctxStub), SW.Ship._cheatMapRects.every(rect =>
+    SW.Transfers.canVisit(rect.room))));
+check('Savegame: Posting und Transferhistorie werden additiv gespeichert',
+  SW.SaveGame.save() &&
+  JSON.parse(storedValues.get(SW.SaveGame.STORAGE_KEY)).world.postingId === 'test-destroyer' &&
+  JSON.parse(storedValues.get(SW.SaveGame.STORAGE_KEY)).world.transferHistory.length === 1);
+SW.Transfers.transferTo('fax-traegodie', 'Test abgeschlossen');
+check('Savegame: Posting und Transferhistorie werden wiederhergestellt',
+  !!SW.SaveGame.load() && SW.World.postingId === 'test-destroyer' &&
+  SW.World.transferHistory.length === 1);
+SW.Transfers.transferTo('fax-traegodie', 'Smoke-Test zurücksetzen');
+SW.Ship.currentRoom = 'bar';
 SW.Player.systems.shields=50;
 check('Schaden: Schildsystem senkt die maximale Ladung', SW.Player.shieldCapacity() === SW.SHIELD_MAX*0.75);
 SW.Player.systems.weapons=0;
@@ -366,13 +398,28 @@ check('IM RAUM: Sechs-Idle-Funkzeilen vorhanden', Array.isArray(SW.Dialogues.win
     SW.Game.frame = 500;
     check('IM RAUM (NAV): frische Mission im COCKPIT', SW.Game.state === 'COCKPIT');
     check('IM RAUM (NAV): Autopilot mit 4 WPs initialisiert', SW.Autopilot.navPoints.length === 4 && SW.Autopilot.active === false);
-    // Welle 0 → WP1 (z 250)
+    // Welle 0 → WP1 (z 250), danach werden die Gegner gestaffelt eingesetzt.
     pump(3);
-    check('IM RAUM (NAV): Welle 0 am WP1 (z≈250)', SW.Enemies.list.length >= 2 && SW.Enemies.list.every(e => Math.abs(e.z - 250) < 30));
+    check('IM RAUM (NAV): Welle 0 startet mit erstem Gegner am WP1 (z≈250)',
+      SW.Enemies.list.length === 1 && Math.abs(SW.Enemies.list[0].z - 250) < 30);
+    const firstWaveStagger = SW.Missions.get('m1').waves[0].staggerFrames;
+    SW.Enemies.list[0].alive = false;
+    pump(firstWaveStagger - SW.Enemies.waveElapsed - 1);
+    check('IM RAUM (NAV): aktive Welle wartet trotz leerem Feld auf Spawn-Queue',
+      SW.Enemies.waveActive && SW.Enemies.waveIndex === 0 && SW.Enemies.pendingSpawns.length === 1);
+    pump(1);
+    check('IM RAUM (NAV): gestaffelte Welle setzt zweiten Gegner zeitgenau ein',
+      SW.Enemies.list.length === 2 &&
+      SW.Enemies.waveElapsed === firstWaveStagger &&
+      SW.Enemies.list[1].t === 1 &&
+      SW.Enemies.list[0].alive === false);
     // Welle 0 erledigt (Spiel-Logik zählt die Welle ab) → Welle 1 am WP2 (z 1500)
     for (const e of SW.Enemies.list) e.alive = false;
     for (let i = 0; i < 420; i++) pump(1);
     check('IM RAUM (NAV): Welle 1 am WP2 (z≈1500)', SW.Enemies.list.some(e => e.alive && Math.abs(e.z - 1500) < 60));
+    check('IM RAUM (NAV): Missionswelle hat gemischte Gegnertypen und Staffelung',
+      SW.Missions.get('m1').waves[1].groups.map(group => group.ship).join(',') === 'Jäger,d_b' &&
+      SW.Missions.get('m1').waves[1].staggerFrames > 0);
     // Autopilot [T]: Flyby zum nächsten WP (Burn auf der Ausstreckung)
     SW.Player.frontShield = SW.SHIELD_MAX; SW.Player.rearShield = SW.SHIELD_MAX;
     SW.Autopilot.toggle();
@@ -633,6 +680,72 @@ if (inRc) {
     fs.existsSync(path.join(rcDir, 'data', 'missions.js')) && fs.existsSync(path.join(rcDir, 'site', 'style.css')) &&
     fs.existsSync(path.join(rcDir, '_smoke_test.js')));
   check('RC: Zip vorhanden (release/v0.6.9-rc.zip)', fs.existsSync(path.join(root, 'release', 'v0.6.9-rc.zip')));
+
+  // --- 18. Gemini 4 Argon Pass (v0.75 Integration, Missionsbaum, 3 Enden, Target-Bracket) ---
+  SW.Transfers.transferTo('fax-traegodie', 'Test');
+  check('Argon: Stamm-Crew (Commander, Sechs, Neun, Zwo) auf Fax-Tragödie an Bord',
+    SW.World.npcInRoom('buerro').includes('Commander') &&
+    SW.World.npcInRoom('bar').includes('Sechs') &&
+    SW.World.npcInRoom('bar').includes('Neun') &&
+    SW.World.npcInRoom('bar').includes('Zwo'));
+  SW.Game.setState('SHIP');
+  SW.Ship.currentRoom = 'flugdeck';
+  pump(2);
+  check('Argon: Flugdeck rendert 4 Missions-Buttons (M1–M4)',
+    Array.isArray(SW.Ship._missionRects) && SW.Ship._missionRects.length === 4);
+  const m3Btn = SW.Ship._missionRects[2];
+  SW.Ship.handleClick(m3Btn.x + 2, m3Btn.y + 2);
+  check('Argon: Klick auf M3 im Flugdeck wählt m3', SW.Ship.selectedMissionId === 'm3');
+  const stRect = SW.Ship._startRect;
+  SW.Ship.handleClick(stRect.x + 2, stRect.y + 2);
+  check('Argon: Phantom-Start-Bug behoben (START im Flugdeck öffnet BRIEFING_BOARD)',
+    SW.Game.state === 'BRIEFING_BOARD' && SW.Game.mission && SW.Game.mission.id === 'm3');
+  check('Argon: Mission m3 hat zivile Siedler-Eskorte in Welle 0',
+    SW.Missions.get('m3').waves[0].civilian === true);
+
+  // Büro-Hotspots: 5 Geheimakten, Fax/Zeitung, 3. Posting (outpost-31)
+  SW.Game.setState('SHIP');
+  SW.Ship.currentRoom = 'buerro';
+  pump(2);
+  check('Argon: Büro hat Aktenschrank-, Fax- und Versetzungs-Hotspots',
+    !!SW.Ship._aktenschrankRect && !!SW.Ship._faxRect && !!SW.Ship._transferRect);
+  check('Argon: 5 lesbare Geheimakten vorhanden',
+    Array.isArray(SW.Dialogues.akten) && SW.Dialogues.akten.length === 5);
+  SW.Ship.handleClick(SW.Ship._aktenschrankRect.x + 2, SW.Ship._aktenschrankRect.y + 2);
+  check('Argon: Klick auf Aktenschrank öffnet Akten-Dialog & setzt akten_gelesen',
+    SW.Ship.dialogueActive === true && SW.Quests.flags.akten_gelesen === true);
+  SW.Ship.dialogueActive = false;
+  SW.Ship.handleClick(SW.Ship._faxRect.x + 2, SW.Ship._faxRect.y + 2);
+  pump(2);
+  check('Argon: Klick aufs Büro-Fax öffnet DIE TRÄGER-POST Overlay', SW.Ship.newspaperOpen === true);
+  SW.Ship.newspaperOpen = false;
+  check('Argon: 3. Posting (outpost-31 / Außenposten 31) im Katalog',
+    !!SW.Transfers.getById('outpost-31') && SW.Transfers.transferTo('outpost-31', 'Test') === true);
+  SW.Transfers.transferTo('fax-traegodie', 'Test');
+
+  // Optimierer nach m4_sieg in der Bar + 3 Enden (sieg / tod / geheim)
+  SW.SmartDialogues.noteMission('m4', 'sieg');
+  check('Argon: Optimierer erscheint nach m4_sieg in der Bar & hat Gesicht im Registry',
+    SW.World.npcInRoom('bar').includes('Optimierer') && !!SW.NPC.registry.optimierer);
+  SW.Game.victory = true;
+  SW.Quests.flags.klo_wahrheit_gehoert = true;
+  check('Argon: 3 Enden — Geheimes Ende (Akte 99-Z) wird erkannt', SW.Game.getEndingType() === 'geheim');
+  SW.Game.setState('DEBRIEFING');
+  pump(2);
+  SW.Game.startCredits();
+  check('Argon: Geheimes Ende baut speziellen Abspann',
+    SW.Game._credits && SW.Game._credits.lines.some(l => String(l.t || '').includes('GEHEIMES ENDE')));
+
+  // WC1 Target-Bracket & Fax-Banner im Flug
+  SW.Game.startMission('m1');
+  SW.Game.setState('COCKPIT');
+  SW.Fax.push('FAX-TEST', 'Formular 91-X gedruckt.');
+  pump(3);
+  check('Argon: Target-Bracket & Fax-Overlay rendern im Cockpit fehlerfrei',
+    typeof SW.UI.renderTargetBracket === 'function' && !!SW.Fax.current);
+  check('Argon: Website dokumentiert Gemini 4 Argon Pass',
+    fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8').includes('Gemini 4 Argon') &&
+    fs.readFileSync(path.join(root, 'site', 'entwicklung.html'), 'utf8').includes('GEMINI 4 ARGON'));
 }
 
 console.log(failures === 0 ? '\nALLE TESTS OK' : '\n' + failures + ' TESTS FEHLGESCHLAGEN');

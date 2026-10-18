@@ -6,13 +6,18 @@ SW.World = {
   seed: 1990,
   systemId: 's1',
   shipSystems: { engines:100, weapons:100, shields:100, sensors:100 },
+  pilotName: null,
+  postingId: 'fax-traegodie',
+  transferHistory: [],
   nachrufe: [],       // gesammelte Nachrufe (Kapelle)
   missionResult: null, // 'sieg' | 'tod' | null
 
   init(systemId, seed) {
-    this.systemId = systemId || 's1';
+    const mMap = { m1: 's1', m2: 's2', m3: 's3', m4: 's2' };
+    this.systemId = mMap[systemId] || systemId || 's1';
     this.seed = seed || 1990;
     this.missionResult = null;
+    if (!SW.Transfers.getById(this.postingId)) this.postingId = SW.Transfers.DEFAULT_POSTING_ID;
     if (!SW.Player.isValidSystems(this.shipSystems)) this.shipSystems = SW.Player.defaultSystems();
     // Nachrufe: aus gefallenen Piloten (Scoreboard) + generisch
     this.nachrufe = [];
@@ -52,14 +57,24 @@ SW.World = {
   npcInRoom(roomId) {
     const room = SW.Rooms.find(r => r.id === roomId);
     if (!room) return [];
-    const base = room.npcs.slice();
+    const posting = SW.Transfers.getCurrentPosting();
+    const assigned = posting.crewRooms && posting.crewRooms[roomId];
+    const base = (assigned || room.npcs).filter(name => posting.crew.indexOf(name) >= 0);
+    // Nach m4_sieg (bzw. Subplot-Stufe optimierer >= 1) taucht der Optimierer in der Bar auf
+    const optActive = (SW.SmartDialogues && SW.SmartDialogues.stage('optimierer') >= 1) ||
+      (this.missionResults && this.missionResults.m4 === 'sieg');
+    if (roomId === 'bar' && optActive && posting.crew.indexOf('Optimierer') >= 0 && base.indexOf('Optimierer') < 0) {
+      if (base.length >= 3) base[2] = 'Optimierer';
+      else base.push('Optimierer');
+      return base;
+    }
     // Je nach Seed: ein Pilot "gastiert" in diesem Raum (deterministisch)
     const h = this._hash(roomId);
     const guests = ['Sechs','Neun','Zwo','Vier'];
     const guest = guests[h % guests.length];
     // Gast nur, wenn er nicht schon Basis-NPC ist und nicht gefallenen
     const guestData = SW.Scoreboard.find(p => p.name === guest);
-    if (guestData && guestData.status !== 'gefallen' && base.indexOf(guest) < 0) {
+    if (posting.crew.indexOf(guest) >= 0 && guestData && guestData.status !== 'gefallen' && base.indexOf(guest) < 0) {
       // Je nach Missionsergebnis: nach Sieg sitzt Sechs in der Bar, nach Tod Neun in der Kapelle
       if (this.missionResult === 'sieg' && roomId === 'bar' && guest !== 'Sechs') {
         base.push('Sechs');
@@ -81,13 +96,14 @@ SW.World = {
 };
 
 // ===== SOLO WING 1990 — SHIP INTERIOR (Phase 6.1) =====
-// Der Träger als "fliegendes Dorf". 10 statische Räume.
+// Der Träger als "fliegendes Dorf". 14 statische Räume.
 // Tür-Klick-Navigation, Minimap, prozeduraler Artstyle pro Raum, NPC-Dialoge.
 // Konferenz: No Thinking + Lead Story Writer.
 
 SW.Ship = {
   DECK_NAMES: { 1: 'WOHNDECK', 2: 'DIENSTDECK', 3: 'OBERDECK' },
   currentRoom: 'bar',
+  selectedMissionId: 'm1',
   dialogueActive: false,
   dialogueLines: [],
   dialogueIndex: 0,
@@ -97,6 +113,15 @@ SW.Ship = {
   _frame: 0,
   _doorRects: [],
   _npcRects: [],
+  _missionRects: [],
+  _aktenschrankRect: null,
+  _faxRect: null,
+  _transferRect: null,
+  _kaffeeRect: null,
+  _moppRect: null,
+  _kerzeRect: null,
+  _akteIdx: 0,
+  newspaperOpen: false,
   _lockedQuartersRects: [],
   _ownQuartersRect: null,
   _roomNotice: null,
@@ -106,14 +131,18 @@ SW.Ship = {
   _saveRects: [],        // Panel-Optionen
 
   init(systemId) {
-    this.currentRoom = 'bar';
     this._frame = 0;
     this.dialogueActive = false;
     this.talkingNPC = null;
     this.savePanelOpen = false; // Raumwechsel schließt das Save-Panel
+    this.newspaperOpen = false;
+    if (systemId && /^m\d$/.test(systemId)) this.selectedMissionId = systemId;
+    else if (SW.Game && SW.Game.mission && SW.Game.mission.id) this.selectedMissionId = SW.Game.mission.id;
     // World-State initialisieren (Seed = Mission-Id + Zeit)
     const seed = (SW.Game.mission?.id || 'm1').charCodeAt(1) * 1000 + Math.floor(Date.now()/100000) % 1000;
     SW.World.init(systemId, seed);
+    const posting = SW.Transfers.getCurrentPosting();
+    this.currentRoom = SW.Transfers.canVisit(this.currentRoom) ? this.currentRoom : posting.startRoom;
   },
 
   getRoom() { return SW.Rooms.find(r => r.id === this.currentRoom) || SW.Rooms[0]; },
@@ -128,11 +157,17 @@ SW.Ship = {
   navigateTo(roomId) {
     const room = this.getRoom();
     if (room.toren.indexOf(roomId) < 0) return; // nur über Türen
+    if (!SW.Transfers.canVisit(roomId)) {
+      this.showRoomNotice('ZUGANGSKONTROLLE', 'Kein Zugriff. Für dieses Deck fehlt die Zuweisung.');
+      return;
+    }
     this.currentRoom = roomId;
     this._saveTerminalRect = null;
     this._roomNotice = null;
     this.dialogueActive = false;
     this.talkingNPC = null;
+    this.newspaperOpen = false;
+    if (SW.Quests) SW.Quests.tick({ typ: 'raum', raum: roomId });
     SW.Audio.playCommBeep();
   },
 
@@ -149,6 +184,39 @@ SW.Ship = {
     this.dialogueActive = true;
     const line = lines[0];
     SW.TTS.speak(line.text, line.npc);
+  },
+
+  // Smart-Dialog für einen angeklickten NPC + automatische Quest-Vergabe
+  startNpcDialogue(npcName) {
+    const room = this.getRoom();
+    const npcId = SW.NPC ? SW.NPC.resolve(npcName) : String(npcName || '').toLowerCase();
+    const speaker = String(npcName || 'SYSTEM').toUpperCase();
+    if (SW.Quests && SW.Quests.startForNpc) {
+      SW.Quests.startForNpc(speaker);
+    }
+    const lines = [];
+    if (SW.SmartDialogues && npcId && SW.Dialogues.smart && SW.Dialogues.smart[npcId]) {
+      const s1 = SW.SmartDialogues.get(npcId);
+      const s2 = SW.SmartDialogues.get(npcId);
+      if (s1) lines.push({ npc: speaker, text: s1 });
+      if (s2 && s2 !== s1) lines.push({ npc: speaker, text: s2 });
+    }
+    const roomLines = (SW.Dialogues.rooms[room.id] || []).filter(l => String(l.npc).toUpperCase() === speaker);
+    if (roomLines.length > 0) {
+      const pick = roomLines[this._frame % roomLines.length];
+      if (!lines.some(l => l.text === pick.text)) lines.push(pick);
+    }
+    if (lines.length === 0) {
+      this.startDialogue();
+      return;
+    }
+    this.dialogueLines = lines;
+    this.dialogueIndex = 0;
+    this.dialoguePage = 0;
+    this.charIndex = 0;
+    this.typing = true;
+    this.dialogueActive = true;
+    SW.TTS.speak(lines[0].text, lines[0].npc);
   },
 
   advanceDialogue() {
@@ -192,8 +260,9 @@ SW.Ship = {
 
   // ===== KLIK-BEHANDLUNG =====
   handleClick(mx, my) {
-    // Save/Load-Panel: Overlay hat Vorrang
+    // Save/Load-Panel oder Träger-Post-Overlay hat Vorrang
     if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
+    if (this.newspaperOpen) { this.newspaperOpen = false; SW.Audio.playCommBeep(); return; }
     if (this.currentRoom === 'quartiere') {
       if (this._ownQuartersRect && this._contains(this._ownQuartersRect, mx, my)) {
         this.navigateTo('player_quarters');
@@ -228,13 +297,100 @@ SW.Ship = {
         return;
       }
     }
-    // START-Button im Flugdeck
-    if (this.currentRoom==='flugdeck' && this._startRect) {
-      const s=this._startRect;
-      if (mx>=s.x && mx<=s.x+s.w && my>=s.y && my<=s.y+s.h) {
+    // Missionswahl + START-Button im Flugdeck
+    if (this.currentRoom === 'flugdeck') {
+      if (this._missionRects) {
+        for (const mr of this._missionRects) {
+          if (this._contains(mr, mx, my)) {
+            this.selectedMissionId = mr.id;
+            SW.Game.mission = SW.Missions.get(mr.id);
+            const sysId = SW.Game.mission.systemId || 's1';
+            SW.World.systemId = sysId;
+            SW.Audio.playCommBeep();
+            this.showRoomNotice('FLUGLEITUNG', 'Einsatz gewählt: ' + SW.Game.mission.name);
+            return;
+          }
+        }
+      }
+      if (this._startRect && this._contains(this._startRect, mx, my)) {
+        const mId = this.selectedMissionId || (SW.Game.mission && SW.Game.mission.id) || 'm1';
+        if (mId === 'm4' && SW.Quests) SW.Quests.start('kaltkammer_beschutzen');
+        SW.Game.prepareMission(mId);
         SW.Game.setState('BRIEFING_BOARD');
         return;
       }
+    }
+    // Interaktive Raum-Objekte (Büro: Aktenschrank, Fax/Zeitung, Versetzung)
+    if (this.currentRoom === 'buerro') {
+      if (this._faxRect && this._contains(this._faxRect, mx, my)) {
+        this.newspaperOpen = true;
+        SW.Audio.playCommBeep();
+        return;
+      }
+      if (this._aktenschrankRect && this._contains(this._aktenschrankRect, mx, my)) {
+        const akten = SW.Dialogues.akten || [];
+        if (akten.length > 0) {
+          if (SW.Quests && SW.Quests.status('akte_sechs') === 'available') SW.Quests.start('akte_sechs');
+          const akte = akten[this._akteIdx % akten.length];
+          this._akteIdx++;
+          if (SW.Quests && akte.flag) SW.Quests.setFlag(akte.flag, true);
+          if (SW.Quests) SW.Quests.setFlag('akten_gelesen', true);
+          if (SW.Quests && akten.every(a => !a.flag || SW.Quests.getFlag(a.flag))) {
+            SW.Quests.setFlag('alle_akten_gelesen', true);
+          }
+          this.dialogueLines = akte.lines;
+          this.dialogueIndex = 0;
+          this.dialoguePage = 0;
+          this.charIndex = 0;
+          this.typing = true;
+          this.dialogueActive = true;
+          SW.TTS.speak(akte.lines[0].text, akte.lines[0].npc);
+        }
+        return;
+      }
+      if (this._transferRect && this._contains(this._transferRect, mx, my)) {
+        const order = ['fax-traegodie', 'test-destroyer', 'outpost-31'];
+        const cur = (SW.World && SW.World.postingId) || 'fax-traegodie';
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        if (SW.Transfers.transferTo(next, 'Formular 91-X Versetzungsschalter')) {
+          const p = SW.Transfers.getCurrentPosting();
+          this.showRoomNotice('VERSETZUNG', 'Neue Zuteilung: ' + p.name + ' (' + p.stationedCraft.length + ' Schiffe)');
+        }
+        return;
+      }
+    }
+    // Kantine: Warmer Kaffee für den Commander
+    if (this.currentRoom === 'kantine' && this._kaffeeRect && this._contains(this._kaffeeRect, mx, my)) {
+      if (SW.Quests) {
+        SW.Quests.start('kaffee_bringen');
+        SW.Quests.setFlag('kaffee_abgeholt', true);
+      }
+      this.showRoomNotice('KANTINE', 'Einziger warmer Becher Kaffee aufgenommen. Ziel: Kapitän-Büro.');
+      return;
+    }
+    // Klo: Wischmopp benutzen
+    if (this.currentRoom === 'klo' && this._moppRect && this._contains(this._moppRect, mx, my)) {
+      if (SW.Quests) {
+        SW.Quests.start('klo_putzen');
+        SW.Quests.setFlag('klo_geputzt', true);
+      }
+      this.dialogueLines = [
+        { npc: 'KLO', text: 'Du hast gewischt. Der Toner geht nicht weg, aber er glänzt jetzt.' },
+        { npc: 'KLO', text: 'Hör zu: In Kältekammer 7 liegt der erste Pilot von 1984. Er atmet zweimal pro Minute, weil Formular 83-B noch keine Unterschrift hat.' }
+      ];
+      this.dialogueIndex = 0; this.dialoguePage = 0; this.charIndex = 0; this.typing = true; this.dialogueActive = true;
+      SW.TTS.speak(this.dialogueLines[0].text, 'KLO');
+      return;
+    }
+    // Kapelle: Kerzenbank / Nachrufe lesen
+    if (this.currentRoom === 'kapelle' && this._kerzeRect && this._contains(this._kerzeRect, mx, my)) {
+      const nachrufe = (SW.World && SW.World.nachrufe) || [];
+      if (nachrufe.length > 0) {
+        this.dialogueLines = nachrufe.map(n => ({ npc: 'KLOPSTOCK', text: 'NACHRUF ' + n.name.toUpperCase() + ': ' + n.text }));
+        this.dialogueIndex = 0; this.dialoguePage = 0; this.charIndex = 0; this.typing = true; this.dialogueActive = true;
+        SW.TTS.speak(this.dialogueLines[0].text, 'KLOPSTOCK');
+      }
+      return;
     }
     // Tür geklickt?
     for (const d of this._doorRects) {
@@ -247,7 +403,7 @@ SW.Ship = {
     for (const n of this._npcRects) {
       if (mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + n.h) {
         this.talkingNPC = n.name;
-        this.startDialogue();
+        this.startNpcDialogue(n.name);
         return;
       }
     }
@@ -270,6 +426,13 @@ SW.Ship = {
     const room = this.getRoom();
     this._doorRects = [];
     this._npcRects = [];
+    this._missionRects = [];
+    this._aktenschrankRect = null;
+    this._faxRect = null;
+    this._transferRect = null;
+    this._kaffeeRect = null;
+    this._moppRect = null;
+    this._kerzeRect = null;
     this._lockedQuartersRects = [];
     this._ownQuartersRect = null;
 
@@ -304,6 +467,10 @@ SW.Ship = {
     if (this.dialogueActive) this.renderDialogue(ctx, room);
     else if (this._roomNotice) this.renderRoomNotice(ctx, room);
     else this.renderHint(ctx, room);
+    // Fax-Benachrichtigung (Thermopapier oben rechts)
+    if (SW.Fax) SW.Fax.render(ctx);
+    // Schiffszeitung & Auftrags-Journal Overlay ([J] oder Klick auf Fax im Büro)
+    if (this.newspaperOpen) this.renderNewspaperOverlay(ctx, room);
     // Save/Load-Panel — oberstes Overlay
     if (this.savePanelOpen) this.renderSavePanel(ctx, room);
   },
@@ -389,7 +556,7 @@ SW.Ship = {
     ctx.fillStyle = '#aebdcc';
     ctx.font = '4px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText('FAX-TRAGÖDIE  /  DECK ' + room.deck, SW.W - 12, 197);
+    ctx.fillText(SW.Transfers.getCurrentPosting().name + '  /  DECK ' + room.deck, SW.W - 12, 197);
     ctx.restore();
   },
 
@@ -433,21 +600,48 @@ SW.Ship = {
     // Große Konsole
     ctx.fillStyle='#0a1520'; ctx.fillRect(20,40,280,100);
     ctx.strokeStyle=room.akzent; ctx.lineWidth=1; ctx.strokeRect(20,40,280,100);
-    // Screens
+    const mIds = ['m1', 'm2', 'm3', 'm4'];
+    const selId = this.selectedMissionId || 'm1';
+    const selM = (SW.Missions && SW.Missions[selId]) || (SW.Missions && SW.Missions.m1) || { name: 'SEKTOR 7', systemId: 's1', waves: [] };
+    const sysMap = { s1: 'SEKTOR 7', s2: 'SEKTOR 9', s3: 'SEKTOR 12' };
+    // Screens (dynamisch für gewählte Mission)
+    const screenTexts = [
+      ['EINSATZ-ID: ' + selId.toUpperCase(), (selM.name || '').substring(0, 17), 'WELLEN: ' + (selM.waves ? selM.waves.length : 1)],
+      ['ZIELGEBIET:', sysMap[selM.systemId] || 'SEKTOR 7', 'WINGMAN: SECHS'],
+      ['STATUS: BEREIT', (SW.World && SW.World.missionResults && SW.World.missionResults[selId]) ? ('AKTE: ' + SW.World.missionResults[selId].toUpperCase()) : 'AKTE: OFFEN', 'FORMULAR 12-A OK']
+    ];
     for(let i=0;i<3;i++){ const sx=30+i*90;
-      ctx.fillStyle='#001a1a'; ctx.fillRect(sx,50,80,40);
-      ctx.strokeStyle='#00ff00'; ctx.strokeRect(sx,50,80,40);
-      ctx.fillStyle='#0f0'; ctx.font='5px monospace';
-      ctx.fillText('SYSTEM OK', sx+5, 60);
-      ctx.fillText('KURS: SEKTOR', sx+5, 70);
-      ctx.fillText((7+i)+'  LOCK', sx+5, 80);
+      ctx.fillStyle='#001a1a'; ctx.fillRect(sx,46,80,34);
+      ctx.strokeStyle='#00ff00'; ctx.strokeRect(sx,46,80,34);
+      ctx.fillStyle='#0f0'; ctx.font='4px monospace';
+      ctx.fillText(screenTexts[i][0], sx+4, 55);
+      ctx.fillText(screenTexts[i][1], sx+4, 64);
+      ctx.fillText(screenTexts[i][2], sx+4, 73);
+    }
+    // Missions-Auswahl-Buttons (M1–M4)
+    this._missionRects = [];
+    for (let i = 0; i < mIds.length; i++) {
+      const id = mIds[i];
+      const mx = 34 + i * 48, my = 84, mw = 44, mh = 12;
+      const isSel = id === selId;
+      const done = SW.World && ((Array.isArray(SW.World.missionProgress) && SW.World.missionProgress.includes(id)) || (SW.World.missionResults && SW.World.missionResults[id] === 'sieg'));
+      ctx.fillStyle = isSel ? '#004433' : '#08121a';
+      ctx.fillRect(mx, my, mw, mh);
+      ctx.strokeStyle = isSel ? '#00ffcc' : (done ? '#44aa66' : '#2a4a5a');
+      ctx.strokeRect(mx, my, mw, mh);
+      ctx.fillStyle = isSel ? '#00ffcc' : (done ? '#66dd88' : '#7799aa');
+      ctx.font = 'bold 4px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('M' + (i + 1) + (done ? '✓' : ''), mx + mw / 2, my + 8);
+      ctx.textAlign = 'left';
+      this._missionRects.push({ x: mx, y: my, w: mw, h: mh, id });
     }
     // Start-Button
-    this._startRect={x:140,y:100,w:40,h:20};
+    this._startRect={x:140,y:102,w:40,h:18};
     const blink=Math.floor(this._frame/30)%2===0;
-    ctx.fillStyle=blink?'#0f0':'#030'; ctx.fillRect(140,100,40,20);
+    ctx.fillStyle=blink?'#0f0':'#030'; ctx.fillRect(140,102,40,18);
     ctx.fillStyle='#000'; ctx.font='bold 7px monospace'; ctx.textAlign='center';
-    ctx.fillText('START', 160, 113); ctx.textAlign='left';
+    ctx.fillText('START', 160, 114); ctx.textAlign='left';
     // Boden
     ctx.fillStyle='#1a2530'; ctx.fillRect(0,SW.H-30,SW.W,30);
   },
@@ -456,14 +650,23 @@ SW.Ship = {
     // Schreibtisch
     ctx.fillStyle='#5a3a1a'; ctx.fillRect(40,110,240,30);
     ctx.fillStyle='#3a2a1a'; ctx.fillRect(40,140,240,10);
-    // Aktenregale
+    // Aktenregale (interaktiv: 5 lesbare Akten!)
     for(let i=0;i<4;i++){ ctx.fillStyle='#2a1a0a'; ctx.fillRect(20+i*70,40,60,60);
-      ctx.strokeStyle='#5a3a1a'; ctx.strokeRect(20+i*70,40,60,60);
+      ctx.strokeStyle=i===0?room.akzent:'#5a3a1a'; ctx.strokeRect(20+i*70,40,60,60);
       for(let j=0;j<3;j++){ ctx.fillStyle='#4a3a2a'; ctx.fillRect(24+i*70,46+j*18,52,14); } }
-    // Fax
+    ctx.fillStyle='#ffcc00'; ctx.font='4px monospace'; ctx.fillText('[AKTEN]', 26, 38);
+    this._aktenschrankRect = { x: 20, y: 36, w: 130, h: 64 };
+    // Fax (interaktiv: Schiffszeitung & Quest-Ticker)
     ctx.fillStyle='#888'; ctx.fillRect(150,95,40,15);
     ctx.fillStyle='#0f0'; ctx.fillRect(155,98,10,4);
-    ctx.fillStyle='#000'; ctx.font='5px monospace'; ctx.fillText('FAX', 175, 105);
+    ctx.fillStyle='#000'; ctx.font='5px monospace'; ctx.fillText('FAX', 170, 105);
+    this._faxRect = { x: 146, y: 90, w: 48, h: 22 };
+    // Versetzungsschalter (rechts auf dem Tisch)
+    ctx.fillStyle='#22303c'; ctx.fillRect(212,94,58,16);
+    ctx.strokeStyle=room.akzent; ctx.strokeRect(212,94,58,16);
+    ctx.fillStyle='#9edbff'; ctx.font='4px monospace'; ctx.textAlign='center';
+    ctx.fillText('VERSETZUNG', 241, 104); ctx.textAlign='left';
+    this._transferRect = { x: 212, y: 92, w: 58, h: 18 };
     // Boden
     ctx.fillStyle='#2a1a0a'; ctx.fillRect(0,SW.H-25,SW.W,25);
   },
@@ -479,14 +682,15 @@ SW.Ship = {
       ctx.fillRect(tx+25,118,10,20);
       ctx.fillStyle='#888'; ctx.fillRect(tx+10,104,8,6); // Teller
     }
-    // Speisekarte
+    // Speisekarte + Kaffeekanne (interaktiv für Quest 1)
     ctx.fillStyle='#1a1a1a'; ctx.fillRect(188,50,58,50);
     ctx.strokeStyle='#ff6644'; ctx.strokeRect(188,50,58,50);
     ctx.fillStyle='#ff6644'; ctx.font='5px monospace';
     ctx.fillText('MENÜ', 194, 60);
     ctx.fillText('Suppe: 2 DM', 194, 70);
     ctx.fillText('Nudeln: 3 DM', 194, 78);
-    ctx.fillText('Kaffee: aus', 194, 86);
+    ctx.fillText('Kaffee: [KLICK]', 194, 86);
+    this._kaffeeRect = { x: 186, y: 48, w: 62, h: 54 };
     // Fliesenboden
     ctx.fillStyle='#2a2a2a'; ctx.fillRect(0,SW.H-25,SW.W,25);
     for(let i=0;i<16;i++){ ctx.fillStyle=i%2?'#333':'#222'; ctx.fillRect(i*20,SW.H-25,20,25); }
@@ -500,17 +704,18 @@ SW.Ship = {
     ctx.beginPath(); ctx.moveTo(160,50); ctx.lineTo(160,100); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(145,65); ctx.lineTo(175,65); ctx.stroke();
     ctx.lineWidth=1;
-    // Kerzen
+    // Kerzen (interaktiv: Nachrufe lesen)
     for(let i=0;i<5;i++){ const cx=80+i*40;
       ctx.fillStyle='#ccc'; ctx.fillRect(cx,110,4,15);
       ctx.fillStyle='#ffcc00';
       const flick=Math.floor(this._frame/8+i)%2===0;
       if(flick) ctx.fillRect(cx+1,106,2,4);
     }
+    this._kerzeRect = { x: 74, y: 102, w: 176, h: 36 };
     // Trauerband
     ctx.fillStyle='#333'; ctx.fillRect(0,130,SW.W,8);
     ctx.fillStyle='#888'; ctx.font='5px monospace'; ctx.textAlign='center';
-    ctx.fillText('IN STILLER TRAUER', SW.CX, 136); ctx.textAlign='left';
+    ctx.fillText('IN STILLER TRAUER [KLICK: NACHRUFE]', SW.CX, 136); ctx.textAlign='left';
     // Boden
     ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,SW.H-25,SW.W,25);
   },
@@ -564,10 +769,20 @@ SW.Ship = {
     // Sterne
     ctx.fillStyle='#fff';
     for(let i=0;i<40;i++) ctx.fillRect(25+(i*17)%270, 40+(i*23)%100, 1,1);
-    // Planet (System-Farbe)
-    ctx.fillStyle=sys.farbe; ctx.globalAlpha=0.5;
+    // Planet (System-Farbe + Ring + Krater)
+    ctx.fillStyle=sys.farbe; ctx.globalAlpha=0.55;
     ctx.beginPath(); ctx.arc(240,70,18,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=sys.farbe; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(240,70,26,6,-0.2,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#000'; ctx.globalAlpha=0.25;
+    ctx.beginPath(); ctx.arc(235,65,4,0,Math.PI*2); ctx.fill();
     ctx.globalAlpha=1;
+    // Sektor 7 Sternenbasis-Silhouette im Fenster
+    if (sys.id === 's1') {
+      ctx.fillStyle='#3a5570';
+      ctx.fillRect(190,52,16,3);
+      ctx.fillRect(196,47,4,13);
+    }
     // System-Label
     ctx.fillStyle=sys.farbe; ctx.font='bold 7px monospace'; ctx.textAlign='center';
     ctx.fillText(sys.name, 110, 55);
@@ -630,9 +845,10 @@ SW.Ship = {
     ctx.fillStyle='#88ccaa'; ctx.fillRect(40,90,20,20); // Wasser
     // Spülknopf
     ctx.fillStyle='#666'; ctx.fillRect(45,70,10,8);
-    // Wischmopp (rechts)
+    // Wischmopp (rechts — interaktiv!)
     ctx.fillStyle='#886644'; ctx.fillRect(250,60,4,60); // Stiel
     ctx.fillStyle='#ccaa88'; ctx.fillRect(245,115,14,15); // Moppkopf
+    this._moppRect = { x: 242, y: 58, w: 20, h: 74 };
     // Toner-Fleck (Witz)
     ctx.fillStyle='#111'; ctx.fillRect(150,130,20,8);
     ctx.fillStyle='#444'; ctx.font='5px monospace'; ctx.fillText('TONER', 152, 137);
@@ -773,14 +989,15 @@ SW.Ship = {
     const doors = room.id === 'quartiere'
       ? room.toren.filter(id => id !== 'player_quarters')
       : room.toren;
-    const destNames = doors.map(d => {
+    const availableDoors = doors.filter(id => SW.Transfers.canVisit(id));
+    const destNames = availableDoors.map(d => {
       const destination = SW.Rooms.find(rr => rr.id === d);
       if (destination && destination.deck !== room.deck) return 'AUFZUG D' + destination.deck;
       return destination ? this.roomLabel(destination, true) : d;
     });
     // Seitliche Schotts sitzen in den Bulkheads und lassen Boden und Crew frei.
     const positions = [[8, 55, 34, 44], [278, 55, 34, 44], [8, 105, 34, 44], [278, 105, 34, 44]];
-    for (let i=0; i<doors.length; i++) {
+    for (let i=0; i<availableDoors.length; i++) {
       const [dx, dy, dw, dh] = positions[i];
       ctx.fillStyle = 'rgba(13,21,29,0.9)';
       ctx.fillRect(dx, dy, dw, dh);
@@ -803,7 +1020,7 @@ SW.Ship = {
       ctx.textAlign = 'center';
       ctx.fillText(destNames[i].toUpperCase().substring(0, 13), dx + dw / 2, dy + 8);
       ctx.textAlign = 'left';
-      this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: doors[i] });
+      this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: availableDoors[i] });
     }
   },
 
@@ -831,9 +1048,10 @@ SW.Ship = {
     ctx.fillStyle = room.akzent;
     ctx.font = '4px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('TRÄGER / DECKPLAN', mx + 4, my + 6);
+    const posting = SW.Transfers.getCurrentPosting();
+    ctx.fillText(posting.mapLabel + ' / DECKPLAN', mx + 4, my + 6);
     for (let deck = 1; deck <= 3; deck++) {
-      const deckRooms = SW.Rooms.filter(r => r.deck === deck);
+      const deckRooms = SW.Rooms.filter(r => r.deck === deck && SW.Transfers.canVisit(r.id));
       const y = my + 11 + (deck - 1) * 6;
       const isCurrentDeck = room.deck === deck;
       ctx.fillStyle = isCurrentDeck ? room.akzent : '#8291a0';
@@ -1051,6 +1269,61 @@ SW.Ship = {
     ctx.fillText(this._roomNotice.text, 33, boxY + 23);
   },
 
+  renderNewspaperOverlay(ctx, room) {
+    if (SW.Newspaper && !SW.Newspaper.currentIssue && SW.Newspaper.forceGenerate) {
+      SW.Newspaper.forceGenerate();
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.fillRect(0, 0, SW.W, SW.H);
+    const px = 22, py = 18, pw = SW.W - 44, ph = SW.H - 36;
+    ctx.fillStyle = '#e8e2d0';
+    ctx.fillRect(px, py, pw, ph);
+    ctx.strokeStyle = '#332b20';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py, pw, ph);
+    ctx.lineWidth = 1;
+    // Zeitungs-Header (Thermopapier / DIE TRÄGER-POST)
+    ctx.fillStyle = '#181410';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    const issueDate = (SW.Newspaper && SW.Newspaper.currentIssue && SW.Newspaper.currentIssue.date) || 'TAG_001';
+    ctx.fillText('DIE TRÄGER-POST — AUSGABE ' + issueDate, SW.CX, py + 12);
+    ctx.fillStyle = '#554a3a';
+    ctx.font = '4px monospace';
+    ctx.fillText('AMTLICHES FAX-ORGAN DER TCS / VERTRIEB: ZWO (OHNE GEWÄHR)', SW.CX, py + 19);
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = '#554a3a';
+    ctx.beginPath(); ctx.moveTo(px + 8, py + 23); ctx.lineTo(px + pw - 8, py + 23); ctx.stroke();
+
+    const articles = (SW.Newspaper && SW.Newspaper.currentIssue && SW.Newspaper.currentIssue.articles) || [];
+    let ay = py + 32;
+    for (let i = 0; i < Math.min(6, articles.length); i++) {
+      const a = articles[i];
+      ctx.fillStyle = a.type === 'subplot' ? '#551166' : (a.type === 'mission' ? '#004422' : '#221d16');
+      ctx.font = 'bold 5px monospace';
+      ctx.fillText('• ' + String(a.headline || '').substring(0, 68), px + 8, ay);
+      ay += 12;
+    }
+
+    // Aktive Fax-Aufträge unten auf dem Blatt
+    ctx.strokeStyle = '#887b66';
+    ctx.beginPath(); ctx.moveTo(px + 8, py + ph - 44); ctx.lineTo(px + pw - 8, py + ph - 44); ctx.stroke();
+    ctx.fillStyle = '#332211';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText('OFFENE FAX-AUFTRÄGE (QUEST-LOG):', px + 8, py + ph - 36);
+    const qLines = (SW.Quests && SW.Quests.logText) ? SW.Quests.logText() : ['Keine offenen Aufträge.'];
+    ctx.font = '4px monospace';
+    for (let i = 0; i < Math.min(3, qLines.length); i++) {
+      ctx.fillText(String(qLines[i]).substring(0, 72), px + 8, py + ph - 27 + i * 7);
+    }
+
+    ctx.fillStyle = '#665a48';
+    ctx.font = '5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[ KLICK / J / ESC: ZEITUNG WEGLEGEN ]', SW.CX, py + ph - 4);
+    ctx.textAlign = 'left';
+  },
+
   // ===== DIALOG BOX =====
   renderDialogue(ctx, room) {
     const line = this.dialogueLines[this.dialogueIndex];
@@ -1151,7 +1424,7 @@ SW.Ship = {
     ctx.fillStyle = '#b8d8ff';
     ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('FAX-TRAGÖDIE — DECKPLÄNE', SW.CX, 12);
+    ctx.fillText(SW.Transfers.getCurrentPosting().name + ' — DECKPLÄNE', SW.CX, 12);
     ctx.textAlign = 'left';
 
     // Drei Deckbänder mit verbundenen Aufzugsschächten.
@@ -1160,7 +1433,7 @@ SW.Ship = {
     const cardX = 17, cardGap = 3, cardW = 55, cardH = 32;
     for (let deck = 1; deck <= 3; deck++) {
       const top = 18 + (deck - 1) * 57;
-      const rooms = SW.Rooms.filter(r => r.deck === deck);
+      const rooms = SW.Rooms.filter(r => r.deck === deck && SW.Transfers.canVisit(r.id));
       ctx.fillStyle = 'rgba(10,18,30,0.86)';
       ctx.fillRect(panelX, top, panelW, 52);
       ctx.strokeStyle = deck === this.getRoom().deck ? '#b8d8ff' : '#2c3a4a';

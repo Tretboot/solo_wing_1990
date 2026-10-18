@@ -9,21 +9,36 @@ SW.Collision = {
     for (let i=projs.length-1;i>=0;i--) {
       const p=projs[i];
       if (p.friendly) {
+        let hitEnemy = false;
         for (const e of SW.Enemies.list) {
           if (!e.alive) continue;
           const dx=p.x-e.x,dy=p.y-e.y,dz=p.z-e.z;
           if (dx*dx+dy*dy+dz*dz<SW.COLLISION_DIST*SW.COLLISION_DIST) {
-            e.hp-=p.damage||SW.LASER_DAMAGE; projs.splice(i,1);
+            e.hp-=p.damage||SW.LASER_DAMAGE; projs.splice(i,1); hitEnemy = true;
+            if (e.civilian) {
+              SW.Comm.add("COMMANDER: FEUER EINSTELLEN! Das sind Siedler! Formular 00-S (Kriegsgericht)!");
+              SW.Game.score = Math.max(0, SW.Game.score - 50);
+            }
             if (e.hp<=0) {
-              e.alive=false; SW.Game.score+=100;
+              e.alive=false;
+              if (!e.civilian) SW.Game.score+=100;
               SW.Explosions.add(e.x,e.y,e.z);
-              if (!this.firstKillDone) {
+              if (!e.civilian && SW.Quests && SW.Quests.flight) SW.Quests.flight({ typ: 'kill' });
+              if (!this.firstKillDone && !e.civilian) {
                 this.firstKillDone=true;
                 SW.Comm.add("COMMANDER: Erster Abschuss. Angemerktes Notat.");
                 if (SW.Wingman) SW.Wingman.onFirstKill();
               }
             }
             break;
+          }
+        }
+        // Friendly-Fire auf den eigenen Träger im Feld prüfen
+        if (!hitEnemy && SW.Carrier && SW.Carrier.visible && !SW.Game._simMode) {
+          const cdx=p.x-SW.Carrier.x, cdy=p.y-SW.Carrier.y, cdz=p.z-SW.Carrier.z;
+          if (Math.abs(cdx)<32 && Math.abs(cdy)<18 && Math.abs(cdz)<28) {
+            projs.splice(i,1);
+            SW.Carrier.onFriendlyHit(frame);
           }
         }
       } else {
@@ -35,9 +50,11 @@ SW.Collision = {
           if (!this.shieldLowWarned&&(SW.Player.frontShield<30||SW.Player.rearShield<30)) {
             this.shieldLowWarned=true;
             SW.Comm.add("COMMANDER: Abschirmladung unter dreißig. Wir drücken die Daumen.");
+            if (SW.Quests && SW.Quests.flight) SW.Quests.flight({ typ: 'shield_low' });
           }
           if (!SW.Player.alive) {
             SW.Comm.add("COMMANDER: Verlust bestätigt. Wir aktualisieren die Ehrentafel.");
+            if (SW.Quests && SW.Quests.flight) SW.Quests.flight({ typ: 'player_down' });
             SW.Game.triggerDeath();
           }
         }

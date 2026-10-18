@@ -377,9 +377,11 @@ Feld), kein Motor-Sound.
    erster Kill, Idle, Funkstille bei Tod), Träger im Feld (nach Takeoff sichtbar
    vor einem, rückt davon), Funk untereinander über `SW.Comm` +
    `Dialogues.wingmanIdle`.
-4. **M4 Missionen & Balance (OFFEN):** Wellen-Design für die Brains (gemischte
-   Typen, gestaffelte Spawns), Schwierigkeitskurve, Autopilot unter 3D-Bedingung,
-   Damage/HP/Fire-Rate-Balance (Playtest).
+4. **M4 Missionen & Balance (IN ARBEIT):** Wellen-Design für die Brains
+   (gemischte Typen und gestaffelte Spawns pro Nav-Punkt) ist als Datenmodell
+   und Spawn-Queue umgesetzt. Offen bleiben Schwierigkeitskurve,
+   Damage/HP/Fire-Rate-Balance im echten Playtest und die noch nicht
+   implementierte Vektor-/3D-Bedingung.
 5. **M5 Polish (OFFEN):** Ziel-Markierung (WC1-Target-Bracket), Wingman-Tod als
    Ereignis, Träger-Funk ("FAX-TRAGÖDIE") im Feld, Burn-Flash/Sound-Akzent,
    Handbuch-Kapitel "Fliegen", Top-Down-Balancing mit Brains.
@@ -415,6 +417,15 @@ Feld), kein Motor-Sound.
   Space-Map spieler-relativ (IM-RAUM-Koordinaten). HUD: `NAV WPn D:xxxx`
   mit Richtungs-Pfeil (alle drei Ansichten).
 - Bug-Fix: [A] driftet links (das Menü versprach WASD).
+- **Wellen-Formation & Stagger (2026-10-14):** Missionen können Gegnergruppen
+  über `groups` in einem gemeinsamen Wegpunkt-Angriff mischen, ohne bestehende
+  `count`/`ship`-Wellen zu brechen. `staggerFrames` setzt weitere Schiffe
+  derselben Welle in festen Frame-Abständen ein. Der Wellenabschluss wartet,
+  bis Spawn-Queue und aktive Gegner leer sind. M1 erhält eine ansteigende
+  Rollen-Mischung aus Drohnen, Jägern und Kreuzer-Eskorte; M2–M4 nutzen
+  ebenfalls gemischte bzw. gestaffelte Angriffe. Dies ist noch kein
+  Schwierigkeitstuning: Gegner-HP, Schaden und Feuerrate bleiben bis zum
+  Browser-Playtest unverändert.
 - **Spec-Sheet:** `SPEC-FLUGMODELL.md` — WC1-Flugmodell "näher am Original"
   in Phasen P1–P5: P1 = NAV & Flyby (steht), P2 = echtes Vektor-Flugmodell
   (vel + yaw/pitch + Trägheit, man fliegt, wo man hinkuckt), P3 = Auto-Bank,

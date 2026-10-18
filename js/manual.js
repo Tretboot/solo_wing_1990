@@ -36,16 +36,25 @@ SW.Manual = {
   },
   close() { this.isOpen = false; this.currentChapter = 0; },
   next() {
-    if (this.currentChapter < this.chapters.length - 1 && !this.chapters[this.currentChapter+1]._locked) {
-      this.currentChapter++;
+    this._checkLocks();
+    for (let i = this.currentChapter + 1; i < this.chapters.length; i++) {
+      if (!this.chapters[i]._locked) { this.currentChapter = i; return; }
     }
   },
-  prev() { if (this.currentChapter > 0) this.currentChapter--; },
+  prev() {
+    this._checkLocks();
+    for (let i = this.currentChapter - 1; i >= 0; i--) {
+      if (!this.chapters[i]._locked) { this.currentChapter = i; return; }
+    }
+  },
   _checkLocks() {
-    const p = (SW.World && SW.World.missionProgress) || {};
+    const p = (SW.World && SW.World.missionProgress) || [];
+    const r = (SW.World && SW.World.missionResults) || {};
+    const hasM1 = Array.isArray(p) ? p.includes('m1') : p.m1 === 'sieg';
+    const hasM2 = Array.isArray(p) ? p.includes('m2') : p.m2 === 'sieg';
     for (const ch of this.chapters) {
-      if (ch.lockedBy === 'm1_complete') ch._locked = p.m1 !== 'sieg';
-      else if (ch.lockedBy === 'm2_complete') ch._locked = p.m2 !== 'sieg';
+      if (ch.lockedBy === 'm1_complete') ch._locked = !(hasM1 || r.m1 === 'sieg');
+      else if (ch.lockedBy === 'm2_complete') ch._locked = !(hasM2 || r.m2 === 'sieg');
       else ch._locked = false;
     }
   },

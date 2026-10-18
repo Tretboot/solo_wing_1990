@@ -60,16 +60,20 @@ SW.Intro = {
   toPhase1() {
     this.phase = 1; this.t = 0;
     SW.Audio.init();
-    SW.Audio.startMusic('intro');
+    SW.Audio.startMusic('asteroid');
   },
-  toPhase2() { this.phase = 2; this.t = 0; SW.Audio.playCommBeep(); },
+  toPhase2() {
+    this.phase = 2; this.t = 0;
+    SW.Audio.stopMusic();
+    SW.Audio.playCommBeep();
+  },
 
   toPhase3() {
     const n = (this.name.trim() || 'FLUG DREI');
     SW.World.pilotName = n;
     this.phase = 3; this.t = 0; this.phase3Done = false;
     SW.Audio.playCommBeep();
-    SW.TTS.speak('Willkommen, ' + n + '. Sie werden dem Träger FAX-TRAGÖDIE zugeteilt. Formular 83-B liegt bereit.', 'COMMANDER');
+    SW.TTS.speak('Willkommen, ' + n + '. Ihre Zuteilung wird nach der Akademie bekanntgegeben. Formular 83-B liegt bereit.', 'COMMANDER');
   },
 
   // ESC in jeder Phase → AKADEMIE (Name = Default, falls noch keiner)
@@ -196,14 +200,21 @@ SW.Intro = {
     else if (this.phase === 3) this.renderPhase3(ctx);
   },
 
-  // Titelschirm (v0.6.9-final): Titel + Version + Platzhalter-Hinweis.
-  // Der Hinweis ist Absicht: vieles ist Placeholder-Grafik/-Sound.
+  // Titelschirm: der Schriftzug trägt die Gestaltung, ohne zusätzliches Emblem.
   renderPhase0(ctx) {
+    const title = 'SOLO WING 1990';
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#0f0'; ctx.font = 'bold 16px monospace';
-    ctx.fillText('SOLO WING 1990', SW.CX, 55);
-    ctx.fillStyle = '#0af'; ctx.font = '8px monospace';
-    ctx.fillText('v0.75-dev — STERNENKORPS / TRÄGER FAX-TRAGÖDIE', SW.CX, 75);
+    ctx.save();
+    ctx.font = '900 19px Impact, "Arial Black", sans-serif';
+    ctx.lineJoin = 'miter';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#4e442f';
+    ctx.strokeText(title, SW.CX + 1, 78);
+    ctx.fillStyle = '#e7c36b';
+    ctx.fillText(title, SW.CX, 77);
+    ctx.restore();
+    ctx.fillStyle = '#8eb8d8'; ctx.font = '7px monospace';
+    ctx.fillText('v' + SW.VERSION + ' — STERNENKORPS', SW.CX, 91);
     ctx.fillStyle = '#888'; ctx.font = '7px monospace';
     ctx.fillText('Viele Grafiken und Sounds sind Platzhalter.', SW.CX, 105);
     ctx.fillText('Spielen auf eigene Gefahr. Formular 77-A deckt den Rest ab.', SW.CX, 117);
@@ -277,10 +288,11 @@ SW.Intro = {
 
   renderPhase3(ctx) {
     const n = SW.World.pilotName;
+    const posting = SW.Transfers.getCurrentPosting();
     ctx.fillStyle = '#0f0'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
     ctx.fillText('WILLKOMMEN, ' + n + '.', SW.CX, 70);
     ctx.fillStyle = '#fff'; ctx.font = '8px monospace';
-    ctx.fillText('Sie werden dem Träger FAX-TRAGÖDIE zugeteilt.', SW.CX, 95);
+    ctx.fillText('ZUTEILUNG: ' + posting.name, SW.CX, 95);
     ctx.fillText('Formular 83-B liegt bereit.', SW.CX, 110);
     ctx.fillStyle = '#666'; ctx.font = '7px monospace';
     ctx.fillText('[ AKADEMIE ]', SW.CX, 140);

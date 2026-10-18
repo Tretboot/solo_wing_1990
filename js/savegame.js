@@ -10,25 +10,32 @@ SW.SaveGame = {
 
   save() {
     const data = {
-      version: '0.75-dev',
+      version: SW.VERSION,
       schemaVersion: this.CURRENT_SCHEMA_VERSION,
       timestamp: Date.now(),
       world: SW.World ? {
         pilotName: SW.World.pilotName || null,
         systemId: SW.World.systemId || null,
         missionResult: SW.World.missionResult || null,
+        missionResults: SW.World.missionResults || {},
         missionProgress: SW.World.missionProgress || [],
         nachrufe: SW.World.nachrufe || [],
-        shipSystems: SW.World.shipSystems || SW.Player.defaultSystems()
+        shipSystems: SW.World.shipSystems || SW.Player.defaultSystems(),
+        postingId: SW.World.postingId || SW.Transfers.DEFAULT_POSTING_ID,
+        transferHistory: SW.World.transferHistory || []
       } : null,
-      ship: SW.Ship ? { currentRoom: SW.Ship.currentRoom } : null,
+      ship: SW.Ship ? { currentRoom: SW.Ship.currentRoom, selectedMissionId: SW.Ship.selectedMissionId || 'm1' } : null,
       quests: SW.Quests ? {
         active: SW.Quests.active || [],
         completed: SW.Quests.completed || [],
         flags: SW.Quests.flags || {}
       } : null,
-      dialogues: (SW.SmartDialogues && SW.SmartDialogues.stages) ? {
-        stages: SW.SmartDialogues.stages
+      dialogues: SW.SmartDialogues ? {
+        stages: SW.SmartDialogues.stages || {},
+        state: SW.SmartDialogues._state || null
+      } : null,
+      newspaper: (SW.Newspaper && SW.Newspaper.currentIssue) ? {
+        currentIssue: SW.Newspaper.currentIssue
       } : null,
       game: {
         score: SW.Game ? SW.Game.score || 0 : 0
@@ -89,6 +96,8 @@ SW.SaveGame = {
         (data.world.nachrufe !== undefined && !Array.isArray(data.world.nachrufe)))) return false;
     if (data.world && data.world.shipSystems !== undefined &&
         !SW.Player.isValidSystems(data.world.shipSystems)) return false;
+    if (data.world && data.world.postingId !== undefined && typeof data.world.postingId !== 'string') return false;
+    if (data.world && data.world.transferHistory !== undefined && !Array.isArray(data.world.transferHistory)) return false;
     if (data.quests && ((data.quests.active !== undefined && !Array.isArray(data.quests.active)) ||
         (data.quests.completed !== undefined && !Array.isArray(data.quests.completed)) ||
         (data.quests.flags !== undefined && !this._isRecord(data.quests.flags)))) return false;
@@ -133,8 +142,10 @@ SW.SaveGame = {
         if (typeof data.world.pilotName === 'string') SW.World.pilotName = data.world.pilotName;
         if (typeof data.world.systemId === 'string') SW.World.systemId = data.world.systemId;
         if (data.world.missionResult !== undefined) SW.World.missionResult = data.world.missionResult;
+        if (this._isRecord(data.world.missionResults)) SW.World.missionResults = data.world.missionResults;
         if (data.world.missionProgress !== undefined) SW.World.missionProgress = data.world.missionProgress;
         if (data.world.nachrufe !== undefined) SW.World.nachrufe = data.world.nachrufe;
+        SW.Transfers.restore(data.world.postingId, data.world.transferHistory);
         if (data.world) {
           const savedSystems=data.world.shipSystems || {};
           for (const key of ['engines','weapons','shields','sensors']) {
@@ -149,12 +160,15 @@ SW.SaveGame = {
         }
       }
       if (data.ship && typeof data.ship.currentRoom === 'string' && SW.Ship) {
+        if (typeof data.ship.selectedMissionId === 'string') SW.Ship.selectedMissionId = data.ship.selectedMissionId;
         const roomExists = SW.Rooms.some(room => room.id === data.ship.currentRoom);
-        if (roomExists) {
+        if (roomExists && SW.Transfers.canVisit(data.ship.currentRoom)) {
           SW.Ship.currentRoom = data.ship.currentRoom;
           SW.Ship.savePanelOpen = false;
         } else {
-          console.warn('SaveGame: Raum "' + data.ship.currentRoom + '" ist in dieser Version unbekannt; aktueller Raum bleibt erhalten.');
+          const posting = SW.Transfers.getCurrentPosting();
+          console.warn('SaveGame: Raum "' + data.ship.currentRoom + '" ist unbekannt oder für das aktuelle Posting gesperrt; Startbereich wird geladen.');
+          SW.Ship.currentRoom = posting.startRoom;
         }
       }
       if (data.quests && SW.Quests) {
@@ -162,15 +176,19 @@ SW.SaveGame = {
         if (data.quests.completed !== undefined) SW.Quests.completed = data.quests.completed;
         if (data.quests.flags !== undefined) SW.Quests.flags = data.quests.flags;
       }
-      if (data.dialogues && SW.SmartDialogues && data.dialogues.stages !== undefined) {
-        SW.SmartDialogues.stages = data.dialogues.stages;
+      if (data.dialogues && SW.SmartDialogues) {
+        if (data.dialogues.stages !== undefined) SW.SmartDialogues.stages = data.dialogues.stages;
+        if (this._isRecord(data.dialogues.state)) SW.SmartDialogues._state = data.dialogues.state;
+      }
+      if (data.newspaper && this._isRecord(data.newspaper.currentIssue) && SW.Newspaper) {
+        SW.Newspaper.currentIssue = data.newspaper.currentIssue;
       }
       if (data.game && SW.Game && data.game.score !== undefined) SW.Game.score = data.game.score;
       this._msg('GELADEN. Willkommen zurück, ' + (SW.World && SW.World.pilotName ? SW.World.pilotName : 'PILOT'));
       return data;
     } catch (e) {
       console.error('SaveGame: Laden fehlgeschlagen', e);
-      this._msg('LADEN FEHLGESCHLAGEN. Der Träger hat abgewinkelt.');
+      this._msg('LADEN FEHLGESCHLAGEN. Das Schiff hat abgewinkelt.');
       return null;
     }
   },

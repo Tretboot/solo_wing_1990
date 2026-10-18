@@ -148,7 +148,10 @@ SW.RoomNPCs = {
     quote:'Die Rohre atmen. 2/min. Wie Kältekammer 7.' },
   Nadel: { name:'Nadel', posten:'Sanitäter', farbe:'#00ccaa',
     bio:'Sticht. Pflaster klebt. Sie arbeiten in stiller Schichtarbeit. Niemand weiß, wer wer ist.',
-    quote:'*Stechen.*' }
+    quote:'*Stechen.*' },
+  Optimierer: { name:'Der Optimierer', posten:'Effizienz-Beauftragter (Zentrale)', farbe:'#aab8c8',
+    bio:'Reist mit einer Aktentasche voller Streichlisten. Misst den Sauerstoffverbrauch pro Wort. Lächelt nur bei abgeschalteten Heizungen.',
+    quote:'Ihr Träger hat 14 Räume. Rechnerisch genügen 2,4.' }
 };
 
 // "Hinter der Tür" (erwähnt, nicht implementiert)

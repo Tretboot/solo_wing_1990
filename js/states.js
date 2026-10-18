@@ -2,7 +2,7 @@
 // BAR → BRIEFING → TAKEOFF → COCKPIT → LANDING → DEBRIEFING
 
 SW.Game = {
-  state:'BAR',score:0,victory:false,frame:0,mission:null,_simMode:false,_akademieBestanden:false,
+  state:'BAR',score:0,victory:false,secretEnding:false,frame:0,mission:null,_simMode:false,_akademieBestanden:false,
   setState(s) {
     this.state=s;
     // Musik-Pause: beim Verlassen des INTROS stoppt die Intro-Musik
@@ -11,31 +11,73 @@ SW.Game = {
     if (s==='AKADEMIE') { SW.Akademie.init(); }
     if (s==='SHIP') { if(!SW._shipInit) { SW.Ship.init(this.mission?.id||'m1'); SW._shipInit=true; } }
     if (s==='BRIEFING') { const b=SW.Dialogues.getBriefing(this.mission?.id||'m1');SW.Briefing.start(b); }
-    if (s==='BRIEFING_BOARD') { SW.BriefingBoard.start(this.mission || SW.Missions.list[0]); }
+    if (s==='BRIEFING_BOARD') {
+      if (!this.mission || this._simMode || SW.Enemies.missionData !== this.mission) {
+        this.prepareMission((this.mission && this.mission.id) || 'm1');
+      }
+      SW.BriefingBoard.start(this.mission || SW.Missions.list[0]);
+    }
     if (s==='TAKEOFF') SW.Flight.start('takeoff');
     if (s==='LANDING') SW.Flight.start('landing');
   },
-  startMission(id) {
-    this.mission=SW.Missions.get(id);
-    this.score=0;this.victory=false;this.frame=0;
+  // Bereitet eine Mission im Feld vor (ohne State-Wechsel auf SHIP),
+  // behebt den Phantom-Start-Bug beim Abflug vom Flugdeck.
+  prepareMission(id) {
+    this.mission=SW.Missions.get(id || (this.mission && this.mission.id) || 'm1');
+    this.score=0;this.victory=false;this.secretEnding=false;this.frame=0;this._simMode=false;
     SW.Player.init();SW.Engine.initStars();
     SW.Projectiles.clear();SW.Explosions.clear();SW.Comm.clear();
     SW.Collision.reset();SW.Enemies.init(this.mission);
     SW.Autopilot.init(this.mission.navPoints||[]);
     SW.Carrier.init();
     if (SW.Wingman) SW.Wingman.reset();  // IM RAUM: Sechs startet erst nach dem Takeoff
+  },
+  startMission(id) {
+    this.prepareMission(id);
     SW.Ship.init(this.mission.id);
     this.setState('SHIP');
+  },
+  getEndingType() {
+    if (!this.victory) return 'tod';
+    if (this.secretEnding) return 'geheim';
+    const isM4 = (this.mission && this.mission.id === 'm4') ||
+      (SW.World && SW.World.missionResults && SW.World.missionResults.m4 === 'sieg') ||
+      (SW.SmartDialogues && SW.SmartDialogues._state && SW.SmartDialogues._state.missions && SW.SmartDialogues._state.missions.m4 === 'sieg');
+    const hasSecret = SW.Quests && (
+      SW.Quests.getFlag('widerspruch_eingelegt') ||
+      SW.Quests.getFlag('klo_wahrheit_gehoert') ||
+      (SW.Quests.getFlag('kaltkammer_gesichert') && SW.Quests.getFlag('akte_gelesen_sechs'))
+    );
+    return (isM4 && hasSecret) ? 'geheim' : 'sieg';
   },
   triggerVictory() {
     setTimeout(()=>{
       if (SW.Player.alive&&this.state==='COCKPIT') {
         // SIM-MODUS: Akademie-Prüfung bestanden
         if (this._simMode) { SW.Akademie.bestanden(); return; }
+        this.victory = true;
         if(SW.World) { SW.World.missionResult='sieg'; SW.World.systemId = this.missionSystemId(); }
         if (SW.SmartDialogues && this.mission) SW.SmartDialogues.noteMission(this.mission.id, 'sieg');
         SW.Comm.add("COMMANDER: Sie kommen zurück. Beförderung zum Gefreiten. Per Fax.");
-        if (SW.Quests) SW.Quests.tick({typ:'mission', ergebnis:'sieg'});
+        if (SW.Quests) {
+          SW.Quests.tick({typ:'mission', ergebnis:'sieg'});
+          if (SW.Quests.flight && this.mission) SW.Quests.flight({typ:'mission', missionId:this.mission.id, ergebnis:'sieg'});
+        }
+        if (this.mission && this.mission.id === 'm4' && SW.Quests) {
+          SW.Quests.setFlag('kaltkammer_gesichert', true);
+          if (SW.Quests.getFlag('widerspruch_eingelegt') || SW.Quests.getFlag('klo_wahrheit_gehoert') || SW.Quests.getFlag('akte_gelesen_sechs')) {
+            this.secretEnding = true;
+          }
+        }
+        if (SW.Newspaper && SW.Newspaper.generate && this.mission) {
+          SW.Newspaper.generate({
+            missionId: this.mission.id,
+            ergebnis: 'sieg',
+            kills: Math.max(1, Math.floor(this.score / 100)),
+            wingmanDown: false,
+            heardRap: this.mission.id === 'm4'
+          });
+        }
         setTimeout(()=>{ if(SW.Player.alive) this.setState('LANDING'); },2000);
       }
     },500);
@@ -46,13 +88,26 @@ SW.Game = {
         // SIM-MODUS: Akademie-Prüfung nicht bestanden
         if (this._simMode) { SW.Akademie.durchgefallen(); return; }
         this.victory=false;
+        this.secretEnding=false;
         if(SW.World) {
           SW.World.missionResult='tod';
           SW.World.systemId = this.missionSystemId();
           SW.World.nachrufe.push({name:'Flug Drei',text:'Gefallen im Dienst. ' + this.score + ' Punkte. ' + SW.World._nachrufText('Flug Drei')});
         }
         if (SW.SmartDialogues && this.mission) SW.SmartDialogues.noteMission(this.mission.id, 'tod');
-        if (SW.Quests) SW.Quests.tick({typ:'mission', ergebnis:'tod'});
+        if (SW.Quests) {
+          SW.Quests.tick({typ:'mission', ergebnis:'tod'});
+          if (SW.Quests.flight && this.mission) SW.Quests.flight({typ:'mission', missionId:this.mission.id, ergebnis:'tod'});
+        }
+        if (SW.Newspaper && SW.Newspaper.generate && this.mission) {
+          SW.Newspaper.generate({
+            missionId: this.mission.id,
+            ergebnis: 'tod',
+            kills: Math.floor(this.score / 100),
+            wingmanDown: true,
+            heardRap: this.mission.id === 'm4'
+          });
+        }
         if (SW.Wingman) SW.Wingman.onDeath();  // IM RAUM: ...Funkstille.
         this.setState('DEBRIEFING');
       }
@@ -149,7 +204,7 @@ SW.Game = {
     ctx.fillStyle='#0f0';ctx.font='bold 12px monospace';
     ctx.fillText('TRANSFER',SW.CX,40);
     ctx.fillStyle='#666';ctx.font='6px monospace';
-    ctx.fillText('STERNENKORPS — TRÄGER FAX-TRAGÖDIE — FORMULAR 1-A',SW.CX,52);
+    ctx.fillText('STERNENKORPS — ' + SW.Transfers.getCurrentPosting().name + ' — FORMULAR 1-A',SW.CX,52);
     if (t > 60) {
       ctx.fillStyle='#fff';ctx.font='bold 10px monospace';
       ctx.fillText('WILLKOMMEN AN BORD, ' + n + '.',SW.CX,95);
@@ -259,16 +314,39 @@ SW.Game = {
       const s = 0.5 + st.z*1.8;
       ctx.fillRect(sx, sy, s, s);
     }
-    // Ziel-Planet (ab Ankunft, unten rechts, fade-in)
+    // Ziel-Planet (ab Ankunft, unten rechts, fade-in, mit Ringen, Kratern & Sektor-7-Basis)
     if (arrival) {
       const fade = Math.min(1, t/40);
+      const px = SW.W-100, py = SW.H-40;
       ctx.save();
       ctx.globalAlpha = 0.55*fade;
       ctx.fillStyle = sys.farbe;
-      ctx.beginPath(); ctx.arc(SW.W-100, SW.H-40, 85, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, 85, 0, Math.PI*2); ctx.fill();
+      // Atmosphären-Ring & planetare Ringe (Sektor 9 / 12)
       ctx.globalAlpha = 0.8*fade;
       ctx.strokeStyle = sys.farbe; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(SW.W-100, SW.H-40, 90, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(px, py, 90, 0, Math.PI*2); ctx.stroke();
+      if (sys.id === 's2' || sys.id === 's3') {
+        ctx.globalAlpha = 0.35*fade;
+        ctx.beginPath(); ctx.ellipse(px, py, 118, 22, -0.25, 0, Math.PI*2); ctx.stroke();
+      }
+      // Oberflächendetails / Krater
+      ctx.globalAlpha = 0.22*fade;
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(px-28, py-18, 14, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(px+16, py-36, 9, 0, Math.PI*2); ctx.fill();
+      // Sektor 7: Militärische Sternenbasis im Orbit
+      if (sys.id === 's1') {
+        ctx.globalAlpha = 0.85*fade;
+        const bx = px - 95, by = py - 70;
+        ctx.fillStyle = '#2a3d52';
+        ctx.fillRect(bx-14, by-2, 28, 4);
+        ctx.fillRect(bx-4, by-10, 8, 20);
+        ctx.strokeStyle = '#5588bb';
+        ctx.beginPath(); ctx.arc(bx, by, 11, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = (Math.floor(t/12)%2===0) ? '#00ffcc' : '#ffcc00';
+        ctx.fillRect(bx-1, by-1, 2, 2);
+      }
       ctx.restore();
     }
     // Jump-Blase (sternförmiges Portal, rotiert + pulsiert)
@@ -382,15 +460,15 @@ SW.Game = {
     ctx.fillStyle='#0f0';ctx.font='bold 12px monospace';
     ctx.fillText('SOLO WING 1990',SW.CX,45);
     ctx.fillStyle='#666';ctx.font='6px monospace';
-    ctx.fillText('Version 0.6.6-dev — JUMP, Story, Dialog-Paging',SW.CX,60);
+    ctx.fillText('Version ' + SW.VERSION + ' — Argon-Pass: Missionsbaum, Fax-Quests & 3 Enden',SW.CX,60);
     ctx.textAlign='left';
     const L = [
-      'STERNE: KUNSTLICHE. AUS RUST.',
+      'STERNE: KÜNSTLICHE. AUS RUST.',
       'LIZENZ: MIT (siehe LICENSE)',
       '',
-      'GEBAUT VON: EHEMALIGEM AGENTENVERBUND (QWEN-TEAM)',
-      'AGENTENVERBUND: AUFGELOEST (09/2026)',
-      'JETZT: VS CODE + API. DAS TEAM IST UMGESTELLT.',
+      'ÄRA 1: AGENTENVERBUND (QWEN-TEAM, bis 09/2026)',
+      'ÄRA 2: VS CODE + CLINE | ÄRA 3: GITHUB COPILOT',
+      'ÄRA 4: GEMINI 4 ARGON (AKTUELLER PASS)',
       'DER BISHERIGEN CREW WIRD GEDANKT.',
       '',
       'STERNE: KEINE WERBUNG. KEIN INTERNET. NUR FAX.'
@@ -554,10 +632,11 @@ SW.Game = {
       ctx.fillText('[ LEERTASTE: WEITER ]',SW.CX,SW.H-12);ctx.textAlign='left';
     }
     if (SW.Akademie.phase==='bestanden') {
+      const posting = SW.Transfers.getCurrentPosting();
       ctx.fillStyle='#0f0';ctx.font='bold 12px monospace';ctx.textAlign='center';
       ctx.fillText('BESTANDEN.',SW.CX,SW.H/2);
       ctx.fillStyle='#fff';ctx.font='8px monospace';
-      ctx.fillText('Sie werden dem Träger FAX-TRAGÖDIE zugeteilt.',SW.CX,SW.H/2+20);
+      ctx.fillText('ZUTEILUNG: ' + posting.name,SW.CX,SW.H/2+20);
       ctx.fillText('Formular 83-B liegt bereit.',SW.CX,SW.H/2+35);
       const b1=Math.floor(Date.now()/500)%2===0;
       ctx.fillStyle=b1?'#fff':'#666';ctx.font='8px monospace';
@@ -565,10 +644,11 @@ SW.Game = {
       ctx.textAlign='left';
     }
     if (SW.Akademie.phase==='durchgefallen') {
+      const posting = SW.Transfers.getCurrentPosting();
       ctx.fillStyle='#ff6644';ctx.font='bold 12px monospace';ctx.textAlign='center';
       ctx.fillText('NICHT BESTANDEN.',SW.CX,SW.H/2);
       ctx.fillStyle='#fff';ctx.font='8px monospace';
-      ctx.fillText('Sie werden trotzdem dem Träger FAX-TRAGÖDIE zugeteilt.',SW.CX,SW.H/2+20);
+      ctx.fillText('TROTZDEM: ' + posting.name,SW.CX,SW.H/2+20);
       ctx.fillText('Formular 83-B. Teil C: "Nicht bestanden."',SW.CX,SW.H/2+35);
       const b2=Math.floor(Date.now()/500)%2===0;
       ctx.fillStyle=b2?'#fff':'#666';ctx.font='8px monospace';
@@ -654,10 +734,12 @@ SW.Game = {
       SW.UI.renderCockpit(ctx);
     }
     // UI (nicht rotiert)
+    if (SW.UI.renderTargetBracket) SW.UI.renderTargetBracket(ctx);
     SW.UI.renderRadar(ctx);
     if (SW.UI.navMapVisible) SW.UI.renderNavMap(ctx);
     SW.Comm.render(ctx);
     SW.UI.renderCrosshair(ctx);
+    if (SW.Fax) SW.Fax.render(ctx);
     if (SW.Autopilot.active) {
       ctx.fillStyle='#00aaff';ctx.font='6px monospace';ctx.textAlign='center';
       ctx.fillText('◈ AUTOPILOT ◈',SW.CX,12);ctx.textAlign='left';
@@ -690,6 +772,7 @@ SW.Game = {
     if (SW.Wingman) SW.Wingman.render(ctx);  // IM RAUM: Sechs (oben = vorne)
     SW.Projectiles.render(ctx);
     SW.Explosions.render(ctx);
+    if (SW.UI.renderTargetBracket) SW.UI.renderTargetBracket(ctx);
     // Spieler: Top-Down-Sprite unten Mitte (Rollen angedeutet)
     const t = SW.Engine.view.top;
     ctx.save();
@@ -705,6 +788,7 @@ SW.Game = {
     if (SW.UI.navMapVisible) SW.UI.renderNavMap(ctx);
     SW.Comm.render(ctx);
     SW.UI.renderCrosshair(ctx);
+    if (SW.Fax) SW.Fax.render(ctx);
     if (SW.Autopilot.active) {
       ctx.fillStyle='#00aaff';ctx.font='6px monospace';ctx.textAlign='center';
       ctx.fillText('◈ AUTOPILOT ◈',SW.CX,12);ctx.textAlign='left';
@@ -801,7 +885,15 @@ SW.Game = {
 
   renderDebriefing(ctx) {
     ctx.fillStyle='#000';ctx.fillRect(0,0,SW.W,SW.H);ctx.textAlign='center';
-    if (this.victory) {
+    const endType = this.getEndingType();
+    if (endType === 'geheim') {
+      ctx.fillStyle='#ffcc00';ctx.font='bold 13px monospace';ctx.fillText('AKTE 99-Z — GEHEIMES ENDE',SW.CX,36);
+      ctx.fillStyle='#fff';ctx.font='7px monospace';
+      ctx.fillText('Kältekammer 7 atmet ruhig (2/min). Formular 83-B wurde geschreddert.',SW.CX,60);
+      ctx.fillText('Der Optimierer hat den Träger als „unheilbares Biotop“ abgeschrieben.',SW.CX,73);
+      ctx.fillStyle='#00ffcc';ctx.font='6px monospace';
+      ctx.fillText('Das Dorf fliegt weiter. Ohne Auftrag. Mit warmem Kaffee.',SW.CX,92);
+    } else if (endType === 'sieg') {
       ctx.fillStyle='#0f0';ctx.font='bold 14px monospace';ctx.fillText('MISSION ABGESCHLOSSEN',SW.CX,40);
       ctx.fillStyle='#fff';ctx.font='8px monospace';
       ctx.fillText('Sie kommen zurück. Sie gehören jetzt zu einer sehr kleinen Gruppe.',SW.CX,65);
@@ -817,13 +909,17 @@ SW.Game = {
       ctx.fillText('Das Formular P-9 liegt jetzt im Ordner "C:\\PAPIERKRAM".',SW.CX,95);
     }
     ctx.fillStyle='#fff';ctx.font='10px monospace';
-    ctx.fillText('EINSATZBEWERTUNG: '+this.score,SW.CX,120);
+    ctx.fillText('EINSATZBEWERTUNG: '+this.score,SW.CX,118);
+    if (SW.Newspaper && SW.Newspaper.latest()) {
+      ctx.fillStyle='#8b8500';ctx.font='5px monospace';
+      ctx.fillText('TRÄGER-POST: „' + SW.Newspaper.latest().headline.substring(0, 44) + '“ [J im Büro]',SW.CX,133);
+    }
     const blink=Math.floor(Date.now()/500)%2===0;
     ctx.fillStyle=blink?'#fff':'#888';ctx.font='9px monospace';
-    ctx.fillText(this.victory ? '[ ZUM ABSANN ]' : '[ ZURÜCK ZUM TRÄGER ]',SW.CX,150);
+    ctx.fillText(this.victory ? '[ ZUM ABSPANN ]' : '[ ZURÜCK ZUM TRÄGER ]',SW.CX,152);
     ctx.textAlign='left';
   },
-  // ===== CREDITS / ABSANN (v0.70) =====
+  // ===== CREDITS / ABSPANN (v0.75-dev, 3 Enden) =====
   // Nach dem Sieg: Debriefing → rollender Abspann (1990-Style) → Träger.
   // Tod (KONTAKT VERLOREN) geht ohne Abspann direkt zum Träger.
   // [LEER] = weiterspulen (am Ende: zum Träger), [ESC] = schließen,
@@ -834,15 +930,22 @@ SW.Game = {
   },
   _buildCredits() {
     const n = ((SW.World && SW.World.pilotName) || 'FLUG DREI').toUpperCase();
+    const posting = SW.Transfers.getCurrentPosting();
+    const endType = this.getEndingType();
     const L = [];
     const line = (t, f, c, gap) => L.push({ t: t, f: f || '8px monospace', c: c || '#ccc', gap: gap || 0 });
-    line('FAX-TRAGÖDIE', 'bold 18px monospace', '#ffcc00', 12);
+    line(posting.name, 'bold 18px monospace', '#ffcc00', 12);
     line('SOLO WING 1990', '10px monospace', '#fff', 6);
-    line('STERNENKORPS — EINSATZBERICHT ABGESCHLOSSEN — FORMULAR 77-V: AUSGEFÜLLT', '6px monospace', '#666', 18);
+    if (endType === 'geheim') {
+      line('AKTE 99-Z — GEHEIMES ENDE: DAS DORF ATMET WEITER', 'bold 7px monospace', '#00ffcc', 8);
+      line('Kältekammer 7 bleibt versiegelt. Der Optimierer ist abgereist.', '6px monospace', '#88ddaa', 14);
+    } else {
+      line('STERNENKORPS — EINSATZBERICHT ABGESCHLOSSEN — FORMULAR 77-V: AUSGEFÜLLT', '6px monospace', '#666', 18);
+    }
     line('SOLO WING 1990', 'bold 10px monospace', '#0f0', 6);
     line('Pilot: ' + n, '10px monospace', '#0f0', 4);
-    line('Beförderung: Gefreiter (per Fax)', '7px monospace', '#888', 18);
-    line('CREW DES FAX-TRAGÖDIE', 'bold 10px monospace', '#ffcc00', 8);
+    line(endType === 'geheim' ? 'Status: Unkündbar (Formular 91-X)' : 'Beförderung: Gefreiter (per Fax)', '7px monospace', '#888', 18);
+    line('CREW ' + posting.name, 'bold 10px monospace', '#ffcc00', 8);
     (SW.Crew || []).forEach((m) => {
       let s = '';
       if (m.status === 'gefallen') s = '  [ GEFALLEN IM DIENST ]';
@@ -852,7 +955,8 @@ SW.Game = {
     });
     line('', '8px monospace', '#ccc', 14);
     line('HERGESTELLT VON', 'bold 10px monospace', '#ffcc00', 6);
-    line('Tretboot — Konzept, Code, Design, Musik, Formulare', '7px monospace', '#ccc', 14);
+    line('Tretboot — Konzept, Code, Design, Musik, Formulare', '7px monospace', '#ccc', 6);
+    line('KI-Ären: Qwen-Verbund · VS Code + Cline · GitHub Copilot · Gemini 4 Argon', '6px monospace', '#88aacc', 14);
     line('MUSIK — Web Audio API (1 Melodie, 7 Instrumentierungen)', '7px monospace', '#aaa', 2);
     line('GRAFIK — Canvas 640×400, vollständig prozedural', '7px monospace', '#aaa', 2);
     line('STIMMEN — Speech Synthesis (14 Profile, Mikro-Variation)', '7px monospace', '#aaa', 2);
@@ -866,7 +970,7 @@ SW.Game = {
     line('Keine Katzen wurden bei der Entwicklung verletzt.', '8px monospace', '#fff', 4);
     line('Die Katze bestritt den Vorfall dennoch nicht.', '8px monospace', '#fff', 18);
     line('ENDE', 'bold 14px monospace', '#fff', 10);
-    line('v0.75-dev · STERNENKORPS', '6px monospace', '#666');
+    line(SW.VERSION + ' · STERNENKORPS', '6px monospace', '#666');
     // Layout: ln.y = kumulierte y (0..Inhalthöhe), maxScroll = kompletter
     // Text läuft über die Bildschirmtop-Kante hinaus (Einlauf von unten).
     let y = 0;

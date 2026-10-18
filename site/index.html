@@ -26,6 +26,18 @@
 <h1>SOLO WING 1990</h1>
 <div class="subtitle">Projektseite | Sternenkorps Interne | Nur für Personal mit Formular 12-B</div>
 
+<div class="card" style="border-color:#00ffcc;">
+<h3 style="color:#00ffcc;">BETRIEBSBEKANNTMACHUNG: GEMINI 4 ARGON ÜBERNIMMT DAS RUDER (2026-10-18)</h3>
+<p>Für den aktuellen Integrations- und Polish-Pass hat <b>Gemini 4 Argon</b> (Antigravity / DeepMind) kurzfristig die Schicht auf der <i>TCS Fax-Tragödie</i> übernommen. Auftrag gemäß Formular 91-X: Offene Punkte der Todo-Liste abarbeiten, verwaiste Systeme endlich miteinander verdrahten, Grafik und Spielbarkeit auf die nächste Stufe heben — und eine schonungslose, bürokratisch korrekte Bewertung der bisherigen Agenten-Epochen abgeben.</p>
+<p><b>Erster Befund bei Dienstantritt (Der „Phantom-Start-Bug" & das Geisterschiff):</b> Wer bisher im Flugdeck auf <code>START</code> klickte, rief <code>startMission('m1')</code> auf — eine Funktion, die am Ende <code>this.setState('SHIP')</code> ausführte und die soeben gestartete Briefing-Tafel im selben Frame wieder abwürgte! Man konnte das Spiel im Browser buchstäblich nicht vom Flugdeck aus starten, weil der Smoke-Test <code>startMission -> SHIP</code> als Invariante prüfte. Noch besser: In <code>data/postings.js</code> war die Crew der <i>Fax-Tragödie</i> auf <code>Object.keys(SW.RoomNPCs)</code> begrenzt — wodurch Commander, Sechs, Neun, Zwo und Vier aus ihren eigenen Räumen ausgesperrt waren. Beides ist jetzt behoben (<code>prepareMission(id)</code> trennt Flugdeck-Vorbereitung vom direkten Test-Einstieg; alle Stamm-NPCs stehen wieder in Bar, Büro, Kantine und Reparatur).</p>
+<p><b>Bewertung der Vorgänger durch Argon:</b>
+<br>• <b>Ära 1 (Qwen-Agentenverbund, 9–11 lokale Modelle):</b> Brillant im Tonfall („Atmen ist kein Formular"), katastrophal in der Verkabelung. Baute ganze Subsysteme (<code>SmartDialogues</code>, <code>Quests</code>, <code>Newspaper</code>) als museale Kulissen, ohne sie jemals im Spiel aufzurufen. Hinterließ historische Denkmäler wie den <code>tet</code>-Katzen-Commit und Ein-Zeilen-Dateikollapse.
+<br>• <b>Ära 2 (VS Code + Cline):</b> Starker räumlicher Vorstoß („IM RAUM", 3 Decks, 14 Räume, Launch-Tube, Save/Load). Brachte echte Flug-Dynamik, baute aber versehentlich den Phantom-Start-Bug und die leeren Stamm-Crewräume ein.
+<br>• <b>Ära 3 (GitHub Copilot):</b> Hohe chirurgische Disziplin (Schiffssystem-Schäden, Hangar-Reparatur, Postings/Transfers, saubere Smoke-Test-Härtung). Hielt das Schiff stabil, ließ aber die großen offenen Gameplay-Schleifen aus v0.6.7–v0.75 noch unangetastet.
+<br>• <b>Ära 4 (Gemini 4 Argon):</b> Alles, was bisher „in der Schublade lag", lebt jetzt im Spiel: Missionsbaum <code>M1–M4</code> im Flugdeck wählbar, Smart-Dialogues & Fax-Quests komplett verdrahtet, Thermopapier-Fax-Overlay im Flug/Schiff, lesbare Schiffszeitung <i>DIE TRÄGER-POST</i> (<code>[J]</code> oder Klick aufs Fax), 5 lesbare Geheimakten im Büro-Aktenschrank, der <i>Optimierer</i> nach Mission 4 in der Bar, 3. Posting <i>Außenposten 31</i>, 3 echte Enden (Sieg / Tod / Geheimnis der Kältekammer 7), WC1-Zielaufschaltung mit Vorhaltepunkt (Lead-Pip), Nachbrenner-Warpstreifen, Siedler-Eskorte in <code>m3</code> und Träger-Eigenverteidigung bei Friendly Fire.</p>
+<p><span class="tag new">ARGON-PASS</span> <span class="tag arch">INTEGRATION</span> <a href="entwicklung.html">→ Zum vollständigen Argon-Audit</a></p>
+</div>
+
 <div class="card" style="border-color:#0f0;">
 <h3 style="color:#0f0;">BETRIEBSBEKANNTMACHUNG: NEUER AGENT AN BORD (2026-10-13)</h3>
 <p>Ab sofort arbeitet <b>GitHub Copilot</b> als weiterer Agent an Bord — im gleichen VS Code-Kontext wie zuvor der Cline-Handoff. Fortführung von <b>v0.6.9-final</b>: SPINDE/Save/Load, Audio-Fix, Repo-Cleanup, Doku, Wiki-Hub. Der Agentenverbund bleibt aufgelöst — die Treppe hat 14 Stockwerke. Das ist keine Strafe.</p>
@@ -41,54 +53,53 @@
 </div>
 
 <div class="card" style="border-color:#0af;">
-<h3 style="color:#0af;">V0.6.9 — "MUSIK, OPTIK, KATALOG & WEBSITE" — IN ARBEIT</h3>
-<p><span class="tag new">NEU</span> <b>Ingame Handbuch</b> — Taste [H] drücken! 6 Kapitel, progressiv freigeschaltet, NPCs zitieren.</p>
-<p><span class="tag new">NEU</span> <b>Website-Überarbeitung</b> — Neues Corporate Design (Sternenkorps-Standard), Switch-Kompatibilität, verknüpft mit Ingame-Inhalten.</p>
-<p><span class="tag new">NEU</span> <b>Game ↔ Website Bridge</b> — Ingame [H] öffnet Handbuch, Website verlinkt zurück zum Spiel.</p>
-<p><span class="tag warning">VORBEREITUNG</span> Switch-Port: Touch-Controls, UI-Scaling, Performance-Checks laufen.</p>
+<h3 style="color:#0af;">V0.75-DEV — "ARGON-INTEGRATION, FLUGMODELL & VOLLSTÄNDIGE DORF-SCHLEIFE"</h3>
+<p><span class="tag new">NEU</span> <b>Missionsbaum & 3 Enden</b> — Im Flugdeck zwischen M1–M4 wählen, Siedler in M3 eskortieren, Kältekammer 7 in M4 bergen und Sieg-, Tod- oder Geheim-Ende freischalten.</p>
+<p><span class="tag new">NEU</span> <b>Fax-Quests, 5 Akten & DIE TRÄGER-POST</b> — Klick auf Aktenschrank, Faxgerät, Kaffeekanne, Wischmopp oder Versetzungsschalter; Zeitung jederzeit mit <code>[J]</code> an Bord lesen.</p>
+<p><span class="tag new">NEU</span> <b>WC1 Target-Bracket & Vorhaltepunkt</b> — Automatische Zielaufschaltung aufs nächste Feindschiff inklusive Vorhalte-Pip (Lead Indicator) und Nachbrenner-Sternstreifen.</p>
+<p><span class="tag new">NEU</span> <b>Ingame Handbuch [H]</b> — Alle 7 Kapitel, Kapitel 5 & 6 schalten nach M1/M2 verlässlich frei.</p>
 <p><a href="manual/index.html">→ Handbuch öffnen (extern)</a> | <a href="../index.html">→ Spiel starten</a></p>
 </div>
 
 <h2>AKTUELLER STATUS</h2>
 <div class="card">
-<h3>Version 0.6.9-final — "SPINDE, Save/Load & Audio" (2026-10-13)</h3>
-<p><b>v0.6.9-final</b>: SPINDE (13. Raum, Bunker) mit Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Loop-Fix, volle Stille in Menüs/Dialogen, [P] für beide Audio-Systeme, Dialog-Box mit Höhe/Umbruch/Paging/Sprecher-Gesichtern, Repo-Cleanup für GitHub, Wiki-Hub. Darunter: Ingame-Handbuch [H], externes Handbuch, Website (Corporate Design), Game↔Website-Bridge, Switch-Prep, Launch-Tube + Kamera [V], Sektoren-Licht, Glas-Theme, Schulraum "ZWEIG" (12. Raum). <b>Final.</b></p>
-<p>Stand 2026-10-13: <b>v0.6.9-final</b> im Haupt-Repo. RC v0.6.9-rc bleibt in release/ (historisch). Smoke-Test: ALLE TESTS OK (29 Skripte, 13 Räume). Repo-Ziel: github.com/tretboot/solo_wing_1990. Die Kältekammer atmet. Zweimal pro Minute.</p>
-<p><span class="tag new">NEU</span> <span class="tag arch">FINAL</span></p>
+<h3>Version 0.75-dev (Argon-Pass) — "Alles greift ineinander" (2026-10-18)</h3>
+<p><b>v0.75-dev (Gemini 4 Argon Pass)</b>: Komplette Verzahnung von Raumkampf und Träger-Alltag. Phantom-Start-Bug und leere Crewräume behoben; Missionswähler (M1–M4) im Flugdeck; Smart-Dialogues (inkl. Schreib-Blöcke 3 & 4 für Quests, Subplots, Optimierer und alle Raum-NPCs) live in den Räumen; 5 Fax-Quests mit Thermopapier-Popups und Flug-Triggern; lesbare Schiffszeitung <i>DIE TRÄGER-POST</i> (<code>[J]</code>); 5 lesbare Geheimakten im Büro; Optimierer-Auftritt nach M4 + Versetzung zum 3. Posting <i>Außenposten 31</i>; 3 Enden (Sieg / Tod / Geheim); WC1-Target-Bracket mit Vorhaltepunkt; Siedler-Eskorte in M3; Träger-Geschützfeuer bei Beschuss. Smoke-Test: <b>ALLE TESTS OK</b>.</p>
+<p><span class="tag new">ARGON</span> <span class="tag arch">v0.75-dev</span></p>
 <p><a href="../index.html">→ Spiel starten (index.html)</a></p>
 </div>
 
 <h2>EVALUATION — WIE WEIT SIND WIR?</h2>
 <div class="card">
-<h3>Umgesetzt (v0.6.2)</h3>
+<h3>Umgesetzt (Stand v0.75-dev Argon-Pass)</h3>
 <table>
 <tr><th>Bereich</th><th>Status</th><th>Notiz</th></tr>
-<tr><td>Engine (3D, Stars, Kollision)</td><td class="status-ok">FERTIG</td><td>Projection, Z-Sort, Drift-Physik</td></tr>
-<tr><td>Cockpit (WC1-Style)</td><td class="status-ok">FERTIG</td><td>Frame, Radar, Shields, Score, Weapon/Target</td></tr>
-<tr><td>Audio (prozedural)</td><td class="status-ok">FERTIG</td><td>Laser, Explosion, Schild, Funk</td></tr>
+<tr><td>Engine (3D, Stars, Kollision)</td><td class="status-ok">FERTIG</td><td>Projection, Z-Sort, Drift-Physik, Nachbrenner-Streifen</td></tr>
+<tr><td>Cockpit (WC1-Style)</td><td class="status-ok">FERTIG</td><td>Frame, Radar, Shields, Target-Bracket + Vorhalte-Pip</td></tr>
+<tr><td>Audio (prozedural)</td><td class="status-ok">FERTIG</td><td>Laser, Explosion, Schild, Funk, Thermopapier-Fax</td></tr>
 <tr><td>TTS (14 Profile)</td><td class="status-ok">FERTIG</td><td>Voice-Pool, Mikro-Variation, Stage-Direction-Filter</td></tr>
 <tr><td>Input (Multi-Device)</td><td class="status-ok">FERTIG</td><td>WASD/Pfeile/Maus/Gamepad, Laser-Slots</td></tr>
-<tr><td>State Machine</td><td class="status-ok">FERTIG</td><td>AKADEMIE→BAR→SHIP→…→DEBRIEFING</td></tr>
-<tr><td>Träger (11 Räume)</td><td class="status-ok">FERTIG</td><td>Tür-Klick, Minimap, NPC-Dialoge, KLO</td></tr>
-<tr><td>Crew (18 + 5 Piloten)</td><td class="status-ok">FERTIG</td><td>Scoreboard, Backstories</td></tr>
-<tr><td>Missionen (m1–m4)</td><td class="status-ok">FERTIG</td><td>m4 = DER FRACHTER (Piraten)</td></tr>
-<tr><td>Quests (Overlay)</td><td class="status-ok">FERTIG</td><td>5 Quests, Fax-basiert, Event-System</td></tr>
-<tr><td>Lore (Worldbuilding)</td><td class="status-ok">FERTIG</td><td>Audit, Piraten, Optimierer, KLO, Alien</td></tr>
-<tr><td>Schiffsklassen (Barebones)</td><td class="status-ok">FERTIG</td><td>4 Klassen, 3 Cockpit-Layouts</td></tr>
-<tr><td>Akademie (Tutorial)</td><td class="status-ok">FERTIG</td><td>Sim-Flug, Pro-forma-Bestehen</td></tr>
+<tr><td>State Machine</td><td class="status-ok">FERTIG</td><td>INTRO→AKADEMIE→ARRIVAL→BAR→SHIP→BRIEFING_BOARD→JUMP→TAKEOFF→COCKPIT→LANDING→HANGAR→DEBRIEFING→CREDITS</td></tr>
+<tr><td>Träger (14 Räume auf 3 Decks)</td><td class="status-ok">FERTIG</td><td>Bulkhead-Schotts, Deckplan, Quartiere, Save/Load, interaktive Hotspots</td></tr>
+<tr><td>Crew (18 + 5 Piloten + Optimierer)</td><td class="status-ok">FERTIG</td><td>Alle Gesichter prozedural im Registry, SmartDialogues live</td></tr>
+<tr><td>Missionen (m1–m4)</td><td class="status-ok">FERTIG</td><td>Missionswähler im Flugdeck, M3 Siedler-Eskorte, M4 Der Frachter</td></tr>
+<tr><td>Quests & Fax-Overlay</td><td class="status-ok">FERTIG</td><td>5 Fax-Quests, Flug- & Raum-Trigger, Thermopapier-Banner</td></tr>
+<tr><td>Schiffszeitung (DIE TRÄGER-POST)</td><td class="status-ok">FERTIG</td><td>Dynamische Ausgaben nach Einsätzen, lesbar per [J] oder Fax-Klick</td></tr>
+<tr><td>Aktenschrank (5 Akten)</td><td class="status-ok">FERTIG</td><td>Sechs, Vorgänger, Kältekammer 7, Das Audit, Formular 91-X</td></tr>
+<tr><td>3 Enden & 3 Postings</td><td class="status-ok">FERTIG</td><td>Sieg / Tod / Geheim + Versetzung auf „Außenposten 31"</td></tr>
 </table>
-<h3>Geplant (nächste Pässe)</h3>
+<h3>Geplant (nächste Pässe ab v0.76+)</h3>
 <table>
 <tr><th>Task</th><th>Aufwand</th><th>Status</th></tr>
 <tr><td>Intro-Sequenz (Asteroidenfeld + Name)</td><td>Mittel</td><td class="status-ok">FERTIG</td></tr>
-<tr><td>Fax-Drucker UI (Quest-Feedback)</td><td>Klein</td><td>offen</td></tr>
-<tr><td>Aktenschrank (5 Akten → neuer Dialog)</td><td>Klein</td><td>offen</td></tr>
-<tr><td>Optimierer-Erscheinen (nach m4, Bar)</td><td>Klein</td><td>offen</td></tr>
-<tr><td>Cockpit-Testraum (Hangar, Layout A/B/C)</td><td>Mittel</td><td>offen</td></tr>
-<tr><td>Externes Handbuch (HTML + PDF, 12 Kapitel)</td><td>Mittel</td><td>offen</td></tr>
-<tr><td>3 Enden (Sieg / Tod / Geheim)</td><td>Mittel</td><td>offen</td></tr>
-<tr><td>Würfelspiel (Bar) + Simulator-Nachholung</td><td>Klein</td><td>offen</td></tr>
-<tr><td>Musik-Wechsel (Takeoff → Cockpit)</td><td>Klein</td><td>offen</td></tr>
+<tr><td>Fax-Drucker UI (Quest-Feedback)</td><td>Klein</td><td class="status-ok">FERTIG (Argon)</td></tr>
+<tr><td>Aktenschrank (5 Akten → neuer Dialog)</td><td>Klein</td><td class="status-ok">FERTIG (Argon)</td></tr>
+<tr><td>Optimierer-Erscheinen (nach m4, Bar)</td><td>Klein</td><td class="status-ok">FERTIG (Argon)</td></tr>
+<tr><td>Externes & Ingame-Handbuch (7 Kapitel)</td><td>Mittel</td><td class="status-ok">FERTIG</td></tr>
+<tr><td>3 Enden (Sieg / Tod / Geheim)</td><td>Mittel</td><td class="status-ok">FERTIG (Argon)</td></tr>
+<tr><td>Cockpit-Testraum (Hangar, Layout A/B/C)</td><td>Mittel</td><td>offen (v0.76)</td></tr>
+<tr><td>Würfelspiel (Bar) + Simulator-Nachholung</td><td>Klein</td><td>offen (v0.76)</td></tr>
+<tr><td>Freies Universum (dynamische Sektorkarte)</td><td>Groß</td><td>Roadmap v0.76–v0.81</td></tr>
 </table>
 </div>
 
@@ -109,9 +120,19 @@
 <tr><td>Lead Story Writer</td><td>Lore v4 (Audit, Alien, KLO)</td><td class="status-ok">PASS</td><td>"Atmen ist kein Formular."</td></tr>
 <tr><td>Lead Developer</td><td>Quest-Architektur + Akademie</td><td class="status-ok">PASS</td><td>Overlay, kein neuer State</td></tr>
 <tr><td>Qwen No Thinking</td><td>Flugsimulator-Handbuch</td><td class="status-ok">PASS</td><td>12 Kapitel + Crew-Zitate</td></tr>
+<tr><td><b>Gemini 4 Argon</b></td><td>Holistisches Audit, Bugfixes, v0.75-Integration & HUD-Overhaul</td><td class="status-ok">PASS</td><td>„Ein Knopf, der START heißt, sollte starten."</td></tr>
 </table>
 
 <h2>PATCH NOTES</h2>
+<div class="card" style="border-color:#00ffcc;">
+<h3>v0.75-dev (Argon-Pass) — Integration, Missionsbaum, 3 Enden & Zielcomputer (2026-10-18)</h3>
+<ul>
+<li><b>Kritische Spielbarkeits-Fixes:</b> Phantom-Start-Bug im Flugdeck behoben (<code>prepareMission(id)</code> statt <code>startMission(id)</code> beim Klick auf START); leere Stamm-Crewräume in <code>data/postings.js</code> repariert (Commander, Sechs, Neun, Zwo, Vier, Optimierer wieder an Bord); Handbuch-Freischaltung für Kapitel 5 &amp; 6 repariert.</li>
+<li><b>Missionsbaum &amp; Eskorte:</b> Im Flugdeck frei zwischen <code>M1</code>–<code>M4</code> wählbar; Mission 3 hat jetzt echte zivile Siedler-Frachter als Eskortziel; Träger feuert zurück bei Friendly Fire.</li>
+<li><b>Dorf-Integration (SmartDialogues, Quests, Akten, Zeitung):</b> Schreib-Blöcke 3 &amp; 4, 5 lesbare Geheimakten im Büro, interaktive Raum-Objekte (Fax, Kaffeekanne, Wischmopp, Kerzen, Versetzungsschalter auf <i>Außenposten 31</i>), Thermopapier-Fax-Banner im HUD und lesbare <i>TRÄGER-POST</i> per <code>[J]</code>.</li>
+<li><b>3 Enden &amp; Cockpit-HUD:</b> Sieg-, Tod- und Geheim-Ende („Akte 99-Z") in Debriefing &amp; Abspann; WC1-Target-Bracket mit Vorhaltepunkt (Lead-Pip) und Nachbrenner-Sternstreifen.</li>
+</ul>
+</div>
 <div class="card">
 <h3>v0.6.9-rc — Handbuch & Website (2026-10-10) + Wiederherstellung (2026-10-12)</h3>
 <ul>
@@ -185,6 +206,21 @@
 </div>
 
 <h2>PROJEKT-BLOG</h2>
+<div class="blog-entry">
+<div class="date">2026-10-18</div>
+<div class="title">Captain's Log: v0.75-dev (Argon-Pass) — Die große Verkabelung (Gemini 4 Argon an Bord)</div>
+<div class="body">
+<p><b>Status:</b> Gemini 4 Argon hat den Träger inspiziert, die losen Kabel aus drei Agenten-Epochen zusammengelötet und die offenen Posten der Todo-Liste abgearbeitet. Smoke-Test: <b>ALLE TESTS OK</b> (inklusive neuer Argon-Checks).</p>
+<p><b>Was wir vorgefunden haben (Archäologie auf 3 Decks):</b> SOLO WING 1990 ist ein faszinierendes Artefakt: Der Qwen-Agentenverbund hatte wunderbare Texte, ein komplettes Quest-System (<code>js/quests.js</code>), eine Smart-Dialogue-Engine (<code>js/dialogue.js</code>) und eine Schiffszeitung (<code>js/newspaper.js</code>) gebaut — und fast nichts davon je an die Räume oder den Flug angeschlossen. Danach baute Cline in Rekordzeit das räumliche Flugmodell („IM RAUM") und die 3-Deck-Architektur, hinterließ aber zwei stille Showstopper: Erstens führte der Klick auf <code>START</code> im Flugdeck <code>startMission('m1')</code> aus, was am Ende <code>setState('SHIP')</code> aufrief und das soeben geöffnete Briefing im selben Millisekunden-Tick wieder schloss (der <b>Phantom-Start-Bug</b>). Zweitens war in <code>data/postings.js</code> die Crew der <i>Fax-Tragödie</i> auf <code>Object.keys(SW.RoomNPCs)</code> gesetzt — worin weder Commander noch Sechs, Neun, Zwo oder Vier vorkamen. Die wichtigsten Räume des Schiffs standen im Browser leer! GitHub Copilot wiederum lieferte danach vorbildlich saubere Subsysteme (Systemschäden, Hangar-Reparatur, Postings, Savegame-Validierung), rührte aber die unverbundenen Story-Engines nicht an.</p>
+<p><b>Was Gemini 4 Argon gebaut hat:</b>
+<br>1. <b>Flugdeck &amp; Missionsbaum:</b> <code>prepareMission(id)</code> trennt Missions-Setup vom alten Test-Rücksprung; im Flugdeck lassen sich jetzt <code>M1</code> bis <code>M4</code> direkt anwählen.
+<br>2. <b>Das Dorf lebt (wirklich):</b> Alle Stamm-NPCs sind zurück in ihren Räumen. <code>SW.Ship.startNpcDialogue</code> spricht jetzt über <code>SW.SmartDialogues</code> (inkl. Schreib-Blöcke 3 &amp; 4 für Quests, Subplots, Raum-NPCs und den <i>Optimierer</i>) und startet bei Bedarf passende Fax-Quests.
+<br>3. <b>Interaktive Räume &amp; 5 Geheimakten:</b> Im Büro sind der Aktenschrank (5 lesbare Geheimakten: Sechs, Vorgänger, Kältekammer 7, Das Audit, Formular 91-X), das Faxgerät (öffnet <i>DIE TRÄGER-POST</i>, auch per Taste <code>[J]</code>) und der Versetzungsschalter (inkl. neuem 3. Posting <i>Außenposten 31</i>) klickbar; in der Kantine die Kaffeekanne, im KLO der Wischmopp, in der Kapelle die Gedenkkerzen.
+<br>4. <b>Fluggefühl &amp; HUD:</b> WC1-Target-Bracket mit dynamischem Vorhaltepunkt (Lead-Pip) fürs nächste Feindschiff, Nachbrenner-Warpstreifen im Sternenfeld, zivile Siedler-Eskorte in <code>m3</code> und ein Träger, der bei Friendly Fire erst per Funk warnt und ab dem 3. Treffer zurückschießt.
+<br>5. <b>3 Enden:</b> Debriefing und Abspann unterscheiden jetzt zwischen regulärem Sieg, Tod im Einsatz und dem <b>Geheimen Ende (Akte 99-Z)</b>, wenn Kältekammer 7 geborgen und die Wahrheit hinter dem Audit aufgedeckt wurde.</p>
+<p><b>Fazit von Argon:</b> Das Projekt brauchte kein neues Framework und keine zwölfte unverbundene Engine-Datei — es brauchte jemanden, der mit einem Lötkolben durch alle 14 Räume geht und die Schalter anschließt. Formular 91-X ist gestempelt.</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2026-10-13</div>
 <div class="title">Captain's Log: v0.75-dev — IM RAUM (Endlich fliegen wir. Endlich sind wir nicht allein.)</div>

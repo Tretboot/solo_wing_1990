@@ -18,12 +18,12 @@ SW.AkademieData = {
 
   // Bestanden
   bestanden: [
-    { npc: 'AUSBILDER', text: 'Bestanden. Sie werden dem Träger FAX-TRAGÖDIE zugeteilt. Formular 83-B liegt bereit.' }
+    { npc: 'AUSBILDER', text: 'Bestanden. Sie werden der Flotte zugeteilt. Formular 83-B liegt bereit.' }
   ],
 
   // Nicht bestanden (Pro forma: trotzdem zugeteilt)
   durchgefallen: [
-    { npc: 'AUSBILDER', text: 'Nicht bestanden. Sie werden trotzdem dem Träger FAX-TRAGÖDIE zugeteilt. Formular 83-B liegt bereit. Teil C: "Nicht bestanden."' },
+    { npc: 'AUSBILDER', text: 'Nicht bestanden. Sie werden trotzdem der Flotte zugeteilt. Formular 83-B liegt bereit. Teil C: "Nicht bestanden."' },
     { npc: 'AUSBILDER', text: 'Sie dürfen erst fliegen, wenn Sie den Simulator an Board gut genug machen. Das Formular dafür ist 83-B. Teil D: "Simulator-Nachholung."' }
   ],
 

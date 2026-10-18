@@ -1,7 +1,14 @@
 // ===== SOLO WING 1990 — AUDIO SYSTEM (Procedural Web Audio API) =====
 SW.Audio = {
   ctx: null, masterGain: null, enabled: true,
-  toggle() { this.enabled = !this.enabled; return this.enabled; },
+  toggle() {
+    this.enabled = !this.enabled;
+    if (!this.enabled) this.stopMusic();
+    else if (this.musicEnabled && SW.Game && SW.Game.state === 'INTRO') {
+      this.startMusic(SW.Intro && SW.Intro.phase === 1 ? 'asteroid' : 'title');
+    }
+    return this.enabled;
+  },
   init() {
     if (this.ctx) return;
     try {
@@ -73,6 +80,21 @@ SW.Audio = {
     osc.connect(gain).connect(this.masterGain);
     osc.start(t); osc.stop(t + 0.3);
   },
+  // 1988er Thermopapier-Faxgerät: kurzes Rattern + Piepton
+  playFax() {
+    if (!this.ready || !this.enabled) return;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < 4; i++) {
+      const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(i === 3 ? 1320 : 280 + i * 90, t + i * 0.045);
+      gain.gain.setValueAtTime(0.05, t + i * 0.045);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.045 + 0.035);
+      osc.connect(gain).connect(this.masterGain);
+      osc.start(t + i * 0.045);
+      osc.stop(t + i * 0.045 + 0.038);
+    }
+  },
   // ===== MOTOR-SOUND (IM RAUM, v0.75-dev): kontinuierlicher Summton,
   // Tonhöhe + Lautstärke folgen der Vorschub-Geschwindigkeit (Cruise → Burn).
   engineOsc: null, engineOsc2: null, engineGain: null, engineFilt: null,
@@ -133,140 +155,111 @@ SW.Audio = {
     osc.connect(og); og.connect(this.masterGain);
     osc.start(t); osc.stop(t + 0.5);
   },
-  // ===== MUSIK (v0.6.9-final) =====
-  // Prozeduraler Loop als Platzhalter (wird später durch echte Musik ersetzt).
-  // startMusic('intro'): leises A-moll-Arpeggio über Drohn-Bass (A2/E2).
-  // stopMusic(): Fade-out + Disconnect. Menü = Stille (Musik pausiert).
+  // ===== PROZEDURALE MUSIK =====
+  // Eigene Motive: weiter Synth-Horizont im Titel, bewegter Puls im Asteroidenfeld.
   musicEnabled: true,
   music: null,
-  toggleMusic() {
-    this.musicEnabled = !this.musicEnabled;
-    if (!this.musicEnabled) this.stopMusic();
-    else if (this.ready && this.enabled && SW.Game && SW.Game.state === 'INTRO') this.startMusic('intro');
-    return this.musicEnabled;
-  },
   startMusic(kind) {
     if (!this.ready || !this.enabled || !this.musicEnabled) return;
+    const theme = kind === 'asteroid' ? 'asteroid' : 'title';
+    if (this.music && this.music.kind === theme) return;
     this.stopMusic();
+
     const gain = this.ctx.createGain();
-    gain.gain.value = 0.07; // leise: Atmosphäre, nicht Hauptdarsteller
+    gain.gain.value = 0.0001;
     gain.connect(this.masterGain);
-    const music = { gain: gain, timer: null, step: 0 };
-    // A-moll: A3 C4 E4 G4 E4 C4 A3 G3 (Melodie), A2/E2 (Drohn)
-    const melody = [220, 261.63, 329.63, 392, 329.63, 261.63, 220, 196];
-    const drone = [110, 82.41];
-    const STEP = 320; // ms pro Schritt → 8 Schritte ≈ 2.6 s pro Loop
+    const now = this.ctx.currentTime;
+    const music = { gain: gain, timer: null, step: 0, kind: theme };
+    const score = theme === 'asteroid'
+      ? {
+        melody: [293.66, 0, 349.23, 392, 440, 0, 392, 329.63, 293.66, 0, 261.63, 293.66, 349.23, 392, 329.63, 0],
+        bass: [73.42, 73.42, 87.31, 87.31, 65.41, 65.41, 98, 98],
+        stepMs: 230,
+        noteLength: 0.19,
+        voice: 'square',
+        level: 0.16,
+        bassLevel: 0.22,
+        filterHz: 1500
+      }
+      : {
+        melody: [220, 261.63, 293.66, 392, 349.23, 329.63, 261.63, 196],
+        bass: [110, 82.41],
+        stepMs: 390,
+        noteLength: 0.34,
+        voice: 'triangle',
+        level: 0.2,
+        bassLevel: 0.14,
+        filterHz: 2400
+      };
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = score.filterHz;
+    filter.connect(gain);
+    music.filter = filter;
+    gain.gain.setTargetAtTime(theme === 'asteroid' ? 0.045 : 0.035, now, 0.45);
+
+    const playNote = (frequency, t, duration, wave, level) => {
+      const osc = this.ctx.createOscillator();
+      const noteGain = this.ctx.createGain();
+      osc.type = wave;
+      osc.frequency.setValueAtTime(frequency, t);
+      noteGain.gain.setValueAtTime(0.0001, t);
+      noteGain.gain.linearRampToValueAtTime(level, t + 0.018);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      osc.connect(noteGain);
+      noteGain.connect(filter);
+      osc.start(t);
+      osc.stop(t + duration + 0.02);
+    };
+
     const playStep = () => {
       if (!this.music || this.music !== music || !this.musicEnabled || !this.enabled || !this.ready) return;
       const t = this.ctx.currentTime;
       const s = music.step;
-      // Drohn-Bass auf Schritt 0 und 4 (wechselnd A2/E2)
-      if (s % 4 === 0) {
-        const dOsc = this.ctx.createOscillator(), dGain = this.ctx.createGain();
-        dOsc.type = 'triangle'; dOsc.frequency.value = drone[Math.floor(s / 4) % 2];
-        dGain.gain.setValueAtTime(0.5, t);
-        dGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-        dOsc.connect(dGain); dGain.connect(gain);
-        dOsc.start(t); dOsc.stop(t + 1.25);
+      const note = score.melody[s % score.melody.length];
+      if (note) playNote(note, t, score.noteLength, score.voice, score.level);
+      if (theme === 'asteroid' ? s % 2 === 0 : s % 4 === 0) {
+        const bass = score.bass[Math.floor(s / (theme === 'asteroid' ? 2 : 4)) % score.bass.length];
+        playNote(bass, t, theme === 'asteroid' ? 0.32 : 1.35, 'triangle', score.bassLevel);
       }
-      // Melodie (ein Ton pro Schritt, 1990er-FM-Flair)
-      const mOsc = this.ctx.createOscillator(), mGain = this.ctx.createGain();
-      mOsc.type = 'sine'; mOsc.frequency.value = melody[s % melody.length];
-      mGain.gain.setValueAtTime(0.55, t);
-      mGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-      mOsc.connect(mGain); mGain.connect(gain);
-      mOsc.start(t); mOsc.stop(t + 0.32);
       music.step++;
-      music.timer = setTimeout(playStep, STEP);
+      music.timer = setTimeout(playStep, score.stepMs);
     };
-    playStep();
     this.music = music;
+    playStep();
   },
   stopMusic() {
-    // Stille (Menü/Dialog): ALLE Musik-Systeme stoppen, auch Intro-Musik
-    this.stopIntroMusic();
     if (!this.music) return;
     const m = this.music;
     this.music = null;
     if (m.timer) clearTimeout(m.timer);
     if (this.ready) {
-      try {
-        m.gain.gain.setValueAtTime(m.gain.gain.value, this.ctx.currentTime);
-        m.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
-      } catch (e) {}
-      setTimeout(function () { try { m.gain.disconnect(); } catch (e) {} }, 350);
+      m.gain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.07);
+      setTimeout(() => {
+        m.gain.disconnect();
+        m.filter.disconnect();
+      }, 300);
     }
   },
-
-  // ===== INTRO-MUSIK (prozeduraler Loop, Platzhalter) =====
-  // sanfte, melodische Sequenz (C-E-G-C-G-E-C) über 12 Takte
-  introMusicOscillator: null,
-  introMusicGain: null,
-  introMusicStarted: false,
 
   playIntroMusic() {
-    if (!this.ready || !this.enabled || this.introMusicStarted) return;
-    this.introMusicStarted = true;
-    this._startIntroMusicSeq();
+    this.startMusic('title');
   },
-
-  // Interne Sequenz (ohne Gate): der ended-Handler ruft sie für den Loop auf.
-  // (Früher rief der Loop playIntroMusic() erneut auf, das early-returnete,
-  //  weil introMusicStarted noch true war → Musik spielte nur einmal.)
-  _startIntroMusicSeq() {
-    const ctx = this.ctx;
-    const t = ctx.currentTime;
-    this.introMusicGain = ctx.createGain();
-    this.introMusicGain.gain.setValueAtTime(0.3, t);
-    this.introMusicGain.connect(this.masterGain);
-
-    // Melodie: C4 -> E4 -> G4 -> C5 -> G4 -> E4 -> C4
-    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63];
-    const durations = [0.5, 0.5, 1.0, 2.0, 1.0, 0.5, 1.0]; // in Sekunden
-
-    this.introMusicOscillator = ctx.createOscillator();
-    this.introMusicOscillator.type = 'triangle';
-    this.introMusicOscillator.connect(this.introMusicGain);
-
-    let next = t;
-    for (let i = 0; i < notes.length; i++) {
-      this.introMusicOscillator.frequency.setValueAtTime(notes[i], next);
-      next += durations[i];
-    }
-    // sanfter Ausklang, dann loop
-    this.introMusicOscillator.frequency.setValueAtTime(261.63, next);
-    this.introMusicGain.gain.setValueAtTime(0.3, next);
-    this.introMusicGain.gain.exponentialRampToValueAtTime(0.001, next + 2);
-    this.introMusicOscillator.start(t);
-    this.introMusicOscillator.stop(next + 2);
-
-    // Nach Ende der Sequenz neu starten (Loop)
-    this.introMusicOscillator.addEventListener('ended', () => {
-      if (this.introMusicStarted) this._startIntroMusicSeq();
-    });
-  },
-
   stopIntroMusic() {
-    if (!this.introMusicStarted) return;
-    this.introMusicStarted = false;
-    if (this.introMusicOscillator) {
-      try { this.introMusicOscillator.stop(); } catch (e) {}
-      this.introMusicOscillator = null;
-    }
-    if (this.introMusicGain) {
-      try { this.introMusicGain.disconnect(); } catch (e) {}
-      this.introMusicGain = null;
-    }
+    this.stopMusic();
   },
-
   toggleMusic() {
-    if (!this.ready || !this.enabled) return false;
-    // ALLE Musik-Systeme betrachten (State-Musik + Intro-Musik)
-    if (this.music || this.introMusicStarted) {
+    this.musicEnabled = !this.musicEnabled;
+    if (!this.musicEnabled) {
       this.stopMusic();
-      return false;
+      return this.musicEnabled;
     }
-    this.playIntroMusic();
-    return true;
+    if (!this.ready || !this.enabled) return this.musicEnabled;
+    if (SW.Game && SW.Game.state === 'INTRO') {
+      this.startMusic(SW.Intro && SW.Intro.phase === 1 ? 'asteroid' : 'title');
+    } else {
+      this.playIntroMusic();
+    }
+    return this.musicEnabled;
   }
 };

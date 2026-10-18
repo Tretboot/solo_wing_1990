@@ -1,6 +1,8 @@
 // ===== SOLO WING 1990 — CONFIG & CONSTANTS =====
 const SW = window.SW1990 = window.SW1990 || {};
 
+SW.VERSION = '0.75-dev';
+
 // VGA-Auflösung: intern 640×400, virtuell 320×200 (ctx.scale(2,2))
 SW.W = 320; SW.H = 200;
 SW.CANVAS_W = 640; SW.CANVAS_H = 400;

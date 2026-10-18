@@ -93,8 +93,23 @@ SW.Engine = {
     }
   },
   renderStars(ctx, playerX, playerY) {
-    ctx.fillStyle = '#fff';
     const player = SW.Player;
+    const burning = !!(player && player.burning);
+    // Dezenter Sektor-Nebel im tiefen Raum (1990er Dither-/Glow-Charme)
+    if (ctx.save && ctx.arc && ctx.restore) {
+      const sysCol = (SW.World && SW.World.systemInfo) ? (SW.World.systemInfo().farbe || '#3366ff') : '#3366ff';
+      ctx.save();
+      ctx.fillStyle = sysCol;
+      ctx.globalAlpha = 0.04;
+      ctx.beginPath();
+      ctx.arc(SW.CX - playerX * 0.12, SW.CY - 22 - playerY * 0.12, 48, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = 'rgba(180,220,255,0.65)';
+    ctx.lineWidth = 1;
     for (const s of this.stars) {
       // Sternpositionen bleiben camera-relativ; fuer die gemeinsame Projektion
       // werden sie kurz in Weltkoordinaten umgerechnet.
@@ -106,17 +121,33 @@ SW.Engine = {
         s.z + (player ? player.z : 0)
       );
       if (p && p.sx >= 0 && p.sx < SW.W && p.sy >= 0 && p.sy < SW.H) {
-        ctx.fillRect(Math.round(p.sx), Math.round(p.sy), 1, 1);
+        const bright = s.z < 160 ? 2 : 1;
+        ctx.fillStyle = s.z < 120 ? '#ffffff' : (s.z < 300 ? '#cbd8e6' : '#7a8a99');
+        ctx.fillRect(Math.round(p.sx), Math.round(p.sy), bright, 1);
+        if (burning && s.z < 360 && ctx.beginPath && ctx.moveTo && ctx.lineTo && ctx.stroke) {
+          const pTail = this.project(
+            px + (player ? player.x : 0),
+            py + (player ? player.y : 0),
+            s.z + 18 + (player ? player.z : 0)
+          );
+          if (pTail) {
+            ctx.beginPath();
+            ctx.moveTo(p.sx, p.sy);
+            ctx.lineTo(pTail.sx, pTail.sy);
+            ctx.stroke();
+          }
+        }
       }
     }
+    ctx.fillStyle = '#fff';
   },
   // Top-Down-Sterne: statisches Feld, scrollt nach unten (Flug nach vorne)
   renderStarsTopDown(ctx) {
-    const off = ((SW.Game && SW.Game.frame) || 0) * 0.25;
+    const off = ((SW.Game && SW.Game.frame) || 0) * (SW.Player && SW.Player.burning ? 0.65 : 0.25);
     ctx.fillStyle = '#888';
     for (const s of this.topStars) {
       const y = (s.y + off) % SW.H;
-      ctx.fillRect(Math.round(s.x), Math.round(y), s.s, s.s);
+      ctx.fillRect(Math.round(s.x), Math.round(y), s.s, SW.Player && SW.Player.burning ? s.s + 1 : s.s);
     }
   }
 };

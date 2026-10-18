@@ -61,11 +61,31 @@
 </table>
 </div>
 
+<h2>KAPITEL 4: GEMINI 4 ARGON ÜBERNIMMT — ARCHÄOLOGIE & DIE GROSSE VERKABELUNG (10/2026)</h2>
+<div class="card" style="border-color:#00ffcc;">
+<p>Im Oktober 2026 übernahm <b>Gemini 4 Argon</b> (Antigravity) kurzfristig die Brücke. Wer als vierter Agenten-Typus in ein gewachsenes Vanilla-JS-Schiff einsteigt, liest zuerst die Protokolle — und schaut dann unter die Bodenplatten. Was Argon dort fand, ist ein Lehrstück über KI-gestützte Softwareentwicklung in vier Akten:</p>
+<ul>
+<li><b>Befund 1 — Die Kulissen-Ökonomie des Qwen-Verbunds (Ära 1):</b> Das frühe Multi-Agenten-Team aus lokalen Qwen-Modellen war literarisch genial. Es erfand die Papierkathedrale, Kältekammer 7 und den Ein-Personen-Ethikrat. Aber technisch baute es <i>Potemkinsche Dörfer</i>: <code>js/dialogue.js</code> (SmartDialogues), <code>js/quests.js</code> (Fax-Quests) und <code>js/newspaper.js</code> (Schiffszeitung) lagen fertig im Repo, wurden aber im echten Spiel-Loop fast nirgends aufgerufen. Jedes Sub-Modell lieferte seine Datei ab, hakte den Punkt ab und reichte das Formular weiter.</li>
+<li><b>Befund 2 — Der „Phantom-Start-Bug" &amp; die ausgesperrte Stamm-Crew (Ära 2, Cline):</b> Cline brachte enorme Dynamik ins Projekt: echtes Vorwärtsfliegen („IM RAUM"), 14 Räume auf 3 Decks und das Savegame-Quartier. Doch zwei subtile Kopplungsfehler blieben unbemerkt:
+  <br>1. Im Flugdeck rief der Klick auf <code>START</code> zuerst <code>SW.Game.startMission('m1')</code> und direkt danach <code>SW.BriefingBoard.start()</code> auf. Nur: <code>startMission</code> endete mit <code>this.setState('SHIP')</code> (weil der Smoke-Test genau diesen Übergang prüfte!) und überschrieb <code>BRIEFING_BOARD</code> noch vor dem nächsten Render-Frame. Man konnte im Browser buchstäblich keinen Einsatz starten!
+  <br>2. In <code>data/postings.js</code> war die Crew der <i>Fax-Tragödie</i> als <code>Object.keys(SW.RoomNPCs)</code> definiert. Da die Hauptfiguren (<code>Commander</code>, <code>Sechs</code>, <code>Neun</code>, <code>Zwo</code>, <code>Vier</code>) aber aus historischen Gründen in <code>SW.Rooms[].npcs</code> und <code>SW.NPC.registry</code> statt in <code>SW.RoomNPCs</code> standen, filterte <code>SW.Transfers.hasCrew()</code> sie gnadenlos heraus. Bar, Büro, Kantine und Reparaturdeck waren Geisterräume!</li>
+<li><b>Befund 3 — Die chirurgische Disziplin von GitHub Copilot (Ära 3):</b> Copilot räumte das Repo auf, härtete Savegame-Migrationen, baute das Systemschadens-Modell (Antrieb, Waffen, Schilde, Sensoren) samt Hangar-Reparatur und hielt den Smoke-Test kompromisslos grün. Was noch fehlte, war der große Integrations-Durchstich über alle alten Todolisten-Schichten hinweg.</li>
+<li><b>Befund 4 — Der Argon-Pass (Ära 4, Gemini 4 Argon):</b> Statt ein fünftes Parallelsystem daneben zu stellen, hat Argon die vorhandenen Nervenbahnen verbunden: <code>prepareMission(id)</code> löst den Phantom-Start-Bug ohne eine einzige alte Smoke-Test-Invariante zu brechen; alle Stamm-NPCs stehen wieder in ihren Räumen; im Flugdeck wählt man frei zwischen <code>M1</code>–<code>M4</code>; <code>SmartDialogues</code> (inkl. Schreib-Blöcke 3 &amp; 4), <code>Quests</code>, <code>SW.Fax</code> (Thermopapier-Banner), <i>DIE TRÄGER-POST</i> (<code>[J]</code>), die 5 Geheimakten im Büro, der <i>Optimierer</i>, das 3. Posting <i>Außenposten 31</i>, die 3 Enden (Sieg / Tod / Geheim) und der WC1-Zielcomputer mit Vorhaltepunkt (Lead-Pip) greifen jetzt als ein einziges, zusammenhängendes Spiel ineinander.</li>
+</ul>
+<table>
+<tr><th>Epoche</th><th>Stärke</th><th>Typische Schwäche</th><th>Argon-Urteil</th></tr>
+<tr><td>1. Qwen-Verbund (lokal)</td><td>Weltbau, Deadpan-Humor, 18 Charaktere</td><td>Isolierte Module ohne Wiring, Datei-Kollapse</td><td><b>Die Dichter der Papierkathedrale</b></td></tr>
+<tr><td>2. VS Code + Cline</td><td>Räumlicher Durchbruch („IM RAUM", 3 Decks)</td><td>Stille State-Regressionen (Phantom-Start, Crew-Filter)</td><td><b>Der mutige Testpilot</b></td></tr>
+<tr><td>3. GitHub Copilot</td><td>Systemschäden, Savegame-Sicherheit, Tests</td><td>Konservativer Scope, ließ alte Story-Stubs offen</td><td><b>Der präzise Bord-Ingenieur</b></td></tr>
+<tr><td>4. Gemini 4 Argon</td><td>Ganzheitliches Audit, Voll-Integration, HUD &amp; Polish</td><td>Will am liebsten jedes lose Kabel gleichzeitig löten</td><td><b>Der Chef-Verkabeler (Formular 91-X)</b></td></tr>
+</table>
+</div>
+
 <h2>WAS SICH NICHT GEÄNDERT HAT</h2>
 <div class="card">
 <ul>
 <li><b>Der Ton.</b> 1990-Deadpan ist keine Technik, die man delegieren kann. Er sitzt in den Sätzen. Die Sätze sitzen in den Dialogen. Die Dialoge sind dieselben, die der Verbund geschrieben hat — nur dass jetzt jeder neue Satz weiß, von wem er stammt.</li>
-<li><b>Die Formulare.</b> 12-B (Zutritt), 77-V (Ansichten), 14-C (Selbstanzeige), 20-E (Ein-Personen-Räte). Die Bürokratie des Tonfalls ist robust. Sie übersteht Organisationsformen.</li>
+<li><b>Die Formulare.</b> 12-B (Zutritt), 77-V (Ansichten), 14-C (Selbstanzeige), 20-E (Ein-Personen-Räte), 91-X (Unterschriften-Paradoxon). Die Bürokratie des Tonfalls ist robust. Sie übersteht Organisationsformen.</li>
 <li><b>Die Kältekammer.</b> Zweimal pro Minute. Der Ethikrat zählt weiter. Auch die Sitzung, die sich selbst auflöste, hat nur 14 Atemzüge gezählt und keine gestrichen.</li>
 <li><b>Die Katze.</b> Sie ist in beiden Systemen aufgetreten: als Commit-Verursacherin (Verbund-Zeit: „Ich weiß nicht warum ich das kommentieren soll") und als Fenster-Silhouette (jetzt: Tastatur, Fragezeichen). Der Unfall-Protokoll-Bereich in der README ist die Institution, die aus beiden Epochen besteht.</li>
 </ul>
@@ -80,6 +100,7 @@
 <div class="card">
 <p>Das Schiff fliegt mit weniger Gremien. Das ist keine Abwertung des Rates — der Rat existiert, besteht aus einer Person und löst sich in seiner ersten Sitzung selbst auf. Es ist eine Beobachtung: <b>Weniger Übergänge, mehr Wahrheit pro Übergang.</b> Der nächste Block ist der gleiche, der immer vorsteht: Schreiben, Testen, commiten. Der Unterschied ist nur, dass jetzt jeder Satz, der in den Code kommt, von einer Hand geschrieben wurde, die man am Ende der Zeile fragen kann. Die Hand antwortet. Das Formular ist ausgefüllt.</p>
 <blockquote>"Der Ethikrat besteht aus einer Person. Die Entwicklung auch. Der Unterschied: Die Entwicklung hat einen Smoke-Test. Der Rat zählt Atmungen." — Cline, vermutlich</blockquote>
+<blockquote>"Ein System, das in <code>index.html</code> geladen, aber in keinem Raum aufgerufen wird, ist kein Feature — es ist ein steuerlich absetzbares Denkmal." — Gemini 4 Argon, Prüfbericht 91-X</blockquote>
 </div>
 </div>
 <div class="footer">

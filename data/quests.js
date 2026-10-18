@@ -28,7 +28,7 @@ SW.QuestData = {
       npc: 'KLO',
       fax: 'AUFTRAG: Klo putzen.\nORT: Wo es ist. Sie wissen, wo es ist.\nBELOHNUNG: Sie sagt etwas Wahres.',
       bedingung: { typ: 'flag', name: 'klo_geputzt' },
-      belohnung: { text: 'Sie sagt etwas Wahres. Sie sagt es nur einmal.' }
+      belohnung: { text: 'Sie sagt etwas Wahres. Sie sagt es nur einmal.', flag: 'klo_wahrheit_gehoert' }
     },
     {
       id: 'optimierer_widerspruch',
@@ -36,7 +36,7 @@ SW.QuestData = {
       npc: 'OPTIMIERER',
       fax: 'AUFTRAG: Widerspruch einlegen.\nFORMULAR: 91-X.\nBELOHNUNG: Strafversetzung.',
       bedingung: { typ: 'flag', name: 'widerspruch_eingelegt' },
-      belohnung: { text: 'Strafversetzung. Das ist die Belohnung. Das ist der Witz.' }
+      belohnung: { text: 'Strafversetzung. Das ist die Belohnung. Das ist der Witz.', flag: 'strafversetzung_bereit' }
     },
     {
       id: 'kaffee_bringen',
@@ -47,7 +47,7 @@ SW.QuestData = {
         { typ: 'flag', name: 'kaffee_abgeholt' },
         { typ: 'besuche', raum: 'buerro' }
       ],
-      belohnung: { text: 'Der Kaffee ist warm. Das ist alles.' }
+      belohnung: { text: 'Der Kaffee ist warm. Das ist alles.', flag: 'kaffee_gebracht' }
     }
   ]
 };

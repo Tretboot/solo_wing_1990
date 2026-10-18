@@ -15,27 +15,29 @@ SW.Missions = {
   list: [
     {
       id:'m1', name:'SEKTOR 7 — ABFANGKAMPF',
+      systemId:'s1',
       description:'Feindliche Signatur in Sektor 7. Abfangen und zerstören.',
       waves:[
-        {count:2, z:250, y:0, ship:'d_b'},
-        {count:3, z:200, y:0, ship:'Jäger'},
-        {count:3, z:200, y:0, ship:'d_b'},
-        {count:2, z:250, y:0, ship:'Kreuzer'}
+        {count:2, z:250, y:0, ship:'d_b', staggerFrames:18},
+        {groups:[{count:2,ship:'Jäger'},{count:1,ship:'d_b'}], staggerFrames:22},
+        {groups:[{count:2,ship:'d_b'},{count:1,ship:'Jäger'}], staggerFrames:18},
+        {groups:[{count:1,ship:'Kreuzer'},{count:1,ship:'Jäger'}], staggerFrames:28}
       ],
       navPoints:[{x:0,y:0,z:250},{x:60,y:-20,z:1500},{x:-50,y:30,z:3000},{x:0,y:0,z:4400}],
       waveMessages:[
         "COMMANDER: Erste Welle, d_b-Drohnen. Standardverfahren, viel Glück.",
-        "COMMANDER: Jäger. Die streifen. Halten Sie die Höhe.",
-        "COMMANDER: Zweite Welle, Verstärkung. Unser Plan. Es gab einen Fehler.",
-        "COMMANDER: Kreuzer. Langsam, aber ein Treffer und Sie sind Geschichte."
+        "COMMANDER: Zwei Jäger und eine Drohne. Die Jäger streifen. Halten Sie die Höhe.",
+        "COMMANDER: Gemischte Verstärkung. Unser Plan. Es gab einen Fehler.",
+        "COMMANDER: Kreuzer mit Eskorte. Langsam, aber ein Treffer und Sie sind Geschichte."
       ]
     },
     {
       id:'m2', name:'SEKTOR 9 — GELEITSCHUTZ',
+      systemId:'s2',
       description:'Frachter eskortieren. Keine Feindkontakte erwartet. (Lüge.)',
       waves:[
-        {count:2, z:250, y:0, ship:'Jäger'},
-        {count:3, z:200, y:0, ship:'d_b'}
+        {count:2, z:250, y:0, ship:'Jäger', staggerFrames:24},
+        {groups:[{count:2,ship:'d_b'},{count:1,ship:'Jäger'}], staggerFrames:20}
       ],
       navPoints:[{x:0,y:0,z:250},{x:80,y:0,z:1600},{x:0,y:-50,z:3000}],
       waveMessages:[
@@ -45,14 +47,16 @@ SW.Missions = {
     },
     {
       id:'m3', name:'SEKTOR 12 — SIEDLER-KONTAKT',
-      description:'Zivile Signatur. KEIN FEUER. Beobachten und eskortieren.',
+      systemId:'s3',
+      description:'Zivile Signatur. KEIN FEUER auf Siedler. Bei Piratenüberfall: Improvisieren.',
       waves:[
-        {count:2, z:300, y:0, ship:'d_b'}
+        {count:2, z:300, y:0, ship:'d_b', staggerFrames:20, civilian:true},
+        {count:2, z:300, y:0, ship:'piraten_jaeger', staggerFrames:20}
       ],
       navPoints:[{x:0,y:0,z:300},{x:-60,y:40,z:2200}],
       waveMessages:[
-        "COMMANDER: Das sind Zivilisten. Schießen Sie NICHT. Eskortieren Sie sie.",
-        "COMMANDER: Sie haben sich verlaufen. Bringen Sie sie nach Hause."
+        "COMMANDER: Das sind Zivilisten. Schießen Sie NICHT. Fliegen Sie auf Eskortdistanz heran.",
+        "COMMANDER: Piraten-Hinterhalt bei WP 2! Schützen Sie die Siedler — Formular für Improvisieren entfällt, FEUER FREI auf die Piraten!"
       ]
     },
     // ===== VERTICAL SLICE MISSION =====
@@ -63,10 +67,9 @@ SW.Missions = {
       systemId:'s2',
       waves:[
         // Welle 1: 3 Piraten-Jäger (orange, Pixel-Art, selbstmörderisch)
-        {count:3, z:200, y:0, ship:'piraten_jaeger'},
+        {count:3, z:200, y:0, ship:'piraten_jaeger', staggerFrames:18},
         // Welle 2: 2 Piraten-Jäger + 1 Kapitänsschiff
-        {count:2, z:200, y:0, ship:'piraten_jaeger'},
-        {count:1, z:250, y:0, ship:'piraten_kapitaen'}
+        {groups:[{count:2,ship:'piraten_jaeger'},{count:1,ship:'piraten_kapitaen'}], staggerFrames:24}
       ],
       navPoints:[{x:0,y:0,z:250},{x:20,y:-30,z:1500},{x:-10,y:20,z:3000}],
       waveMessages:[

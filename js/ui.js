@@ -61,8 +61,14 @@ SW.UI = {
       if (!enemy.alive || enemy.z <= SW.Player.z) continue;
       const dx = Math.max(-12, Math.min(12, (enemy.x - SW.Player.x) * 0.08));
       const dy = Math.max(-12, Math.min(12, (enemy.y - SW.Player.y) * 0.08));
-      ctx.fillStyle = '#ff5b58';
+      ctx.fillStyle = enemy.civilian ? '#45c97a' : '#ff5b58';
       ctx.fillRect(Math.round(160 + dx), Math.round(173 + dy), 2, 2);
+    }
+    if (SW.Player.systems.sensors > 0 && SW.Wingman && SW.Wingman.alive && SW.Wingman.z > SW.Player.z) {
+      const wx = Math.max(-12, Math.min(12, (SW.Wingman.x - SW.Player.x) * 0.08));
+      const wy = Math.max(-12, Math.min(12, (SW.Wingman.y - SW.Player.y) * 0.08));
+      ctx.fillStyle = '#4488ff';
+      ctx.fillRect(Math.round(160 + wx), Math.round(173 + wy), 2, 2);
     }
 
     // The right instrument reports only a real, live contact ahead of the ship.
@@ -75,11 +81,12 @@ SW.UI = {
       ctx.fillText('SENSOREN AUS', SW.W - 59, 69);
     } else if (target) {
       const targetInfo = SW.ShipRegistry[target.shipId];
-      const targetName = (targetInfo ? target.shipId : 'KONTAKT').toUpperCase().substring(0, 11);
+      const targetName = target.civilian ? 'SIEDLER' : (targetInfo ? target.shipId : 'KONTAKT').toUpperCase().substring(0, 11);
       const dx = target.x - SW.Player.x, dy = target.y - SW.Player.y, dz = target.z - SW.Player.z;
       const range = Math.round(Math.sqrt(dx * dx + dy * dy + dz * dz));
       const maxHp = targetInfo ? targetInfo.hp : Math.max(1, target.hp);
       const health = Math.max(0, Math.min(1, target.hp / maxHp));
+      ctx.fillStyle = target.civilian ? '#65d481' : (SW.Player.systems.sensors>50 ? '#57c8df' : '#e49b4b');
       ctx.fillText(targetName, SW.W - 59, 66);
       ctx.fillText('RNG ' + String(range).padStart(3, '0'), SW.W - 59, 74);
       ctx.fillStyle = '#26343d'; ctx.fillRect(SW.W - 59, 78, 50, 4);
@@ -100,6 +107,49 @@ SW.UI = {
     ctx.fillText('E'+Math.round(SW.Player.systems.engines)+' W'+Math.round(SW.Player.systems.weapons)+
       ' S'+Math.round(SW.Player.systems.shields)+' R'+Math.round(SW.Player.systems.sensors), 198, 164);
     ctx.textAlign = 'left';
+  },
+
+  // WC1-Zielerfassungs-Klammer + Vorhaltepunkt (Lead Indicator) für das nächste Ziel
+  renderTargetBracket(ctx) {
+    if (!SW.Player || SW.Player.systems.sensors <= 0) return;
+    const target = SW.Enemies.list
+      .filter(e => e.alive && e.z > SW.Player.z + 5 && e._screenPos)
+      .sort((a, b) => (a.z - SW.Player.z) - (b.z - SW.Player.z))[0];
+    if (!target || !target._screenPos) return;
+    const { sx, sy } = target._screenPos;
+    const sz = Math.max(7, Math.min(22, (target._screenSize || 14) * 0.7));
+    const col = target.civilian ? '#44ff88' : '#ffaa00';
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1;
+    const c = Math.max(3, Math.round(sz * 0.35));
+    // 4 Eck-Klammern im Stil von Wing Commander 1990
+    ctx.beginPath();
+    ctx.moveTo(sx - sz, sy - sz + c); ctx.lineTo(sx - sz, sy - sz); ctx.lineTo(sx - sz + c, sy - sz);
+    ctx.moveTo(sx + sz - c, sy - sz); ctx.lineTo(sx + sz, sy - sz); ctx.lineTo(sx + sz, sy - sz + c);
+    ctx.moveTo(sx - sz, sy + sz - c); ctx.lineTo(sx - sz, sy + sz); ctx.lineTo(sx - sz + c, sy + sz);
+    ctx.moveTo(sx + sz - c, sy + sz); ctx.lineTo(sx + sz, sy + sz); ctx.lineTo(sx + sz, sy + sz - c);
+    ctx.stroke();
+    // Distanz- & Zivil-Warnung unter der Klammer
+    const dz = Math.max(1, target.z - SW.Player.z);
+    ctx.fillStyle = col;
+    ctx.font = '4px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(target.civilian ? 'ZIVIL [KEIN FEUER]' : ('D:' + Math.round(dz)), sx, sy + sz + 5);
+    // Vorhaltepunkt (Lead Pip) für bewegte Feindziele
+    if (!target.civilian && SW.Engine.view.mode !== 'topdown') {
+      const tFlight = Math.min(45, dz / (SW.LASER_SPEED || 12));
+      const leadX = target.x + (target._vx || 0) * tFlight;
+      const leadY = target.y + (target._vy || 0) * tFlight;
+      const lp = SW.Engine.project(leadX, leadY, target.z);
+      if (lp && lp.sx > 10 && lp.sx < SW.W - 10 && lp.sy > 10 && lp.sy < SW.H - 45) {
+        ctx.strokeStyle = 'rgba(255, 80, 80, 0.75)';
+        ctx.beginPath();
+        ctx.arc(lp.sx, lp.sy, 2.5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   },
 
   // Mini-HUD für Chase-Cam + Top-Down (ohne Cockpit-Frame)
@@ -146,11 +196,16 @@ SW.UI = {
     // Blips (der Kreis ist im Frame) — IM RAUM: RELATIV zum Spieler
     ctx.fillStyle='#fff'; ctx.fillRect(rx-1,ry-1,2,2);
     if (SW.Player.systems.sensors>0) {
-      ctx.fillStyle='#f00';
       for (const e of SW.Enemies.list) {
         if (!e.alive) continue;
+        ctx.fillStyle = e.civilian ? '#44ff88' : '#f00';
         const bx=rx+((e.x-P.x)*0.08), by=ry+((e.y-P.y)*0.08);
         if (Math.sqrt((bx-rx)*(bx-rx)+(by-ry)*(by-ry))<rr) ctx.fillRect(Math.round(bx),Math.round(by),2,2);
+      }
+      if (SW.Wingman && SW.Wingman.alive) {
+        ctx.fillStyle = '#4488ff';
+        const wx=rx+((SW.Wingman.x-P.x)*0.08), wy=ry+((SW.Wingman.y-P.y)*0.08);
+        if (Math.sqrt((wx-rx)*(wx-rx)+(wy-ry)*(wy-ry))<rr) ctx.fillRect(Math.round(wx),Math.round(wy),2,2);
       }
     }
     ctx.fillStyle='#0af';
@@ -175,8 +230,15 @@ SW.UI = {
       ctx.fillRect(cx+((np.x-P.x)*sx),cy+((np.y-P.y)*sy),2,2);
     }
     if (SW.Player.systems.sensors>0) {
-      ctx.fillStyle='#ff0000';
-      for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+      for (const e of SW.Enemies.list) {
+        if(!e.alive)continue;
+        ctx.fillStyle = e.civilian ? '#44ff88' : '#ff0000';
+        ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1);
+      }
+      if (SW.Wingman && SW.Wingman.alive) {
+        ctx.fillStyle='#4488ff';
+        ctx.fillRect(cx+((SW.Wingman.x-P.x)*sx),cy+((SW.Wingman.y-P.y)*sy),2,2);
+      }
     }
     ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
     ctx.fillStyle='#004455';ctx.font='5px monospace';ctx.fillText('TAKTISCH',mx+2,my+mh-2);
@@ -215,10 +277,17 @@ SW.UI = {
       if (np.z!==undefined&&np.z-P.z>0) label+=' '+Math.round(np.z-P.z);
       ctx.fillText(label,px+4,py+2);
     }
-    // Feinde
+    // Feinde & Wingman
     if (SW.Player.systems.sensors>0) {
-      ctx.fillStyle='#ff0000';
-      for (const e of SW.Enemies.list) { if(!e.alive)continue;ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1); }
+      for (const e of SW.Enemies.list) {
+        if(!e.alive)continue;
+        ctx.fillStyle = e.civilian ? '#44ff88' : '#ff0000';
+        ctx.fillRect(cx+((e.x-P.x)*sx),cy+((e.y-P.y)*sy),1,1);
+      }
+      if (SW.Wingman && SW.Wingman.alive) {
+        ctx.fillStyle='#4488ff';
+        ctx.fillRect(cx+((SW.Wingman.x-P.x)*sx)-1,cy+((SW.Wingman.y-P.y)*sy)-1,2,2);
+      }
     }
     // Spieler (Mitte)
     ctx.fillStyle='#00ff00';ctx.fillRect(cx-1,cy-1,3,3);
@@ -698,3 +767,86 @@ SW.BriefingBoard = {
     }
   }
 };
+
+// ===== THERMOPAPIER-FAX-OVERLAY (Quests & Formulare, v0.75-dev) =====
+// Rollt bei neuen Aufträgen (SW.Quests.onNewQuest) oder Erledigungen (onReward)
+// als vergilbter Thermopapier-Streifen oben rechts ins Bild.
+SW.Fax = {
+  queue: [],
+  current: null,
+  timer: 0,
+  slide: 0,
+
+  push(title, body, stamp) {
+    this.queue.push({
+      title: String(title || 'TELEFAX 1988'),
+      lines: String(body || '').split('\n').slice(0, 4),
+      stamp: stamp || 'EINGANG'
+    });
+    if (SW.Audio && SW.Audio.playFax) SW.Audio.playFax();
+  },
+
+  onQuest(q) {
+    if (!q) return;
+    this.push('FAX-AUFTRAG: ' + q.titel.toUpperCase(), q.fax || '', ' OFFEN ');
+  },
+
+  onReward(q) {
+    if (!q) return;
+    const txt = (q.belohnung && q.belohnung.text) ? q.belohnung.text : 'Akte geschlossen.';
+    this.push('ERLEDIGT: ' + q.titel.toUpperCase(), txt, 'STEMPEL');
+  },
+
+  update() {
+    if (!this.current && this.queue.length > 0) {
+      this.current = this.queue.shift();
+      this.timer = 210; // ~3.5 Sekunden
+      this.slide = 0;
+    }
+    if (!this.current) return;
+    if (this.timer > 30 && this.slide < 1) this.slide = Math.min(1, this.slide + 0.1);
+    else if (this.timer <= 30) this.slide = Math.max(0, this.slide - 0.08);
+    this.timer--;
+    if (this.timer <= 0) this.current = null;
+  },
+
+  render(ctx) {
+    if (!this.current) return;
+    const w = 138, h = 48;
+    const x = SW.W - w - 6;
+    const y = Math.round(-h + this.slide * (h + 18));
+    ctx.save();
+    // Thermopapier-Hintergrund
+    ctx.fillStyle = '#d8d2c2';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#6e6858';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, h);
+    // Abrisskante unten (Zacken)
+    ctx.fillStyle = '#1a1a1a';
+    for (let zx = x + 2; zx < x + w - 2; zx += 6) {
+      ctx.fillRect(zx, y + h - 1, 3, 1);
+    }
+    // Kopfzeile
+    ctx.fillStyle = '#332e24';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText(this.current.title.substring(0, 26), x + 4, y + 8);
+    ctx.strokeStyle = '#999282';
+    ctx.beginPath(); ctx.moveTo(x + 3, y + 10); ctx.lineTo(x + w - 3, y + 10); ctx.stroke();
+    // Textzeilen
+    ctx.fillStyle = '#221f18';
+    ctx.font = '4px monospace';
+    for (let i = 0; i < this.current.lines.length; i++) {
+      ctx.fillText(this.current.lines[i].substring(0, 32), x + 4, y + 17 + i * 7);
+    }
+    // Bürokratie-Stempel rechts unten
+    const isDone = this.current.stamp === 'STEMPEL';
+    ctx.strokeStyle = isDone ? '#227733' : '#aa2222';
+    ctx.fillStyle = isDone ? '#227733' : '#aa2222';
+    ctx.strokeRect(x + w - 36, y + h - 14, 32, 9);
+    ctx.font = 'bold 4px monospace';
+    ctx.fillText(this.current.stamp, x + w - 33, y + h - 8);
+    ctx.restore();
+  }
+};
+

@@ -20,7 +20,21 @@ SW.Newspaper = {
       'WIEDER EIN SIEG: {player} kehrt von {mission} zurück.',
       'SEKTOR {sector} SICHER: {name} hat die Piraten vertrieben.'
     ],
+    mission_sieg: [
+      'PILOT {name} KEHRT ZURÜCK: {mission} abgeschlossen.',
+      'ERFOLG IM SEKTOR {sector}: {player} hat {target} neutralisiert.',
+      'FRONTBERICHT: {name} liefert erneut – {mission} gesichert.',
+      'WIEDER EIN SIEG: {player} kehrt von {mission} zurück.',
+      'SEKTOR {sector} SICHER: {name} hat die Piraten vertrieben.'
+    ],
     mission_failure: [
+      'VERLUST IM SEKTOR {sector}: {player} vermisst.',
+      'MISSION {mission} GESCHEITERT: Keine Rückkehr.',
+      'TRAUER AN BORD: {name} ist nicht zurückgekehrt.',
+      'ABGANG {time}: {player} vermisst. Suchaktion läuft.',
+      'SCHLECHTE NACHRICHTEN: {mission} gescheitert.'
+    ],
+    mission_tod: [
       'VERLUST IM SEKTOR {sector}: {player} vermisst.',
       'MISSION {mission} GESCHEITERT: Keine Rückkehr.',
       'TRAUER AN BORD: {name} ist nicht zurückgekehrt.',
@@ -93,13 +107,48 @@ SW.Newspaper = {
 
 // ===== GENERIERUNG =====
 SW.Newspaper.generate = function(date, events, playerActions, npcStates, subplotStages) {
+  if (date && typeof date === 'object' && !Array.isArray(date)) {
+    const opts = date;
+    const pName = (SW.World && SW.World.pilotName) || 'Flug Drei';
+    const sysName = (SW.World && SW.World.systemInfo && SW.World.systemInfo().name) || '7';
+    const issueNum = String((this.articleHistory ? this.articleHistory.length : 0) + 1).padStart(3, '0');
+    date = 'TAG_' + issueNum;
+    events = [{
+      type: 'mission_result',
+      missionId: opts.missionId || 'm1',
+      ergebnis: opts.ergebnis === 'sieg' ? 'success' : (opts.ergebnis === 'tod' ? 'failure' : (opts.ergebnis || 'success')),
+      pilot: pName,
+      player: pName,
+      sector: sysName,
+      target: opts.missionId === 'm4' ? 'das Große Schiff' : 'Piraten',
+      timestamp: Date.now()
+    }];
+    playerActions = opts.kills ? [{
+      id: 'kills_' + Date.now(),
+      player: pName,
+      name: pName,
+      count: opts.kills,
+      mission: this._missionName(opts.missionId || 'm1'),
+      object: opts.heardRap ? '20-Meter-Kassette' : 'Trümmerteile',
+      loot: 'Formular 83-D',
+      sector: sysName,
+      timestamp: Date.now()
+    }] : [];
+    npcStates = (SW.SmartDialogues && SW.SmartDialogues._state && SW.SmartDialogues._state.talkCount) || {};
+    subplotStages = (SW.SmartDialogues && SW.SmartDialogues._state && SW.SmartDialogues._state.subplots) || { alien: 0, audit: 0, optimierer: 0 };
+  }
+  events = events || [];
+  playerActions = playerActions || [];
+  npcStates = npcStates || {};
+  subplotStages = subplotStages || {};
   const articles = [];
   const usedTemplates = new Set();
   
   // 1. Missionsergebnisse verarbeiten
   const missionEvents = events.filter(e => e.type === 'mission_result');
   for (const event of missionEvents.slice(0, 3)) {
-    const template = this._pickTemplate('mission_' + event.ergebnis, usedTemplates);
+    const cat = event.ergebnis === 'sieg' ? 'mission_success' : (event.ergebnis === 'tod' ? 'mission_failure' : ('mission_' + event.ergebnis));
+    const template = this._pickTemplate(cat, usedTemplates);
     if (template) {
       articles.push({
         id: 'mission_' + event.missionId + '_' + event.ergebnis,
@@ -207,6 +256,16 @@ SW.Newspaper.generate = function(date, events, playerActions, npcStates, subplot
   if (this.articleHistory.length > 10) this.articleHistory.shift();
   
   return issue;
+};
+
+SW.Newspaper.latest = function() {
+  if (!this.currentIssue || !this.currentIssue.articles || !this.currentIssue.articles.length) return null;
+  return {
+    issue: this.articleHistory ? this.articleHistory.length : 1,
+    date: this.currentIssue.date,
+    headline: this.currentIssue.articles[0].headline || 'KEINE MELDUNG',
+    articles: this.currentIssue.articles
+  };
 };
 
 // ===== HILFSMETHODEN =====

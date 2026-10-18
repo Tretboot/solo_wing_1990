@@ -80,14 +80,72 @@
 - Gemäß Pilot: **kein Versions-Bump, kein Push/Release** in dieser Runde —
   alles bleibt in v0.75-dev, bis sich das Fliegen im Browser richtig anfühlt.
 
-### Offene Punkte (M4/M5)
-- M4 Missionen & Balance (Wellen an den WPs feintunen, Schwierigkeitskurve,
-  Balance-Playtest; Autopilot-Nav steht seit Fortsetzung 2).
-- M5 Polish (Ziel-Markierung, Wingman-Tod als Ereignis, Träger-Funk im Feld,
-  Burn-Flash, Handbuch-Kapitel "Fliegen", Top-Down-Balancing).
-- Spec-Phasen P2–P5 (`SPEC-FLUGMODELL.md`) nach dem Playtest.
-- Offene v0.70-Punkte (3 Enden, Fax-Drucker UI, Aktenschrank, Optimierer-
-  Erscheinen, externes Handbuch 12 Kapitel) wandern in den **v0.75-rc**.
+### Fortsetzung 3 (2026-10-14): Missionswellen mit Formation und Staffelung
+- Missionswellen können jetzt `groups` aus mehreren Schiffstypen enthalten;
+  bisherige `count`/`ship`-Einträge bleiben kompatibel.
+- `staggerFrames` setzt die Schiffe einer Gruppe zeitversetzt ein, während
+  dieselbe Welle aktiv bleibt. Der nächste Wegpunkt wird erst freigegeben,
+  wenn alle vorgesehenen Schiffe erschienen und besiegt oder vorbeigeflogen
+  sind.
+- M1–M4 erhielten gemischte bzw. gestaffelte Wellen. Globale HP-, Schaden-
+  und Feuerraten wurden bewusst nicht verändert: Schwierigkeitsbalance ist
+  erst nach einem realen Browser-Spieltest belastbar.
+- Smoke-Test ergänzt: Stagger-Zeitpunkt, WP-Zuordnung, gemischte Gruppe und
+  verzögert eintreffende Gegner. Ergebnis: **ALLE TESTS OK**.
+- Kein Versions-Bump, Commit oder Push angefordert.
+
+### Fortsetzung 4 (2026-10-18, Gemini 4 Argon Pass): Die große Verkabelung, Missionsbaum, 3 Enden & Zielcomputer
+> **Agenten-Wechsel:** **Gemini 4 Argon** (Antigravity) hat das Projekt evaluiert,
+> zwei kritische Showstopper behoben und alle bisher isolierten Subsysteme aus
+> v0.6.7–v0.75 in den Live-Loop verdrahtet.
+- **Zwei kritische Showstopper behoben:**
+  1. **Phantom-Start-Bug im Flugdeck:** Klick auf `START` rief bisher
+     `SW.Game.startMission('m1')` und danach `SW.BriefingBoard.start()` auf. Da
+     `startMission` am Ende `this.setState('SHIP')` ausführte (vom Smoke-Test als
+     Invariante geprüft), wurde `BRIEFING_BOARD` noch im selben Frame wieder
+     überschrieben. Gelöst durch `SW.Game.prepareMission(id)` für das Flugdeck.
+  2. **Geisterräume auf der *TCS Fax-Tragödie*:** In `data/postings.js` war die
+     Träger-Crew als `Object.keys(SW.RoomNPCs)` definiert, wodurch `Commander`,
+     `Sechs`, `Neun`, `Zwo`, `Vier` und `Optimierer` durch `SW.Transfers.hasCrew()`
+     aus ihren Räumen gefiltert wurden. Alle Stamm-NPCs stehen jetzt wieder in
+     Bar, Büro, Kantine und Reparatur.
+- **Missionsbaum im Flugdeck (`M1`–`M4`):** Im Flugdeck lassen sich alle vier
+  Missionen frei anwählen (mit Sektor-, Wellen- und Aktenstatus-Anzeige auf den
+  drei Monitoren).
+- **Smart-Dialogues, Schreib-Blöcke 3 & 4 & Fax-Quests live:**
+  `SW.Ship.startNpcDialogue` nutzt jetzt `SW.SmartDialogues.get()` (inkl. neuer
+  Pools für Quests, Subplots, den *Optimierer* und alle 10 Raum-NPCs) und
+  startet passende Fax-Quests; `SW.Quests.flight(ev)` verbindet Flug-Ereignisse
+  (`kill`, `first_kill`, `shield_low`, `heard_rap`, `player_down`, `mission`)
+  mit Quest-Ticks und Subplot-Stufen (`audit`, `alien`, `optimierer`).
+- **Interaktive Räume, 5 Geheimakten & *DIE TRÄGER-POST*:**
+  - **Büro:** Aktenschrank liest 5 Geheimakten vor (`SW.Dialogues.akten`: Sechs,
+    Vorgänger, Kältekammer 7, Das Audit, Formular 91-X) und setzt das Flag
+    `akten_gelesen`; Klick aufs Faxgerät oder Taste `[J]` öffnet die
+    Schiffszeitung *DIE TRÄGER-POST* samt aktivem Quest-Log; Klick auf den
+    Versetzungsschalter wechselt zwischen *TCS Fax-Tragödie*, *Zerstörer Kiesel*
+    und dem neuen 3. Posting *Außenposten 31* (`outpost-31`).
+  - **Kantine, KLO, Kapelle:** Kaffeekanne (`kaffee_geholt`), Wischmopp und
+    Gedenkkerzen (Nachrufe) sind direkt anklickbar.
+  - **Thermopapier-Fax-UI (`SW.Fax`):** Animiertes Fax-Banner oben rechts mit
+    Thermodrucker-Sound (`SW.Audio.playFax()`) bei neuen und erledigten Quests.
+- **3 Enden (`sieg`, `tod`, `geheim`):** `SW.Game.getEndingType()` schaltet bei
+  gelüfteter Kältekammer-/Audit-Akte das **Geheime Ende („Akte 99-Z")** in
+  Debriefing und Abspann frei.
+- **Cockpit-HUD & Kampfdynamik:**
+  - **WC1 Target-Bracket & Vorhaltepunkt (`SW.UI.renderTargetBracket`):**
+    Markiert das nächste Feindschiff mit Klammern, Name, Schildbalken, Distanz
+    und berechnetem Vorhalte-Pip (Lead Indicator).
+  - **Siedler-Eskorte in Mission 3:** Zivile Siedler-Frachter (`civilian: true`,
+    grüne IFF auf dem Radar) fliegen entlang der Route und werden von Piraten
+    angegriffen; Treffer durch den Spieler lösen eine Funk-Rüge aus.
+  - **Träger-Eigenverteidigung:** Bei Friendly Fire warnt die *Fax-Tragödie*
+    zweimal per Funk und schießt ab dem 3. Treffer mit Bordgeschützen zurück.
+  - **Visueller Polish:** Nachbrenner-Warpstreifen + dezenter Sektor-Nebel im
+    Sternenfeld; Planetenringe, Krater und Sektor-7-Sternenbasis in `renderJump`
+    und `artBeobachtung`.
+- **Website & Agenten-Evaluation:** `site/*.html` dokumentiert die Übernahme
+  durch **Gemini 4 Argon** und bewertet alle vier Agenten-Epochen.
 
 ### Playtest-Feedback v0.70-dev (Pilot, 2026-10-13)
 - Musik [P] im Menü: funktioniert, reicht für jetzt.

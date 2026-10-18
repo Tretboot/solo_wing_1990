@@ -130,6 +130,18 @@ SW.NPC = {
       age: 0, skin: null, hair: null, hairStyle: 'none',
       uniform: null, rank: 'ai', features: ['hologram'],
       personality: 'neutral', videoPose: 'hologram', briefingPos: null
+    },
+    optimierer: {
+      id: 'optimierer', name: 'OPTIMIERER', voice: 'synthetic',
+      age: 34, skin: '#c8c4be', hair: '#1a1a1a', hairStyle: 'side-part',
+      uniform: '#1f242d', rank: 'auditor', features: ['glasses', 'serious'],
+      personality: 'literal', videoPose: 'holding-datapad', briefingPos: null
+    },
+    kugelschreiber: {
+      id: 'kugelschreiber', name: 'KUGELSCHREIBER', voice: 'male-middle-flat',
+      age: 44, skin: '#d8b898', hair: '#554433', hairStyle: 'balding',
+      uniform: '#3a3428', rank: 'clerk', features: ['glasses', 'mustache'],
+      personality: 'stoic', videoPose: 'holding-datapad', briefingPos: null
     }
   },
 
@@ -386,7 +398,7 @@ SW.NPC = {
     const npc = this.registry[this.resolve(npcId) || npcId];
     if (!npc) return;
     ctx.fillStyle = 'rgba(10, 15, 20, 0.95)'; ctx.fillRect(20, 20, 280, 160);
-    const sysColor = SW.World?.currentSystem ? SW.Systems.getSystem(SW.World.currentSystem)?.farbe || '#0af' : '#0af';
+    const sysColor = (SW.World && SW.World.systemInfo) ? (SW.World.systemInfo().farbe || '#0af') : '#0af';
     ctx.strokeStyle = sysColor; ctx.lineWidth = 2; ctx.strokeRect(20, 20, 280, 160);
     this.drawFace(ctx, npcId, 240, 100, 60, { showBody: true, showUniform: true, pose: npc.videoPose, animated: true, frame });
     const bubbleX = 30, bubbleY = 40, bubbleW = 180, bubbleH = 100;

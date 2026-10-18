@@ -26,6 +26,8 @@
         SW.Manual.close();
       } else if (SW.Game.state === 'MENU') {
         SW.Game.setState(SW.Game._menuReturn || 'COCKPIT');
+      } else if (SW.Game.state === 'SHIP' && SW.Ship && SW.Ship.newspaperOpen) {
+        SW.Ship.newspaperOpen = false;
       } else if (SW.Game.state === 'SHIP' && SW.Ship && SW.Ship.savePanelOpen) {
         SW.Ship.savePanelOpen = false; // ESC schließt zuerst das Save-Panel
       } else if (['COCKPIT','SHIP','BRIEFING_BOARD','JUMP','TAKEOFF','LANDING','BRIEFING'].includes(SW.Game.state)) {
@@ -121,7 +123,9 @@
       // Intro-Input (ESC, Name-Input) läuft in SW.Intro.update()
       // Hier nur Audio-Init beim ersten Kontakt
       if (SW.Input.getAnyKeyPressed() && !SW._introAudioInit) {
-        SW.Audio.init(); SW._introAudioInit = true;
+        SW.Audio.init();
+        SW._introAudioInit = true;
+        if (SW.Intro.phase === 0) SW.Audio.startMusic('title');
       }
     }
     if (SW.Game.state==='AKADEMIE') {
@@ -153,6 +157,13 @@
       if (!anyKey) SW._infoHeld = false;
     }
     if (SW.Game.state==='SHIP') {
+      // [J] = Schiffszeitung / Fax-Journal ein-/ausblenden
+      if (SW.Input.keys['KeyJ'] && !SW._jHeld) {
+        SW._jHeld = true;
+        SW.Ship.newspaperOpen = !SW.Ship.newspaperOpen;
+        if (SW.Ship.newspaperOpen && SW.Audio && SW.Audio.playFax) SW.Audio.playFax();
+      }
+      if (!SW.Input.keys['KeyJ']) SW._jHeld = false;
       // Save/Load-Panel im persönlichen Quartier: [1]-[5] bedienen, ESC schließt
       if (SW.Ship.savePanelOpen) {
         const SK = SW.Input.keys;
@@ -195,7 +206,10 @@
         SW._jumpHeld = true;
         const P = SW.Game._jumpPhase;
         if (P >= 1 && P <= 6) { SW.Game._jumpPhase = 7; SW.Game._jumpPhaseT = 0; }
-        else if (P === 7) SW.Game.setState('TAKEOFF');
+        else if (P === 7) {
+          SW.Game.setState('TAKEOFF');
+          SW.Game.frame = Math.max(SW.Game.frame, SW.FIRST_WAVE_DELAY + 5);
+        }
       }
       if (!anyKey) SW._jumpHeld = false;
     }
@@ -281,12 +295,17 @@
     SW.Game.frame++;
     SW.Input.pollGamepad();
     handleInput();
+    if (SW.Fax) SW.Fax.update();
     const state=SW.Game.state;
     ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(SW.VGA_SCALE, SW.VGA_SCALE);
     if (state==='MENU') { SW.Game.renderMenu(ctx); }
     else if (state==='CHEAT_MAP') { SW.Ship.renderCheatMap(ctx); }
-    else if (state==='INTRO') { SW.Intro.update(SW.Game.frame); SW.Intro.render(ctx); }
+    else if (state==='INTRO') {
+      SW.Intro.update(SW.Game.frame);
+      if (SW.Intro.phase === 0) SW.Engine.updateStars();
+      SW.Intro.render(ctx);
+    }
     else if (state==='AKADEMIE') { SW.Akademie.update(); SW.Game.renderAkademie(ctx); }
     else if (state==='BAR') { SW.Game.renderBar(ctx); }
     else if (state==='SHIP') { SW.Ship.update(); SW.Ship.render(ctx); }
@@ -319,9 +338,15 @@
   SW.Input.init(canvas);
   // Audio + TTS werden bei erstem User-Interaction initialisiert (Browser-Policy)
   SW.Quests.init();
-  SW.Quests.onNewQuest = (q) => { console.log('[QUEST] Neu:', q.titel); };
-  SW.Quests.onReward = (q) => { console.log('[QUEST] Erledigt:', q.titel); };
+  SW.Quests.onNewQuest = (q) => {
+    console.log('[QUEST] Neu:', q.titel);
+    if (SW.Fax) SW.Fax.onQuest(q);
+  };
+  SW.Quests.onReward = (q) => {
+    console.log('[QUEST] Erledigt:', q.titel);
+    if (SW.Fax) SW.Fax.onReward(q);
+  };
   SW.Game.setState('INTRO');
   loop();
-  console.log('[SOLO WING 1990] Engine geladen. Version 0.75-dev (IM RAUM: Flugmodell & Kampfspür, Wingman Sechs, Nachbrenner, Abspann, Quartiere, Handbuch)');
+  console.log('[SOLO WING 1990] Engine geladen. Version ' + SW.VERSION + ' (IM RAUM: Flugmodell & Kampfspür, Wingman Sechs, Nachbrenner, Abspann, Quartiere, Handbuch)');
 })();

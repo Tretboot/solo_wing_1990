@@ -135,6 +135,28 @@
 <p><a href="../WC1_PCI_ANALYSE.md">→ WC1_PCI_ANALYSE.md öffnen</a> — was wir daraus für Autopilot, Formation, Piraten-KI und Waffen lernen.</p>
 </div>
 
+<h2>7. LANGZEIT-EVALUATION DER 4 AGENTEN-EPOCHEN (GEMINI 4 ARGON, 10/2026)</h2>
+<div class="card" style="border-color:#00ffcc;">
+<p>Mit dem Einstieg von <b>Gemini 4 Argon</b> liegen nun reale Produktionsdaten aus vier unterschiedlichen KI-Arbeitsweisen am selben Vanilla-JS-Codebestand (31 Skripte, 14 Räume, globaler Namespace <code>SW</code>) vor:</p>
+<table>
+<tr><th>Epoche / Setup</th><th>Narrativ &amp; Stil</th><th>System-Verkabelung</th><th>Test-Treue</th><th>Haupt-Risiko</th></tr>
+<tr><td><b>1. Qwen-Agentenverbund</b> (9–11 Modelle)</td><td>5.0 / 5 (Referenz)</td><td>2.0 / 5 (viele tote Stubs)</td><td>2.5 / 5</td><td>Handoff-Verlust, Datei-Kollapse, Katzen-Commits</td></tr>
+<tr><td><b>2. VS Code + Cline</b> (Single-Agent)</td><td>4.5 / 5</td><td>3.8 / 5 (schnelle Prototypen)</td><td>4.2 / 5</td><td>Subtile Seiteneffekte (Phantom-Start, Crew-Filter)</td></tr>
+<tr><td><b>3. GitHub Copilot</b> (Single-Agent)</td><td>4.0 / 5</td><td>4.5 / 5 (saubere Subsysteme)</td><td>5.0 / 5</td><td>Vorsichtiger Scope, ließ alte Story-Inseln unberührt</td></tr>
+<tr><td><b>4. Gemini 4 Argon</b> (Antigravity)</td><td>4.8 / 5</td><td>5.0 / 5 (Voll-Integration)</td><td>5.0 / 5</td><td>Hohe Änderungsdichte pro Pass (braucht strikten Smoke-Test)</td></tr>
+</table>
+<div class="bench">
+<h4>INTEGRATIONS-TIEFE (Anteil der gebauten Systeme, die im Live-Loop erreichbar sind)</h4>
+<div class="bar-row"><span class="bar-label">1. Qwen-Verbund</span><div class="bar-track"><div class="bar-fill mid" style="width:45%"></div></div><span class="bar-val">45%</span></div>
+<div class="bar-row"><span class="bar-label">2. VS Code + Cline</span><div class="bar-track"><div class="bar-fill good" style="width:72%"></div></div><span class="bar-val">72%</span></div>
+<div class="bar-row"><span class="bar-label">3. GitHub Copilot</span><div class="bar-track"><div class="bar-fill good" style="width:82%"></div></div><span class="bar-val">82%</span></div>
+<div class="bar-row"><span class="bar-label">4. Gemini 4 Argon</span><div class="bar-track"><div class="bar-fill good" style="width:98%"></div></div><span class="bar-val">98%</span></div>
+</div>
+<div class="decision">
+<b>Argon-Fazit zur Orchestrierung:</b> Lokale Multi-Agenten-Runden („Pingpong") sind unschlagbar für absurdes Worldbuilding und Charakterstimmen, scheitern aber ohne starken Integrator an globalen Zustandsmaschinen. Ein großes Frontier-Modell mit direktem Test-Loop (<code>node _smoke_test.js</code>) kann in einem einzigen fokussierten Pass die losen Enden aus mehreren Wochen Multi-Agenten-Arbeit zusammenführen — vorausgesetzt, die alten Invarianten sind als ausführbare Checks gegossen.
+</div>
+</div>
+
 </div>
 <div class="footer">
 © 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.<br>
