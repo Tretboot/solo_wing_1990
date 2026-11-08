@@ -62,6 +62,8 @@ SW.World = {
     const base = (assigned || room.npcs).filter(name => posting.crew.indexOf(name) >= 0);
     // Quartiere bleiben privat (keine gastierenden Piloten vor den Kabinentüren)
     if (roomId === 'quartiere' || roomId === 'player_quarters') return base;
+    // Bei Postings mit fester Raumzuteilung (crewRooms) keine zusätzlichen Gastpiloten würfeln
+    if (posting.crewRooms) return base;
     // Nach m4_sieg (bzw. Subplot-Stufe optimierer >= 1) taucht der Optimierer in der Bar auf
     const optActive = (SW.SmartDialogues && SW.SmartDialogues.stage('optimierer') >= 1) ||
       (this.missionResults && this.missionResults.m4 === 'sieg');
@@ -135,6 +137,29 @@ SW.Ship = {
   _saveTerminalRect: null,
   _saveRects: [],        // Panel-Optionen
 
+  // WC3-Stil Turbolift & Deck-Aufzug
+  elevatorOpen: false,
+  _elevatorButtons: [],
+  _elevatorCloseRect: null,
+
+  // Privateer-Modus Frachter-Brücke (Kiste 47)
+  _freighterMarketRect: null,
+  _freighterNavRect: null,
+  _freighterLaunchRect: null,
+  _freighterDockRect: null,
+
+  privateerRoom: {
+    id: 'frachter_bruecke',
+    name: 'KOMMANDOBRÜCKE (KISTE 47)',
+    zweck: 'Privates Cockpit, Handelsterminal, Logbuch & Nav-Computer',
+    deck: 1,
+    farbe: '#2a1a0a',
+    akzent: '#ff9933',
+    npcs: [],
+    toren: ['bar'],
+    art: 'frachter_bruecke'
+  },
+
   init(systemId) {
     this._frame = 0;
     this.dialogueActive = false;
@@ -151,9 +176,16 @@ SW.Ship = {
     this.currentRoom = SW.Transfers.canVisit(this.currentRoom) ? this.currentRoom : posting.startRoom;
   },
 
-  getRoom() { return SW.Rooms.find(r => r.id === this.currentRoom) || SW.Rooms[0]; },
+  getRoom() {
+    if (this.currentRoom === 'frachter_bruecke') {
+      return this.privateerRoom;
+    }
+    return SW.Rooms.find(r => r.id === this.currentRoom) || SW.Rooms[0];
+  },
 
   roomLabel(room, mapLabel) {
+    if (!room) return '';
+    if (room.id === 'frachter_bruecke') return mapLabel ? (room.mapLabel || 'KISTE 47') : room.name;
     const pilotName = ((SW.World && SW.World.pilotName) || 'PILOT').trim() || 'PILOT';
     const label = mapLabel ? (room.mapLabel || room.name) : room.name;
     return label.replace(/\{spielername\}/gi, pilotName);
@@ -175,6 +207,7 @@ SW.Ship = {
     this._choiceRects = [];
     this.newspaperOpen = false;
     if (SW.Quests) SW.Quests.tick({ typ: 'raum', raum: roomId });
+    if (SW.Audio && SW.Audio.syncContext) SW.Audio.syncContext(roomId);
     SW.Audio.playCommBeep();
   },
 
@@ -232,7 +265,7 @@ SW.Ship = {
         npc: speaker,
         text: chosenPrompt.text,
         choiceId: chosenPrompt.id,
-        choices: chosenPrompt.choices.map(ch => ({ label: ch.label, flag: ch.flag, reply: ch.reply }))
+        choices: chosenPrompt.choices.map(ch => ({ label: ch.label, flag: ch.flag, action: ch.action, reply: ch.reply }))
       });
     } else {
       if (SW.SmartDialogues && npcId && SW.Dialogues.smart && SW.Dialogues.smart[npcId]) {
@@ -282,6 +315,22 @@ SW.Ship = {
     if (SW.Quests) {
       if (line.choiceId) SW.Quests.setFlag(line.choiceId, true);
       if (chosen.flag) SW.Quests.setFlag(chosen.flag, true);
+    }
+    if (chosen.action) {
+      if (chosen.action === 'transfer_hermes' && SW.Transfers && SW.Transfers.transferTo) {
+        SW.Transfers.transferTo('tcs-hermes', 'Schwarm-Protokoll angefordert (TCS Hermes)');
+        this.selectedMissionId = 'm5';
+      } else if (chosen.action === 'transfer_fax' && SW.Transfers && SW.Transfers.transferTo) {
+        SW.Transfers.transferTo('fax-traegodie', 'Rückkehr zur TCS Fax-Tragödie');
+      } else if (chosen.action === 'quit_service' && SW.CarrierEconomy) {
+        this.dialogueActive = false;
+        SW.CarrierEconomy.enterPrivateerMode('Im Gespräch den Dienst quittiert (Formular 99-P)', true);
+        return true;
+      } else if (chosen.action === 'branch_m6a') {
+        this.selectedMissionId = 'm6a';
+      } else if (chosen.action === 'branch_m6b') {
+        this.selectedMissionId = 'm6b';
+      }
     }
     line.choices = null;
     this._choiceRects = [];
@@ -348,6 +397,68 @@ SW.Ship = {
     // Save/Load-Panel oder Träger-Post-Overlay hat Vorrang
     if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
     if (this.newspaperOpen) { this.newspaperOpen = false; SW.Audio.playCommBeep(); return; }
+
+    // WC3-Stil Turbolift / Deck-Aufzug Klicks
+    if (this.elevatorOpen) {
+      if (this._elevatorCloseRect && this._contains(this._elevatorCloseRect, mx, my)) {
+        this.elevatorOpen = false;
+        if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+        return;
+      }
+      if (this._elevatorButtons) {
+        for (const btn of this._elevatorButtons) {
+          if (this._contains(btn, mx, my)) {
+            this.currentRoom = btn.roomId;
+            this.elevatorOpen = false;
+            if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+            return;
+          }
+        }
+      }
+      return;
+    }
+
+    // Frachter-Brücke (Privateer-Modus Basis) Klicks
+    if (this.currentRoom === 'frachter_bruecke') {
+      if (this._saveTerminalRect && this._contains(this._saveTerminalRect, mx, my)) {
+        this.savePanelOpen = true;
+        if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+        return;
+      }
+      if (this._freighterMarketRect && this._contains(this._freighterMarketRect, mx, my) && SW.ArmadaMap) {
+        SW.ArmadaMap.open();
+        return;
+      }
+      if (this._freighterNavRect && this._contains(this._freighterNavRect, mx, my) && SW.ArmadaMap) {
+        SW.ArmadaMap.open();
+        return;
+      }
+      if (this._freighterLaunchRect && this._contains(this._freighterLaunchRect, mx, my)) {
+        SW.Player.shipClassId = 'frachter';
+        SW.Game.prepareMission('m1');
+        SW.Game.setState('TAKEOFF');
+        return;
+      }
+      if (this._freighterDockRect && this._contains(this._freighterDockRect, mx, my)) {
+        const curSecId = (SW.World && SW.World.currentSectorId) || 's1';
+        const carrierSecId = (SW.ArmadaMap && SW.ArmadaMap.carrierSectorId) || 's1';
+        const carrierHere = curSecId === carrierSecId;
+        if (!carrierHere) {
+          const carrierSec = (SW.ArmadaMap && SW.ArmadaMap.SECTORS) ? SW.ArmadaMap.SECTORS.find(s => s.id === carrierSecId) : null;
+          const cName = carrierSec ? carrierSec.name.split(' (')[0] : carrierSecId.toUpperCase();
+          this.showRoomNotice('BORDCOMPUTER', 'Träger abwesend! Die TCS Fax-Tragödie ankert aktuell in ' + cName + '. Springen Sie per Sprungtor dorthin, um wieder an Bord zu gehen.');
+          if (SW.Audio && SW.Audio.playBeep) SW.Audio.playBeep(340, 0.12);
+          return;
+        }
+        if (SW.CarrierEconomy && SW.CarrierEconomy.returnToMilitary) {
+          SW.CarrierEconomy.returnToMilitary();
+        }
+        this.currentRoom = 'flugdeck';
+        this.showRoomNotice('COMMANDER', 'Wiedereinstellung bewilligt. Kiste 47 bleibt im Hangar geparkt.');
+        if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+        return;
+      }
+    }
     // Offene Wing Commander 3-Entscheidung: Klick auf Option [1] oder [2]
     if (this.dialogueActive && this.hasActiveChoices()) {
       for (const cr of (this._choiceRects || [])) {
@@ -409,8 +520,16 @@ SW.Ship = {
         return;
       }
     }
-    // Missionswahl + START-Button im Flugdeck
+    // Missionswahl + START-Button + Sektorkarte [K] / Staffel [S] im Flugdeck
     if (this.currentRoom === 'flugdeck') {
+      if (this._sectorMapRect && this._contains(this._sectorMapRect, mx, my) && SW.ArmadaMap) {
+        SW.ArmadaMap.open();
+        return;
+      }
+      if (this._squadronRect && this._contains(this._squadronRect, mx, my) && SW.SquadronUI) {
+        SW.SquadronUI.open();
+        return;
+      }
       if (this._missionRects) {
         for (const mr of this._missionRects) {
           if (this._contains(mr, mx, my)) {
@@ -431,6 +550,10 @@ SW.Ship = {
         SW.Game.setState('BRIEFING_BOARD');
         return;
       }
+    }
+    if (this.currentRoom === 'reparatur' && this._squadronRect && this._contains(this._squadronRect, mx, my) && SW.SquadronUI) {
+      SW.SquadronUI.open();
+      return;
     }
     // Interaktive Raum-Objekte (Büro: Aktenschrank, Fax/Zeitung, Versetzung)
     if (this.currentRoom === 'buerro') {
@@ -462,13 +585,8 @@ SW.Ship = {
         return;
       }
       if (this._transferRect && this._contains(this._transferRect, mx, my)) {
-        const order = ['fax-traegodie', 'test-destroyer', 'outpost-31'];
-        const cur = (SW.World && SW.World.postingId) || 'fax-traegodie';
-        const next = order[(order.indexOf(cur) + 1) % order.length];
-        if (SW.Transfers.transferTo(next, 'Formular 91-X Versetzungsschalter')) {
-          const p = SW.Transfers.getCurrentPosting();
-          this.showRoomNotice('VERSETZUNG', 'Neue Zuteilung: ' + p.name + ' (' + p.stationedCraft.length + ' Schiffe)');
-        }
+        this.showRoomNotice('COMMANDER', 'Versetzungsgesuch abgewiesen! Versetzungen erfolgen ausschließlich auf Anordnung des Flottenkommandos bei mangelhafter Leistung.');
+        if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
         return;
       }
     }
@@ -507,9 +625,30 @@ SW.Ship = {
       }
       return;
     }
-    // Tür geklickt?
+    // Tür / Schott / Aufzug geklickt?
     for (const d of this._doorRects) {
       if (mx >= d.x && mx <= d.x + d.w && my >= d.y && my <= d.y + d.h) {
+        if (d.to === 'elevator') {
+          this.elevatorOpen = true;
+          if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+          return;
+        }
+        if (d.to === 'space_launch') {
+          SW.Player.shipClassId = 'frachter';
+          SW.Game.prepareMission('m1');
+          SW.Game.setState('TAKEOFF');
+          return;
+        }
+        if (d.to === 'player_quarters') {
+          this.currentRoom = 'player_quarters';
+          if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+          return;
+        }
+        if (d.to === 'quartiere') {
+          this.currentRoom = 'quartiere';
+          if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+          return;
+        }
         this.navigateTo(d.to);
         return;
       }
@@ -548,6 +687,10 @@ SW.Ship = {
     this._kerzeRect = null;
     this._lockedQuartersRects = [];
     this._ownQuartersRect = null;
+    this._freighterMarketRect = null;
+    this._freighterNavRect = null;
+    this._freighterLaunchRect = null;
+    this._freighterDockRect = null;
 
     // Hintergrund
     ctx.fillStyle = room.farbe;
@@ -586,11 +729,14 @@ SW.Ship = {
     if (this.newspaperOpen) this.renderNewspaperOverlay(ctx, room);
     // Save/Load-Panel — oberstes Overlay
     if (this.savePanelOpen) this.renderSavePanel(ctx, room);
+    // WC3-Stil Turbolift / Deck-Aufzug Overlay
+    if (this.elevatorOpen) this.renderElevatorTransit(ctx, room);
   },
 
   // ===== PROZEDURALER ARTSTYLE PRO RAUM =====
   renderArt(ctx, room) {
     switch (room.art) {
+      case 'frachter_bruecke': this.artFrachterBruecke(ctx, room); break;
       case 'bar': this.artBar(ctx, room); break;
       case 'quartiere': this.artQuartersLobby(ctx, room); break;
       case 'player_quarters': this.artPlayerQuarters(ctx, room); break;
@@ -671,6 +817,60 @@ SW.Ship = {
     ctx.textAlign = 'right';
     ctx.fillText(SW.Transfers.getCurrentPosting().name + '  /  DECK ' + room.deck, SW.W - 12, 197);
     ctx.restore();
+    this.renderRoomBeautyFilter(ctx, room);
+  },
+
+  // 1990s VGA Bayer Pixel-Dither & Carrier-spezifische Raum-Atmosphäre (Beauty Pass)
+  renderRoomBeautyFilter(ctx, room) {
+    ctx.save();
+    const postingId = (SW.Transfers && SW.Transfers.getCurrentPosting) ? SW.Transfers.getCurrentPosting().id : 'fax-traegodie';
+    // 1. Decken-Lichtkegel (Volumetric Overhead Lighting)
+    for (const lx of [42, 122, 202, 282]) {
+      ctx.fillStyle = room.akzent || '#44aaff';
+      ctx.globalAlpha = postingId === 'tcs-hermes' ? 0.08 : 0.05;
+      ctx.beginPath();
+      ctx.moveTo(lx - 8, 32);
+      ctx.lineTo(lx + 8, 32);
+      ctx.lineTo(lx + 24, 158);
+      ctx.lineTo(lx - 24, 158);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // 2. TCS Hermes: Kybernetische Neural-Leitungen & KI-Schwarm-Statusknoten in allen Räumen
+    if (postingId === 'tcs-hermes') {
+      ctx.strokeStyle = 'rgba(0, 255, 220, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(10, 36); ctx.lineTo(SW.W - 10, 36);
+      ctx.moveTo(10, 154); ctx.lineTo(SW.W - 10, 154);
+      ctx.stroke();
+      for (let i = 0; i < 6; i++) {
+        const nx = 26 + i * 52;
+        const pulse = ((this._frame + i * 9) % 24) < 12;
+        ctx.fillStyle = pulse ? '#00ffee' : '#aa66ff';
+        ctx.globalAlpha = 0.65;
+        ctx.fillRect(nx, 35, 3, 2);
+        ctx.fillRect(nx, 153, 2, 2);
+      }
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#00ffee';
+      ctx.font = '4px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('◈ HERMES KI-NETZ: AUTONOM · ROBOTER-CREW AKTIV', 12, 197);
+    }
+    // 3. Subtiler 1990er VGA Pixel-Dither & CRT Scanline-Filter über dem Raum
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
+    for (let y = 30; y < 182; y += 2) {
+      ctx.fillRect(8, y, SW.W - 16, 1);
+    }
+    ctx.fillStyle = 'rgba(200, 230, 255, 0.035)';
+    for (let y = 32; y < 180; y += 4) {
+      for (let x = 12 + (y % 8 === 0 ? 0 : 2); x < SW.W - 12; x += 6) {
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    ctx.restore();
   },
 
   artBar(ctx, room) {
@@ -713,14 +913,26 @@ SW.Ship = {
     // Große Konsole
     ctx.fillStyle='#0a1520'; ctx.fillRect(20,40,280,100);
     ctx.strokeStyle=room.akzent; ctx.lineWidth=1; ctx.strokeRect(20,40,280,100);
-    const mIds = ['m1', 'm2', 'm3', 'm4'];
+    const posting = (SW.Transfers && SW.Transfers.getCurrentPosting) ? SW.Transfers.getCurrentPosting() : { id: 'fax-traegodie' };
+    const isHermes = posting && posting.id === 'tcs-hermes';
+    let mIds = ['m1', 'm2', 'm3', 'm4', 'm5'];
+    if (SW.Quests && SW.Quests.getFlag('taktik_entscheidung_halten')) {
+      mIds = ['m1', 'm2', 'm3', 'm4', 'm5_speer'];
+    } else if (SW.Quests && SW.Quests.getFlag('taktik_entscheidung_rueckzug')) {
+      mIds = ['m1', 'm2', 'm3', 'm4', 'm5_schatten'];
+    }
+    if (isHermes) {
+      mIds = ['m5', 'm6a', 'm6b'];
+    } else if (this.selectedMissionId === 'm6a' || this.selectedMissionId === 'm6b') {
+      mIds = ['m1', 'm2', 'm3', 'm4', this.selectedMissionId];
+    }
     const selId = this.selectedMissionId || 'm1';
-    const selM = (SW.Missions && SW.Missions[selId]) || (SW.Missions && SW.Missions.m1) || { name: 'SEKTOR 7', systemId: 's1', waves: [] };
+    const selM = (SW.Missions && SW.Missions.get ? SW.Missions.get(selId) : SW.Missions[selId]) || { name: 'SEKTOR 7', systemId: 's1', waves: [] };
     const sysMap = { s1: 'SEKTOR 7', s2: 'SEKTOR 9', s3: 'SEKTOR 12' };
     // Screens (dynamisch für gewählte Mission)
     const screenTexts = [
       ['EINSATZ-ID: ' + selId.toUpperCase(), (selM.name || '').substring(0, 17), 'WELLEN: ' + (selM.waves ? selM.waves.length : 1)],
-      ['ZIELGEBIET:', sysMap[selM.systemId] || 'SEKTOR 7', 'WINGMAN: SECHS'],
+      ['ZIELGEBIET:', sysMap[selM.systemId] || 'SEKTOR 7', 'TRÄGER: ' + (posting.name ? posting.name.substring(0, 12) : 'FAX-TRAGÖDIE')],
       ['STATUS: BEREIT', (SW.World && SW.World.missionResults && SW.World.missionResults[selId]) ? ('AKTE: ' + SW.World.missionResults[selId].toUpperCase()) : 'AKTE: OFFEN', 'FORMULAR 12-A OK']
     ];
     for(let i=0;i<3;i++){ const sx=30+i*90;
@@ -731,11 +943,11 @@ SW.Ship = {
       ctx.fillText(screenTexts[i][1], sx+4, 64);
       ctx.fillText(screenTexts[i][2], sx+4, 73);
     }
-    // Missions-Auswahl-Buttons (M1–M4)
+    // Missions-Auswahl-Buttons
     this._missionRects = [];
     for (let i = 0; i < mIds.length; i++) {
       const id = mIds[i];
-      const mx = 34 + i * 48, my = 84, mw = 44, mh = 12;
+      const mx = 30 + i * 38, my = 84, mw = 35, mh = 12;
       const isSel = id === selId;
       const done = SW.World && ((Array.isArray(SW.World.missionProgress) && SW.World.missionProgress.includes(id)) || (SW.World.missionResults && SW.World.missionResults[id] === 'sieg'));
       ctx.fillStyle = isSel ? '#004433' : '#08121a';
@@ -745,16 +957,48 @@ SW.Ship = {
       ctx.fillStyle = isSel ? '#00ffcc' : (done ? '#66dd88' : '#7799aa');
       ctx.font = 'bold 4px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('M' + (i + 1) + (done ? '✓' : ''), mx + mw / 2, my + 8);
+      ctx.fillText(id.toUpperCase() + (done ? '✓' : ''), mx + mw / 2, my + 8);
       ctx.textAlign = 'left';
       this._missionRects.push({ x: mx, y: my, w: mw, h: mh, id });
     }
+    // Sektorkarte (Armada / Privateer) Button
+    this._sectorMapRect = { x: 228, y: 84, w: 66, h: 12 };
+    ctx.fillStyle = '#082032';
+    ctx.fillRect(228, 84, 66, 12);
+    ctx.strokeStyle = '#44aaff';
+    ctx.strokeRect(228, 84, 66, 12);
+    ctx.fillStyle = '#88ddff';
+    ctx.font = 'bold 4px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[K] SEKTORKARTE', 261, 92);
+
     // Start-Button
-    this._startRect={x:140,y:102,w:40,h:18};
+    this._startRect={x:120,y:102,w:56,h:18};
     const blink=Math.floor(this._frame/30)%2===0;
-    ctx.fillStyle=blink?'#0f0':'#030'; ctx.fillRect(140,102,40,18);
+    ctx.fillStyle=blink?'#0f0':'#030'; ctx.fillRect(120,102,56,18);
     ctx.fillStyle='#000'; ctx.font='bold 7px monospace'; ctx.textAlign='center';
-    ctx.fillText('START', 160, 114); ctx.textAlign='left';
+    ctx.fillText('START', 148, 114);
+
+    // Staffel-Hangar Button
+    this._squadronRect = { x: 184, y: 102, w: 58, h: 18 };
+    ctx.fillStyle = '#182410';
+    ctx.fillRect(184, 102, 58, 18);
+    ctx.strokeStyle = '#88ff44';
+    ctx.strokeRect(184, 102, 58, 18);
+    ctx.fillStyle = '#88ff44';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText('[S] STAFFEL', 213, 113);
+    ctx.textAlign='left';
+
+    // 3D Holo-Projektion des aktuellen Trägers (TCS Fax-Tragödie oder TCS Hermes) auf dem Taktiktisch
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      const holoYaw = (this._frame * 0.025) % (Math.PI * 2);
+      const carrierKey = SW.Sprites.getCarrierAtlasKey ? SW.Sprites.getCarrierAtlasKey() : 'fax_traegodie';
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      SW.Sprites.drawMultiAngle(ctx, carrierKey, 68, 118, 36, holoYaw, 0.25, '#00ffcc');
+      ctx.restore();
+    }
     // Boden
     ctx.fillStyle='#1a2530'; ctx.fillRect(0,SW.H-30,SW.W,30);
   },
@@ -774,11 +1018,11 @@ SW.Ship = {
     ctx.fillStyle='#0f0'; ctx.fillRect(155,98,10,4);
     ctx.fillStyle='#000'; ctx.font='5px monospace'; ctx.fillText('FAX', 170, 105);
     this._faxRect = { x: 146, y: 90, w: 48, h: 22 };
-    // Versetzungsschalter (rechts auf dem Tisch)
+    // Personalakte / Dienstanweisung (rechts auf dem Tisch)
     ctx.fillStyle='#22303c'; ctx.fillRect(212,94,58,16);
     ctx.strokeStyle=room.akzent; ctx.strokeRect(212,94,58,16);
     ctx.fillStyle='#9edbff'; ctx.font='4px monospace'; ctx.textAlign='center';
-    ctx.fillText('VERSETZUNG', 241, 104); ctx.textAlign='left';
+    ctx.fillText('DIENSTAKTE', 241, 104); ctx.textAlign='left';
     this._transferRect = { x: 212, y: 92, w: 58, h: 18 };
     // Boden
     ctx.fillStyle='#2a1a0a'; ctx.fillRect(0,SW.H-25,SW.W,25);
@@ -848,6 +1092,27 @@ SW.Ship = {
     ctx.fillStyle='#2a2a2a'; ctx.fillRect(20,100,120,40);
     ctx.fillStyle='#888';
     for(let i=0;i<6;i++) ctx.fillRect(28+i*18,108,4,20);
+    // Geparktes 3D-Spieler-Schiff auf dem Hangar-Lift + Staffel/Hangar-Terminal
+    const shipSpec = (SW.Player && SW.Player.getShipSpec) ? SW.Player.getShipSpec() : null;
+    const atlasKey = (shipSpec && shipSpec.atlasKey) || 'hornet';
+    ctx.fillStyle = '#222830';
+    ctx.fillRect(160, 128, 120, 10);
+    ctx.strokeStyle = '#ffcc00';
+    ctx.strokeRect(160, 128, 120, 10);
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      const slowYaw = 0.7 + Math.sin(this._frame * 0.015) * 0.25;
+      SW.Sprites.drawMultiAngle(ctx, atlasKey, 220, 104, 62, slowYaw, 0.2, '#88aa44');
+    }
+    this._squadronRect = { x: 168, y: 42, w: 120, h: 14 };
+    ctx.fillStyle = '#182410';
+    ctx.fillRect(168, 42, 120, 14);
+    ctx.strokeStyle = '#88ff44';
+    ctx.strokeRect(168, 42, 120, 14);
+    ctx.fillStyle = '#88ff44';
+    ctx.font = 'bold 4px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[S] STAFFEL & SCHIFFSWAHL (' + ((shipSpec && shipSpec.name) || 'SPATZ') + ')', 228, 51);
+    ctx.textAlign = 'left';
     // Ölflüssigkeit
     ctx.fillStyle='#111'; ctx.fillRect(0,SW.H-30,SW.W,30);
     ctx.fillStyle='#222'; ctx.fillRect(50,SW.H-28,30,4); ctx.fillRect(200,SW.H-26,40,4);
@@ -874,40 +1139,222 @@ SW.Ship = {
     ctx.fillStyle='#2a1a2a'; ctx.fillRect(0,SW.H-25,SW.W,25);
   },
 
-  artBeobachtung(ctx, room) {
-    // Scheibewand ins Nichts — ändert sich je nach System
+  artFrachterBruecke(ctx, room) {
+    // 1. Großes Panorama-Frontfenster des Frachters ins All
     const sys = SW.World.systemInfo();
-    ctx.fillStyle='#020208'; ctx.fillRect(20,35,280,110);
-    ctx.strokeStyle=sys.farbe; ctx.lineWidth=2; ctx.strokeRect(20,35,280,110);
-    // Sterne
-    ctx.fillStyle='#fff';
-    for(let i=0;i<40;i++) ctx.fillRect(25+(i*17)%270, 40+(i*23)%100, 1,1);
-    // Planet (System-Farbe + Ring + Krater)
-    ctx.fillStyle=sys.farbe; ctx.globalAlpha=0.55;
-    ctx.beginPath(); ctx.arc(240,70,18,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=sys.farbe; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.ellipse(240,70,26,6,-0.2,0,Math.PI*2); ctx.stroke();
-    ctx.fillStyle='#000'; ctx.globalAlpha=0.25;
-    ctx.beginPath(); ctx.arc(235,65,4,0,Math.PI*2); ctx.fill();
-    ctx.globalAlpha=1;
-    // Sektor 7 Sternenbasis-Silhouette im Fenster
-    if (sys.id === 's1') {
-      ctx.fillStyle='#3a5570';
-      ctx.fillRect(190,52,16,3);
-      ctx.fillRect(196,47,4,13);
+    ctx.fillStyle = '#020408';
+    ctx.fillRect(24, 30, SW.W - 48, 88);
+    ctx.strokeStyle = '#5a3d1c';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(24, 30, SW.W - 48, 88);
+
+    // Sternenfeld
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 35; i++) {
+      ctx.fillRect(28 + (i * 29) % (SW.W - 56), 34 + (i * 19) % 80, 1, 1);
     }
+    // Planet des Sektors
+    ctx.fillStyle = sys.farbe || '#ff9933';
+    ctx.globalAlpha = 0.65;
+    ctx.beginPath();
+    ctx.arc(220, 68, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = sys.farbe || '#ff9933';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(220, 68, 28, 7, -0.2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Träger im Sektor (wenn vorhanden)
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      SW.Sprites.drawMultiAngle(ctx, 'fax_traegodie', 85, 62, 34, 0.4, 0.1, '#88aacc');
+    }
+    ctx.fillStyle = '#ffff66';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText('TRÄGER IN SICHTWEITE: TCS FAX-TRAGÖDIE', 32, 42);
+
+    // 2. Cockpit-Aufbau und Brücken-Konsole der Kiste 47
+    ctx.fillStyle = '#1c140a';
+    ctx.fillRect(16, 118, SW.W - 32, 60);
+    ctx.strokeStyle = '#ff9933';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(16, 118, SW.W - 32, 60);
+
+    // Linkes Terminal: LOGBUCH & SPEICHER-TERMINAL
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(24, 124, 62, 44);
+    ctx.strokeStyle = '#00ff88';
+    ctx.strokeRect(24, 124, 62, 44);
+    ctx.fillStyle = '#00ff88';
+    ctx.font = 'bold 5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('LOGBUCH / SAVE', 55, 136);
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#88ffaa';
+    ctx.fillText('[KLICK: SPEICHERN]', 55, 148);
+    ctx.fillText('Kabine Kiste 47', 55, 158);
+    this._saveTerminalRect = { x: 24, y: 124, w: 62, h: 44 };
+
+    // Mittleres Terminal: NAVIGATION & SEKTORKARTE
+    ctx.fillStyle = '#0a1018';
+    ctx.fillRect(94, 124, 64, 44);
+    ctx.strokeStyle = '#3399ff';
+    ctx.strokeRect(94, 124, 64, 44);
+    ctx.fillStyle = '#3399ff';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText('NAV-COMPUTER', 126, 136);
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#88ccff';
+    ctx.fillText('[K] SEKTORKARTE', 126, 148);
+    ctx.fillText('Sprungtore & Routen', 126, 158);
+    this._freighterNavRect = { x: 94, y: 124, w: 64, h: 44 };
+
+    // Rechtes Terminal: WARENBÖRSE & FRACHTHANDEL
+    ctx.fillStyle = '#140c06';
+    ctx.fillRect(166, 124, 64, 44);
+    ctx.strokeStyle = '#ffaa33';
+    ctx.strokeRect(166, 124, 64, 44);
+    ctx.fillStyle = '#ffaa33';
+    ctx.font = 'bold 5px monospace';
+    ctx.fillText('WARENBÖRSE', 198, 136);
+    ctx.font = '4px monospace';
+    ctx.fillStyle = '#ffcc88';
+    const usedCargo = SW.CarrierEconomy ? SW.CarrierEconomy.getCargoUsed() : 0;
+    const maxCargo = SW.CarrierEconomy ? SW.CarrierEconomy.getCargoMax() : 60;
+    ctx.fillText('Fracht: ' + usedCargo + '/' + maxCargo + ' t', 198, 148);
+    ctx.fillText('[KLICK: HANDELN]', 198, 158);
+    this._freighterMarketRect = { x: 166, y: 124, w: 64, h: 44 };
+
+    // Rechte Konsole: FLUGSTART & TRÄGER-DOCKING
+    ctx.fillStyle = '#221105';
+    ctx.fillRect(238, 124, 58, 20);
+    ctx.strokeStyle = '#ff5533';
+    ctx.strokeRect(238, 124, 58, 20);
+    ctx.fillStyle = '#ff8866';
+    ctx.font = 'bold 4.5px monospace';
+    ctx.fillText('ABFLIEGEN [ALL]', 267, 136);
+    this._freighterLaunchRect = { x: 238, y: 124, w: 58, h: 20 };
+
+    // Träger-Docking Button (nur im selben Sektor ansteuerbar!)
+    const curSecId = (SW.World && SW.World.currentSectorId) || 's1';
+    const carrierSecId = (SW.ArmadaMap && SW.ArmadaMap.carrierSectorId) || 's1';
+    const carrierHere = curSecId === carrierSecId;
+    ctx.fillStyle = carrierHere ? '#0a2214' : '#141822';
+    ctx.fillRect(238, 148, 58, 20);
+    ctx.strokeStyle = carrierHere ? '#00ff88' : '#556677';
+    ctx.strokeRect(238, 148, 58, 20);
+    ctx.fillStyle = carrierHere ? '#00ffaa' : '#8899aa';
+    ctx.font = 'bold 4px monospace';
+    if (carrierHere) {
+      ctx.fillText('TRÄGER ANHEUERN', 267, 157);
+      ctx.fillText('[WIEDEREINTRITT]', 267, 164);
+    } else {
+      ctx.fillText('TRÄGER IN ' + carrierSecId.toUpperCase(), 267, 157);
+      ctx.fillText('[IN SEKTOR]', 267, 164);
+    }
+    this._freighterDockRect = { x: 238, y: 148, w: 58, h: 20 };
+    ctx.textAlign = 'left';
+  },
+
+  artBeobachtung(ctx, room) {
+    const sys = SW.World.systemInfo();
+    ctx.fillStyle = '#010306';
+    ctx.fillRect(20, 32, 280, 115);
+    ctx.strokeStyle = sys.farbe || '#3366ff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(20, 32, 280, 115);
+
+    // Sterne im Fenster
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 45; i++) {
+      ctx.fillRect(24 + (i * 23) % 272, 36 + (i * 17) % 106, 1, 1);
+    }
+
+    // Sektor-spezifische Astronomie & Planeten
+    if (sys.id === 's1') {
+      // Sektor 7: Azurblauer Planet mit Eisringen und Atmosphärenschleier
+      ctx.fillStyle = '#1a5599';
+      ctx.globalAlpha = 0.75;
+      ctx.beginPath(); ctx.arc(235, 75, 24, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#aaddff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(235, 75, 38, 8, -0.22, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Orbitale Fax-Relais-Station
+      ctx.fillStyle = '#6688aa';
+      ctx.fillRect(175, 52, 14, 3);
+      ctx.fillRect(181, 46, 3, 15);
+    } else if (sys.id === 's2') {
+      // Sektor 9: Roter Gasriese mit Eisenoxid-Nebel
+      ctx.fillStyle = '#aa3311';
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.arc(230, 75, 26, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ff7733'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(230, 75, 42, 10, 0.15, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Rote Nebelwolken
+      ctx.fillStyle = 'rgba(255, 60, 20, 0.12)';
+      ctx.fillRect(22, 34, 276, 111);
+    } else {
+      // Sektor 12 & andere: Grauer / Violetter Eis-Himmelskörper
+      ctx.fillStyle = sys.farbe || '#667788';
+      ctx.globalAlpha = 0.65;
+      ctx.beginPath(); ctx.arc(235, 75, 20, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(235, 75, 32, 6, -0.1, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // 1. Stationierter Träger neben dem Planeten (liegt ruhig im Orbit)
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      // Der Träger liegt friedlich bei x=72, y=70 vor Anker
+      SW.Sprites.drawMultiAngle(ctx, 'fax_traegodie', 72, 70, 36, 0.35, 0.08, '#6688aa');
+    }
+
+    // 2. Organische Patrouille: Ein Jäger startet ab und zu, dreht eine Runde um den Planeten und landet wieder
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      // 40-Sekunden Zyklus für die Patrouillen-Runde
+      const pPhase = (this._frame * 0.009) % (Math.PI * 2);
+      // Orbitale Flugbahn
+      const ppx = 150 + Math.cos(pPhase) * 65;
+      const ppy = 75 + Math.sin(pPhase) * 22;
+      const pyaw = pPhase + Math.PI / 2;
+      SW.Sprites.drawMultiAngle(ctx, 'hornet', ppx, ppy, 20, pyaw, 0.05, '#88cc44');
+    }
+
+    // 3. Gelegentlicher ferner Frachter-Transit im Hintergrund
+    if (SW.Sprites && SW.Sprites.drawMultiAngle) {
+      const ffx = 30 + ((this._frame * 0.18) % 260);
+      SW.Sprites.drawMultiAngle(ctx, 'freighter', ffx, 118, 20, 1.45, 0.05, '#886633');
+    }
+
     // System-Label
-    ctx.fillStyle=sys.farbe; ctx.font='bold 7px monospace'; ctx.textAlign='center';
-    ctx.fillText(sys.name, 110, 55);
-    ctx.fillStyle='#888'; ctx.font='5px monospace';
-    ctx.fillText(sys.char.substring(0,38), 110, 65);
-    ctx.textAlign='left';
+    ctx.fillStyle = sys.farbe || '#44aaff';
+    ctx.font = 'bold 7px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(sys.name, 110, 52);
+    ctx.fillStyle = '#888';
+    ctx.font = '5px monospace';
+    ctx.fillText(sys.char ? sys.char.substring(0, 38) : '', 110, 62);
+
+    // Sektorkarte Button im Beobachtungsraum
+    this._sectorMapRect = { x: 30, y: 126, w: 68, h: 14 };
+    ctx.fillStyle = '#082032';
+    ctx.fillRect(30, 126, 68, 14);
+    ctx.strokeStyle = '#44aaff';
+    ctx.strokeRect(30, 126, 68, 14);
+    ctx.fillStyle = '#88ddff';
+    ctx.font = 'bold 4px monospace';
+    ctx.fillText('[K] SEKTORKARTE', 64, 135);
+    ctx.textAlign = 'left';
+
     // Automata
-    ctx.fillStyle='#333'; ctx.fillRect(250,120,40,25);
-    ctx.fillStyle='#0f0'; ctx.fillRect(255,125,15,8);
-    ctx.fillStyle='#000'; ctx.font='5px monospace'; ctx.fillText('50 PF', 272, 132);
+    ctx.fillStyle = '#333'; ctx.fillRect(250, 120, 40, 25);
+    ctx.fillStyle = '#0f0'; ctx.fillRect(255, 125, 15, 8);
+    ctx.fillStyle = '#000'; ctx.font = '5px monospace'; ctx.fillText('50 PF', 272, 132);
+
     // Boden
-    ctx.fillStyle='#0a0a1a'; ctx.fillRect(0,SW.H-25,SW.W,25);
+    ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, SW.H - 25, SW.W, 25);
   },
 
   artMaschinenraum(ctx, room) {
@@ -1097,113 +1544,228 @@ SW.Ship = {
     }
   },
 
-  // ===== TÜR RENDER =====
+  // ===== TÜR & AUFZUG RENDER =====
   renderDoors(ctx, room) {
-    const doors = room.id === 'quartiere'
-      ? room.toren.filter(id => id !== 'player_quarters')
-      : room.toren;
-    const availableDoors = doors.filter(id => SW.Transfers.canVisit(id));
-    const destNames = availableDoors.map(d => {
-      const destination = SW.Rooms.find(rr => rr.id === d);
-      if (destination && destination.deck !== room.deck) return 'AUFZUG D' + destination.deck;
-      return destination ? this.roomLabel(destination, true) : d;
-    });
-    // Seitliche Schotts sitzen in den Bulkheads und lassen Boden und Crew frei.
-    const positions = [[8, 55, 34, 44], [278, 55, 34, 44], [8, 105, 34, 44], [278, 105, 34, 44]];
-    for (let i=0; i<availableDoors.length; i++) {
-      const [dx, dy, dw, dh] = positions[i];
-      ctx.fillStyle = 'rgba(13,21,29,0.9)';
-      ctx.fillRect(dx, dy, dw, dh);
-      ctx.fillStyle = '#6b7c89';
-      ctx.fillRect(dx, dy, dw, 2);
-      ctx.fillRect(dx, dy, 2, dh);
-      ctx.fillStyle = '#263644';
-      ctx.fillRect(dx + 3, dy + 3, dw - 6, dh - 5);
-      ctx.fillStyle = '#080e14';
-      ctx.fillRect(dx + 5, dy + 11, dw - 10, dh - 15);
-      ctx.strokeStyle = room.akzent;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(dx + 5, dy + 10, dw - 10, dh - 14);
-      ctx.fillStyle = room.akzent;
-      ctx.globalAlpha = 0.75;
-      ctx.fillRect(dx + dw - 8, dy + 20, 2, 5);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#aebdcc';
-      ctx.font = '3px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(destNames[i].toUpperCase().substring(0, 13), dx + dw / 2, dy + 8);
+    this._doorRects = [];
+    if (room.id === 'frachter_bruecke') {
+      // In der Frachterbrücke: Ausstiegsluke / Schleuse
+      const dx = 8, dy = 60, dw = 36, dh = 55;
+      ctx.fillStyle = '#1c160e'; ctx.fillRect(dx, dy, dw, dh);
+      ctx.strokeStyle = '#ff9933'; ctx.strokeRect(dx, dy, dw, dh);
+      ctx.fillStyle = '#ff9933'; ctx.font = 'bold 4px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('LUKE', dx + dw / 2, dy + 11);
+      ctx.fillStyle = '#ccc'; ctx.fillText('ALL', dx + dw / 2, dy + 22);
       ctx.textAlign = 'left';
-      this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: availableDoors[i] });
+      this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: 'space_launch' });
+      return;
+    }
+    if (room.id === 'player_quarters') {
+      // Eigenes Quartier hat nur die Schotttür zurück zum Flur
+      const dx = 8, dy = 60, dw = 36, dh = 55;
+      ctx.fillStyle = '#0f1722'; ctx.fillRect(dx, dy, dw, dh);
+      ctx.strokeStyle = room.akzent || '#00ccff'; ctx.strokeRect(dx, dy, dw, dh);
+      ctx.fillStyle = '#aebdcc'; ctx.font = 'bold 4px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('FLUR', dx + dw / 2, dy + 11);
+      ctx.fillText('QUARTIERE', dx + dw / 2, dy + 22);
+      ctx.textAlign = 'left';
+      this._doorRects.push({ x: dx, y: dy, w: dw, h: dh, to: 'quartiere' });
+      return;
+    }
+
+    // Für Träger-Räume: WC3-Stil Deck-Aufzug im Bulkhead links
+    const liftX = 8, liftY = 60, liftW = 38, liftH = 55;
+    ctx.fillStyle = 'rgba(8, 14, 22, 0.95)';
+    ctx.fillRect(liftX, liftY, liftW, liftH);
+    ctx.strokeStyle = '#5a7896';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(liftX, liftY, liftW, liftH);
+
+    // Aufzugs-Anzeige oben (illuminierte Deck-Ziffern)
+    ctx.fillStyle = '#050a10';
+    ctx.fillRect(liftX + 3, liftY + 3, liftW - 6, 12);
+    ctx.fillStyle = room.akzent || '#ffcc00';
+    ctx.font = 'bold 5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('LIFT D' + (room.deck || 1), liftX + liftW / 2, liftY + 11);
+
+    // Vertikaler Schiebetür-Spalt
+    ctx.strokeStyle = '#2c3e50';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(liftX + liftW / 2, liftY + 16);
+    ctx.lineTo(liftX + liftW / 2, liftY + liftH - 2);
+    ctx.stroke();
+
+    // Beleuchteter Ruftaster / Bedienfeld
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(liftX + liftW - 8, liftY + 26, 5, 8);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(liftX + liftW - 7, liftY + 28, 3, 4);
+
+    ctx.fillStyle = '#9fb3c6';
+    ctx.font = '4px monospace';
+    ctx.fillText('[AUFZUG]', liftX + liftW / 2 - 2, liftY + liftH - 6);
+    ctx.textAlign = 'left';
+
+    this._doorRects.push({ x: liftX, y: liftY, w: liftW, h: liftH, to: 'elevator' });
+
+    // Wenn der Raum direkte Nachbar-Türen hat (z. B. Quartiere -> persönliches Pilotenzimmer)
+    if (room.id === 'quartiere') {
+      const qx = SW.W - 44, qy = 60, qw = 36, qh = 55;
+      ctx.fillStyle = 'rgba(8, 14, 22, 0.95)';
+      ctx.fillRect(qx, qy, qw, qh);
+      ctx.strokeStyle = room.akzent || '#00ccff';
+      ctx.strokeRect(qx, qy, qw, qh);
+      ctx.fillStyle = '#aebdcc';
+      ctx.font = 'bold 4px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('KABINE', qx + qw / 2, qy + 11);
+      ctx.fillText('PILOT', qx + qw / 2, qy + 22);
+      ctx.textAlign = 'left';
+      this._doorRects.push({ x: qx, y: qy, w: qw, h: qh, to: 'player_quarters' });
     }
   },
 
-  // ===== MINIMAP =====
-  renderMap(ctx, room) {
-    const mx = SW.W-62, my = 28, mw = 52, mh = 26;
-    ctx.save();
-    // Kleine, fest montierte Wandkarte statt schwebendem HUD-Panel.
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect(mx + 2, my + 2, mw, mh);
-    ctx.fillStyle = '#111b25';
-    ctx.fillRect(mx, my, mw, mh);
-    ctx.strokeStyle = '#718398';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(mx, my, mw, mh);
-    ctx.fillStyle = '#080d13';
-    ctx.fillRect(mx + 2, my + 2, mw - 4, mh - 4);
-    ctx.strokeStyle = 'rgba(190,210,230,0.35)';
-    ctx.strokeRect(mx + 2, my + 2, mw - 4, mh - 4);
-    for (const [sx, sy] of [[mx + 2, my + 2], [mx + mw - 4, my + 2],
-      [mx + 2, my + mh - 4], [mx + mw - 4, my + mh - 4]]) {
-      ctx.fillStyle = '#92a3b3';
-      ctx.fillRect(sx, sy, 2, 2);
-    }
-    ctx.fillStyle = room.akzent;
-    ctx.font = '4px monospace';
+  // ===== WC3-STIL TURBOLIFT / DECK-TRANSIT SCREEN =====
+  renderElevatorTransit(ctx, room) {
+    this._elevatorButtons = [];
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, SW.W, SW.H);
+
+    const ex = 22, ey = 12, ew = SW.W - 44, eh = SW.H - 24;
+    ctx.fillStyle = 'rgba(10, 16, 26, 0.98)';
+    ctx.fillRect(ex, ey, ew, eh);
+    ctx.strokeStyle = '#5a7896';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(ex, ey, ew, eh);
+
+    // Titelleiste
+    ctx.fillStyle = 'rgba(20, 35, 52, 0.9)';
+    ctx.fillRect(ex, ey, ew, 18);
+    ctx.fillStyle = '#ffcc00';
+    ctx.font = 'bold 8px monospace';
     ctx.textAlign = 'left';
     const posting = SW.Transfers.getCurrentPosting();
-    ctx.fillText(posting.mapLabel + ' / DECKPLAN', mx + 4, my + 6);
+    ctx.fillText('TURBOLIFT // DECK-TRANSIT // ' + (posting.name || 'TCS FAX-TRAGÖDIE'), ex + 8, ey + 12);
+
+    // Schließen-Button [X]
+    ctx.fillStyle = '#ff3333';
+    ctx.fillRect(ex + ew - 16, ey + 3, 13, 12);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('X', ex + ew - 10, ey + 12);
+    ctx.textAlign = 'left';
+    this._elevatorCloseRect = { x: ex + ew - 16, y: ey + 3, w: 13, h: 12 };
+
+    // Subtitel
+    ctx.fillStyle = '#88aacc';
+    ctx.font = '5px monospace';
+    ctx.fillText('FAHRKABINE BEREIT • ZIELDECK & RAUM WÄHLEN [ESC zum Abbrechen]', ex + 8, ey + 25);
+
+    // 3 Deckebenen:
     for (let deck = 1; deck <= 3; deck++) {
-      const deckRooms = SW.Rooms.filter(r => r.deck === deck && SW.Transfers.canVisit(r.id));
-      const y = my + 11 + (deck - 1) * 6;
-      const isCurrentDeck = room.deck === deck;
-      ctx.fillStyle = isCurrentDeck ? room.akzent : '#8291a0';
-      ctx.fillText('D' + deck, mx + 4, y + 2);
-      const startX = mx + 14, span = mw - 22;
-      if (deckRooms.length > 1) {
-        ctx.strokeStyle = '#3c4b58';
-        ctx.beginPath();
-        ctx.moveTo(startX, y + 1);
-        ctx.lineTo(startX + span, y + 1);
-        ctx.stroke();
-      }
-      for (let i = 0; i < deckRooms.length; i++) {
-        const r = deckRooms[i];
-        const gx = deckRooms.length === 1 ? startX : startX + i * span / (deckRooms.length - 1);
+      const dy = ey + 30 + (deck - 1) * 44;
+      const isCurDeck = room.deck === deck;
+      ctx.fillStyle = isCurDeck ? 'rgba(30, 50, 70, 0.6)' : 'rgba(15, 25, 36, 0.4)';
+      ctx.fillRect(ex + 4, dy, ew - 8, 40);
+      ctx.strokeStyle = isCurDeck ? '#ffcc00' : '#2a3e52';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(ex + 4, dy, ew - 8, 40);
+
+      // Deck-Label
+      ctx.fillStyle = isCurDeck ? '#ffcc00' : '#88aacc';
+      ctx.font = 'bold 6px monospace';
+      ctx.fillText('DECK ' + deck + ' — ' + this.DECK_NAMES[deck], ex + 8, dy + 10);
+
+      // Räume auf diesem Deck
+      const dRooms = SW.Rooms.filter(r => r.deck === deck && SW.Transfers.canVisit(r.id));
+      const btnW = Math.floor((ew - 20) / Math.max(dRooms.length, 1)) - 4;
+      for (let i = 0; i < dRooms.length; i++) {
+        const r = dRooms[i];
+        const bx = ex + 8 + i * (btnW + 4);
+        const by = dy + 14;
+        const bh = 22;
         const isCurrent = r.id === room.id;
-        const isNeighbor = room.toren.indexOf(r.id) >= 0;
-        ctx.fillStyle = isCurrent ? room.akzent : (isNeighbor ? '#bdcbd7' : '#596a79');
-        ctx.fillRect(gx - 1, y, 2, 2);
+
+        ctx.fillStyle = isCurrent ? 'rgba(0, 180, 255, 0.25)' : 'rgba(12, 20, 32, 0.85)';
+        ctx.fillRect(bx, by, btnW, bh);
+        ctx.strokeStyle = isCurrent ? '#00ffff' : (r.akzent || '#4a6078');
+        ctx.lineWidth = isCurrent ? 1.5 : 1;
+        ctx.strokeRect(bx, by, btnW, bh);
+
+        ctx.fillStyle = isCurrent ? '#00ffff' : '#ffffff';
+        ctx.font = 'bold 5px monospace';
+        ctx.textAlign = 'center';
+        const lbl = this.roomLabel(r, true);
+        ctx.fillText(lbl, bx + btnW / 2, by + 9);
+
+        // Status / Crew / "HIER"
+        ctx.font = '4px monospace';
         if (isCurrent) {
-          ctx.strokeStyle = '#eef5fb';
-          ctx.strokeRect(gx - 2, y - 1, 4, 4);
+          ctx.fillStyle = '#00ff88';
+          ctx.fillText('★ HIER ★', bx + btnW / 2, by + 18);
+        } else {
+          const npcs = SW.World.npcInRoom(r.id);
+          ctx.fillStyle = '#88aacc';
+          ctx.fillText(npcs.length > 0 ? (npcs.length + ' Crew') : 'Frei', bx + btnW / 2, by + 18);
         }
+        ctx.textAlign = 'left';
+
+        this._elevatorButtons.push({ x: bx, y: by, w: btnW, h: bh, roomId: r.id });
       }
     }
-    // Der senkrechte Schacht rechts verbindet die drei Deckebenen.
-    const liftX = mx + mw - 5;
-    ctx.strokeStyle = '#536b7e';
+  },
+
+  // ===== MINIMAP (WANDKARTE: KLEIN & SCHEMATISCH) =====
+  renderMap(ctx, room) {
+    const mx = SW.W - 56, my = 28, mw = 48, mh = 24;
+    ctx.save();
+    // Kleine, fest an der Wand montierte Träger-Plakette
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.fillRect(mx + 2, my + 2, mw, mh);
+    ctx.fillStyle = '#081018';
+    ctx.fillRect(mx, my, mw, mh);
+    ctx.strokeStyle = '#5a7288';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(mx, my, mw, mh);
+
+    // Stilisierte Träger-Keilform auf der Plakette
+    ctx.fillStyle = 'rgba(25, 45, 68, 0.7)';
     ctx.beginPath();
-    ctx.moveTo(liftX + 1, my + 13);
-    ctx.lineTo(liftX + 1, my + 24);
+    ctx.moveTo(mx + mw - 6, my + mh / 2); // Bug rechts
+    ctx.lineTo(mx + 6, my + 4);           // Heck oben
+    ctx.lineTo(mx + 6, my + mh - 4);      // Heck unten
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(90, 150, 210, 0.45)';
     ctx.stroke();
-    for (const deck of [1, 2, 3]) {
-      const y = my + 11 + (deck - 1) * 6;
-      ctx.fillStyle = deck === room.deck ? room.akzent : '#99adbd';
-      ctx.fillRect(liftX, y, 3, 3);
+
+    // 3 Deckebenen im Keil
+    ctx.strokeStyle = '#324a62';
+    ctx.beginPath();
+    ctx.moveTo(mx + 8, my + 8); ctx.lineTo(mx + mw - 14, my + 8);
+    ctx.moveTo(mx + 8, my + 12); ctx.lineTo(mx + mw - 10, my + 12);
+    ctx.moveTo(mx + 8, my + 16); ctx.lineTo(mx + mw - 14, my + 16);
+    ctx.stroke();
+
+    // Blinkende LED am aktuellen Standort ("SIE SIND HIER")
+    const isBlink = Math.floor(Date.now() / 320) % 2 === 0;
+    if (isBlink) {
+      const ledX = mx + 10 + (room.deck === 1 ? 8 : (room.deck === 2 ? 16 : 24));
+      const ledY = my + 6 + (room.deck - 1) * 4;
+      ctx.fillStyle = '#ff2222';
+      ctx.fillRect(ledX, ledY, 3, 3);
     }
+
+    // Bewusst klein gehaltene Beschriftung (erst bei Klick lesbar)
+    ctx.fillStyle = '#a8ccf0';
+    ctx.font = '3.5px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('DECKPLAN [KLICK]', mx + mw / 2, my + mh - 2);
+    ctx.textAlign = 'left';
     ctx.restore();
-    // Klick-Region (Wandkarte → Fullscreen)
+
     this._mapRect = { x: mx, y: my, w: mw, h: mh };
   },
 
@@ -1558,14 +2120,44 @@ SW.Ship = {
   _cheatMapRects: [],
 
   renderCheatMap(ctx) {
-    ctx.fillStyle = '#020208';
+    ctx.fillStyle = '#02050b';
     ctx.fillRect(0, 0, SW.W, SW.H);
 
+    // Großes Träger-Rumpf Blaupausen-Profil (Keilform des Trägers TCS Fax-Tragödie / Hermes)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(65, 125, 185, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    // Träger-Silhouette: Bug vorne (Mitte oben), breite Flugdeck-Flanken, Heck mit Triebwerken
+    ctx.moveTo(SW.CX, 10);              // Bug-Spitze
+    ctx.lineTo(SW.W - 10, 48);          // Steuerbord-Schulter
+    ctx.lineTo(SW.W - 8, SW.H - 24);    // Steuerbord-Heck
+    ctx.lineTo(SW.CX + 40, SW.H - 18);  // Triebwerks-Bucht rechts
+    ctx.lineTo(SW.CX - 40, SW.H - 18);  // Triebwerks-Bucht links
+    ctx.lineTo(8, SW.H - 24);           // Backbord-Heck
+    ctx.lineTo(10, 48);                 // Backbord-Schulter
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(10, 22, 36, 0.65)';
+    ctx.fill();
+    ctx.stroke();
+
+    // Blaupausen-Gitter im Rumpf
+    ctx.strokeStyle = 'rgba(40, 85, 130, 0.18)';
+    ctx.lineWidth = 1;
+    for (let gx = 20; gx < SW.W - 20; gx += 30) {
+      ctx.beginPath(); ctx.moveTo(gx, 25); ctx.lineTo(gx, SW.H - 22); ctx.stroke();
+    }
+    for (let gy = 25; gy < SW.H - 20; gy += 25) {
+      ctx.beginPath(); ctx.moveTo(15, gy); ctx.lineTo(SW.W - 15, gy); ctx.stroke();
+    }
+    ctx.restore();
+
     // Titel
+    const curPosting = SW.Transfers.getCurrentPosting();
     ctx.fillStyle = '#b8d8ff';
     ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(SW.Transfers.getCurrentPosting().name + ' — DECKPLÄNE', SW.CX, 12);
+    ctx.fillText((curPosting.name || 'TCS FAX-TRAGÖDIE') + ' — DECKPLÄNE & RUMPFSCHEMA', SW.CX, 13);
     ctx.textAlign = 'left';
 
     // Drei Deckbänder mit verbundenen Aufzugsschächten.

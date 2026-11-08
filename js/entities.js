@@ -1,4 +1,4 @@
-// ===== SOLO WING 1990 — ENTITIES =====
+// ===== SOLO WING 1990 — ENTITIES (3D MULTI-ANGLE & VECTOR INERTIA) =====
 SW.Player = {
   x:0,y:0,z:0,vx:0,vy:0,speed:0,burning:false,
   frontShield:SW.SHIELD_MAX,rearShield:SW.SHIELD_MAX,
@@ -6,12 +6,31 @@ SW.Player = {
   systems:null,_systemDamageIndex:0,_weaponsOfflineReported:false,
   autopilot:false,autopilotTarget:null,
   rollAngle:0,
+  // Wingnut 3D Cockpit & Ship Class State
+  shipClassId:'jaeger',
+  steerX:0.5, steerY:0.5,
+  cockpitShiftX:0, cockpitShiftY:0,
+  gunFlashTimer:0, gunFlashSide:0,
+
   defaultSystems() { return {engines:100,weapons:100,shields:100,sensors:100}; },
   isValidSystems(systems) {
     return systems !== null && typeof systems === 'object' && !Array.isArray(systems) &&
       ['engines','weapons','shields','sensors'].every(key =>
         systems[key] === undefined || (typeof systems[key] === 'number' &&
           Number.isFinite(systems[key]) && systems[key] >= 0 && systems[key] <= 100));
+  },
+  getShipClass() {
+    return (SW.ShipClasses && SW.ShipClasses.get(this.shipClassId)) || {
+      id: 'jaeger', name: 'LEICHTER JÄGER (HORNET)', atlasKey: 'hornet', cockpitKey: 'hornet'
+    };
+  },
+  cycleShipClass() {
+    const order = (SW.ShipClasses && SW.ShipClasses.flyableOrder) || ['jaeger', 'bomber', 'ueberlegenheit', 'frachter', 'dralthi', 'salthi', 'krant', 'strakha'];
+    const idx = order.indexOf(this.shipClassId);
+    this.shipClassId = order[(idx + 1) % order.length];
+    const cls = this.getShipClass();
+    if (SW.Comm) SW.Comm.add('SYSTEM: Cockpit/Schiff gewechselt auf ' + cls.name + '.');
+    return cls;
   },
   shieldCapacity() {
     return SW.SHIELD_MAX * (0.5 + 0.5 * ((this.systems && this.systems.shields) || 0) / 100);
@@ -30,6 +49,8 @@ SW.Player = {
     this.frontLastHit=-999;this.rearLastHit=-999;this.laserCooldown=0;
     this.alive=true;this.autopilot=false;this.autopilotTarget=null;
     this.rollAngle=0;this._systemDamageIndex=0;this._weaponsOfflineReported=false;
+    this.steerX=0.5;this.steerY=0.5;this.cockpitShiftX=0;this.cockpitShiftY=0;
+    this.gunFlashTimer=0;
   },
   update(frame) {
     if (!this.alive) return;
@@ -41,10 +62,7 @@ SW.Player = {
     if (!SW.Input.keys['KeyQ'] && !SW.Input.keys['KeyE']) this.rollAngle *= SW.ROLL_DECAY;
     if (Math.abs(this.rollAngle) < 0.005) this.rollAngle = 0;
     this.rollAngle = Math.max(-SW.ROLL_MAX, Math.min(SW.ROLL_MAX, this.rollAngle));
-    // Autopilot: fliegt zum nächsten Nav-Punkt (IM RAUM, NAV).
-    // FLYBY-Animation (WC1-Autopilot): auf der Ausstreckung (z noch lang,
-    // oder Seitenstrecke noch groß) Nachbrenner — die Bank entsteht aus
-    // der Seitengeschwindigkeit (BANK_FACTOR), also sieht die Kurve aus.
+
     this.burnAuto=false;
     if (this.autopilot && this.autopilotTarget) {
       const t=this.autopilotTarget;
@@ -59,13 +77,13 @@ SW.Player = {
     // Manual thrust overrides autopilot
     const move=SW.Input.getThrust();
     if (move.x!==0||move.y!==0) { this.autopilot=false;this.autopilotTarget=null;this.burnAuto=false;ix=move.x;iy=move.y; }
-    // IM RAUM (v0.75-dev): Vorschub — Cruise oder Nachbrenner [SHIFT]
-    // (und Autopilot-Flyby). Sterne + Motor-Sound + HUD spiegeln wider.
+
     this.burning = !!sh || this.burnAuto;
     const engineOutput = 0.65 + 0.35 * this.systems.engines / 100;
     const tSpd = (this.burning ? SW.FORWARD_BURN : SW.FORWARD_BASE) * engineOutput;
     this.speed += (tSpd - this.speed) * SW.FORWARD_ACCEL;
     this.z += this.speed;
+
     // Inertial: thrust adds to velocity, drag slows down (space drift)
     this.vx += ix * SW.PLAYER_THRUST;
     this.vy += iy * SW.PLAYER_THRUST;
@@ -75,8 +93,26 @@ SW.Player = {
     const spd=Math.sqrt(this.vx*this.vx+this.vy*this.vy);
     if (spd>SW.PLAYER_MAX_SPEED) { this.vx=(this.vx/spd)*SW.PLAYER_MAX_SPEED; this.vy=(this.vy/spd)*SW.PLAYER_MAX_SPEED; }
     this.x+=this.vx; this.y+=this.vy;
-    this.x=Math.max(-SW.PLAYER_MAX_X,Math.min(SW.PLAYER_MAX_X,this.x));
-    this.y=Math.max(-SW.PLAYER_MAX_Y,Math.min(SW.PLAYER_MAX_Y,this.y));
+    if (this.x >= SW.PLAYER_MAX_X) { this.x = SW.PLAYER_MAX_X; if (this.vx > 0) this.vx = 0; }
+    else if (this.x <= -SW.PLAYER_MAX_X) { this.x = -SW.PLAYER_MAX_X; if (this.vx < 0) this.vx = 0; }
+    if (this.y >= SW.PLAYER_MAX_Y) { this.y = SW.PLAYER_MAX_Y; if (this.vy > 0) this.vy = 0; }
+    else if (this.y <= -SW.PLAYER_MAX_Y) { this.y = -SW.PLAYER_MAX_Y; if (this.vy < 0) this.vy = 0; }
+
+    // Update WCUnity-style Joystick (steerX, steerY in 0..1) & G-Force CockpitShift (-8..+8 px)
+    const mouseSteerX = (SW.Input.mouseX - SW.CX) / SW.CX;
+    const mouseSteerY = (SW.Input.mouseY - SW.CY) / SW.CY;
+    const rawSteerX = (ix !== 0) ? ix : mouseSteerX * 0.65;
+    const rawSteerY = (iy !== 0) ? iy : mouseSteerY * 0.65;
+    this.steerX = Math.max(0, Math.min(0.99, 0.5 + rawSteerX * 0.48));
+    this.steerY = Math.max(0, Math.min(0.99, 0.5 - rawSteerY * 0.48));
+
+    const targetShiftX = Math.max(-8, Math.min(8, -this.vx * 1.8));
+    const targetShiftY = Math.max(-7, Math.min(7, -this.vy * 1.6 + (this.burning ? 2.5 : 0)));
+    this.cockpitShiftX += (targetShiftX - this.cockpitShiftX) * 0.18;
+    this.cockpitShiftY += (targetShiftY - this.cockpitShiftY) * 0.18;
+
+    if (this.gunFlashTimer > 0) this.gunFlashTimer--;
+
     const shieldCapacity=this.shieldCapacity();
     if (frame-this.frontLastHit>SW.SHIELD_REGEN_DELAY&&this.frontShield<shieldCapacity) this.frontShield=Math.min(shieldCapacity,this.frontShield+1);
     if (frame-this.rearLastHit>SW.SHIELD_REGEN_DELAY&&this.rearShield<shieldCapacity) this.rearShield=Math.min(shieldCapacity,this.rearShield+1);
@@ -95,10 +131,12 @@ SW.Player = {
     for (let i=0;i<slots;i++) {
       const spread=(i-(slots-1)/2)*0.05, dx=dir.x+spread, dy=dir.y;
       const len=Math.sqrt(dx*dx+dy*dy+dir.z*dir.z);
-      // IM RAUM: Startposition = Weltkoordinate des Spielers (Kamera steht am Spieler)
       const damage=SW.LASER_DAMAGE*(0.5+0.5*this.systems.weapons/100);
       SW.Projectiles.add({x:this.x,y:this.y,z:this.z+1,dx:dx/len,dy:dy/len,dz:dir.z/len,speed:SW.LASER_SPEED,friendly:true,damage,life:100});
+      if (SW.Game) SW.Game.shotsFired = (SW.Game.shotsFired || 0) + 1;
     }
+    this.gunFlashTimer = 5;
+    this.gunFlashSide = (this.gunFlashSide + 1) % 2;
     SW.Audio.playLaser();
   },
   damageSystem(amount) {
@@ -126,34 +164,60 @@ SW.Player = {
   takeHit(dmg,isFront,frame) {
     if (isFront) { this.frontShield-=dmg; this.frontLastHit=frame; }
     else { this.rearShield-=dmg; this.rearLastHit=frame; }
-    this.damageSystem(Math.max(1,Math.round(dmg*1.5)));
+    // Simulator-Schutz: Treffer in der Akademie dürfen niemals das echte Schiff beschädigen
+    if (SW.Game && SW.Game._simMode && this.systems === (SW.World && SW.World.shipSystems)) {
+      this.systems = this.defaultSystems();
+    }
+    // Schilde schlucken den Treffer. Erst wenn die getroffene Seite unter 35 %
+    // ist, schlägt ein Teil auf die Bordsysteme durch (WC-Prinzip: Schild → Systeme).
+    // Früher ging jeder Treffer mit 1,5× Schaden auf ein System → Schiff nach
+    // wenigen Gefechten dauerhaft "defekt".
+    const sideShield = isFront ? this.frontShield : this.rearShield;
+    if (sideShield < this.shieldCapacity() * 0.35) {
+      this.damageSystem(Math.max(1, Math.round(dmg * 0.6)));
+    }
+    this.cockpitShiftX += (Math.random() - 0.5) * 9;
+    this.cockpitShiftY += (Math.random() - 0.5) * 9;
     SW.Audio.playShieldHit();
     if (this.frontShield<=0||this.rearShield<=0) this.alive=false;
   }
 };
 
-// ===== SHIP REGISTRY (Phase 3) =====
-// Verknüpft Sprite + Flug-KI. NoThink Code lieferte Struktur,
-// Commander hat ms→Frames konvertiert (System arbeitet in Frames).
-// IM RAUM (v0.75-dev): range = bevorzugte Kampf-Distanz (relatives z, px),
-// burst = Schuss-Salvenlänge. Drohnen (range 0) fliegen gradeaus —
-// Selbstmörder. Jäger halten Distanz (WC1-Manöver: approach/strafe/break).
+// ===== SHIP REGISTRY (Phase 3 + Multi-Angle Atlas Mapping) =====
 SW.ShipRegistry = {
-  d_b:     { sprite:'d_b',     ai:'drone',       speed:1.5, hp:50,  fireMin:60,  fireMax:90,  damage:10, pattern:'straight', strafeAmp:0,   strafeFreq:0, range:0,   burst:1 },
-  'Jäger': { sprite:'Jäger',   ai:'interceptor', speed:2.5, hp:30,  fireMin:40,  fireMax:70,  damage:8,  pattern:'strafe',   strafeAmp:60,  strafeFreq:0.05, range:90,  burst:2 },
-  Kreuzer: { sprite:'Kreuzer', ai:'bomber',      speed:0.8, hp:120, fireMin:150, fireMax:250, damage:25, pattern:'slow',     strafeAmp:0,   strafeFreq:0, range:200, burst:1 },
-  // ===== PIRATEN (Vertical Slice) =====
-  // Selbstmörderisch. Unterlegene Schiffe. Lernen sie es nicht. In Schwärmen lästig.
-  piraten_jaeger:   { sprite:'piraten_jaeger',   ai:'interceptor', speed:3.0, hp:25,  fireMin:30,  fireMax:50,  damage:6,  pattern:'strafe',   strafeAmp:80,  strafeFreq:0.08, range:70,  burst:3 },
-  piraten_kapitaen: { sprite:'piraten_kapitaen', ai:'bomber',      speed:1.0, hp:100, fireMin:100, fireMax:180, damage:20, pattern:'slow',     strafeAmp:0,   strafeFreq:0, range:170, burst:1 }
+  d_b:              { sprite:'d_b',              atlas:'dralthi',      ai:'drone',       speed:1.5, hp:50,  fireMin:80,  fireMax:130, damage:5,  pattern:'straight', strafeAmp:0,  strafeFreq:0,    range:0,   burst:1 },
+  'Jäger':          { sprite:'Jäger',            atlas:'salthi',       ai:'interceptor', speed:2.5, hp:30,  fireMin:70,  fireMax:110, damage:6,  pattern:'strafe',   strafeAmp:60, strafeFreq:0.05, range:90,  burst:1 },
+  Kreuzer:          { sprite:'Kreuzer',          atlas:'krant',        ai:'bomber',      speed:0.8, hp:120, fireMin:180, fireMax:280, damage:15, pattern:'slow',     strafeAmp:0,  strafeFreq:0,    range:200, burst:1 },
+  piraten_jaeger:   { sprite:'piraten_jaeger',   atlas:'talon',        ai:'interceptor', speed:3.0, hp:25,  fireMin:65,  fireMax:100, damage:5,  pattern:'strafe',   strafeAmp:80, strafeFreq:0.08, range:70,  burst:2 },
+  piraten_kapitaen: { sprite:'piraten_kapitaen', atlas:'grikath',      ai:'bomber',      speed:1.0, hp:100, fireMin:140, fireMax:220, damage:14, pattern:'slow',     strafeAmp:0,  strafeFreq:0,    range:170, burst:1 },
+  freighter:        { sprite:'freighter',        atlas:'freighter',    ai:'drone',       speed:1.2, hp:120, fireMin:120, fireMax:200, damage:4,  pattern:'straight', strafeAmp:0,  strafeFreq:0,    range:0,   burst:1 },
+  frachter:         { sprite:'frachter',         atlas:'freighter',    ai:'drone',       speed:1.2, hp:120, fireMin:120, fireMax:200, damage:4,  pattern:'straight', strafeAmp:0,  strafeFreq:0,    range:0,   burst:1 },
+  hermes_drone:     { sprite:'Jäger',            atlas:'hermes_drone', ai:'interceptor', speed:3.2, hp:45,  fireMin:60,  fireMax:95,  damage:6,  pattern:'strafe',   strafeAmp:70, strafeFreq:0.07, range:85,  burst:1 },
+  einheit:          { sprite:'Kreuzer',          atlas:'strakha',      ai:'interceptor', speed:2.8, hp:70,  fireMin:75,  fireMax:120, damage:8,  pattern:'strafe',   strafeAmp:65, strafeFreq:0.06, range:110, burst:2 }
 };
 
 SW.Enemies = {
   list:[],waveIndex:0,waveTimer:0,waveActive:false,allWavesDone:false,missionData:null,
-  pendingSpawns:[],waveElapsed:0,
+  pendingSpawns:[],waveElapsed:0,selectedTargetIndex:0,
   init(mission) {
     this.list=[];this.waveIndex=0;this.waveTimer=0;this.waveActive=false;
     this.allWavesDone=false;this.missionData=mission;this.pendingSpawns=[];this.waveElapsed=0;
+    this.selectedTargetIndex=0;
+  },
+  cycleTarget() {
+    const live = this.list.filter(e => e.alive && e.z > SW.Player.z + 5);
+    if (!live.length) return null;
+    this.selectedTargetIndex = (this.selectedTargetIndex + 1) % live.length;
+    const t = live[this.selectedTargetIndex];
+    if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+    return t;
+  },
+  getSelectedTarget() {
+    const live = this.list
+      .filter(e => e.alive && e.z > SW.Player.z + 5)
+      .sort((a, b) => (a.z - SW.Player.z) - (b.z - SW.Player.z));
+    if (!live.length) return null;
+    return live[this.selectedTargetIndex % live.length] || live[0];
   },
   spawnWave(idx) {
     const waves=this.missionData.waves; if (idx>=waves.length) return;
@@ -162,16 +226,13 @@ SW.Enemies = {
       ? cfg.groups
       : [{count:cfg.count||3,ship:cfg.ship||'d_b'}];
     const count=groups.reduce((total,group)=>total+(group.count||0),0), spacing=50;
-    // IM RAUM (NAV): Welle i steht am Nav-Punkt i — Gegner an den
-    // Waypoints der Route (Weltkoordinaten, deterministisch).
-    // Ohne Nav-Punkt: alt, relativ vor dem Spieler (z.B. Akademie-Sim).
     const np=(this.missionData.navPoints||[])[idx];
     let baseX=0, baseY=(cfg.y||0), baseZ=SW.Player.z+(cfg.z||200);
     if (np) {
       baseX=np.x||0; baseY=np.y!==undefined?np.y:baseY;
       if (np.z!==undefined) {
         baseZ=np.z;
-        if (baseZ<SW.Player.z+150) baseZ=SW.Player.z+300;  // Sicherheit: nie zu nah/hinter dem Spieler
+        if (baseZ<SW.Player.z+150) baseZ=SW.Player.z+300;
       }
     }
     const startX=-(count-1)*spacing/2;
@@ -202,13 +263,15 @@ SW.Enemies = {
       const member=this.pendingSpawns.shift();
       const sp=SW.ShipRegistry[member.shipId]||SW.ShipRegistry.d_b;
       this.list.push({
-        x:member.x,y:member.y,z:member.z,hp:sp.hp,
+        x:member.x,y:member.y,z:member.z,hp:sp.hp,maxHp:sp.hp,
         fireTimer:sp.fireMin+Math.random()*(sp.fireMax-sp.fireMin),
         speed:sp.speed,damage:sp.damage,fireMin:sp.fireMin,fireMax:sp.fireMax,
         pattern:sp.pattern,strafeAmp:sp.strafeAmp,strafeFreq:sp.strafeFreq,
         shipId:member.shipId,alive:true,state:'approach',t:0,
         strafeDir:(member.index%2?1:-1),wab:0,range:sp.range||120,burst:sp.burst||1,
-        civilian:!!member.civilian,_vx:0,_vy:0,_screenPos:null,_screenSize:12
+        civilian:!!member.civilian,_vx:0,_vy:0,_vz:0,
+        heading:Math.PI, pitchAngle:0,
+        _screenPos:null,_screenSize:12
       });
     }
   },
@@ -239,14 +302,15 @@ SW.Enemies = {
     const p=SW.Player;
     for (const e of this.list) {
       if (!e.alive) continue;
-      const prevX=e.x, prevY=e.y;
+      const prevX=e.x, prevY=e.y, prevZ=e.z;
       e.t++;
       const rz=e.z-p.z, rx=e.x-p.x, ry=e.y-p.y;
       if (e.civilian) {
-        // Zivile Siedler-Schiffe: halten ruhigen Kurs, feuern nie, Eskorte bei Annäherung erledigt
         e.z += p.speed * 0.35;
         e.x += Math.sin(e.t * 0.02 + (e.strafeDir || 1)) * 0.25;
-        e._vx = e.x - prevX; e._vy = e.y - prevY;
+        e._vx = e.x - prevX; e._vy = e.y - prevY; e._vz = e.z - prevZ;
+        e.heading = Math.atan2(e._vx, 1.2); // flying forward (+Z) showing stern/quarter
+        e.pitchAngle = 0;
         if (rz < 55 && e.t > 45) {
           e.alive = false;
           SW.Game.score += 50;
@@ -256,52 +320,136 @@ SW.Enemies = {
       }
       const ai=SW.ShipRegistry[e.shipId]?SW.ShipRegistry[e.shipId].ai:'drone';
       if (ai==='drone') {
-        // Drohne: gradeaus auf den Spieler zu, leichte Nachführung (Selbstmörder)
         e.z-=e.speed; e.x+=(p.x-e.x)*0.004; e.y+=(p.y-e.y)*0.004;
       } else if (ai==='bomber') {
-        // Kreuzer/Kapitän: langsam, hält große Distanz, schwere Schüsse
         if (rz>e.range+60) e.z-=e.speed;
         else if (rz<e.range-60) e.z+=e.speed*0.6;
         e.x+=(p.x*0.6-e.x)*0.002; e.y+=(p.y*0.4-e.y)*0.002;
       } else {
-        // Interceptor (Jäger/Piraten) — WC1-Manöver: approach → strafe → break
-        if (e.state==='approach') {
-          e.z-=e.speed; e.x+=(p.x-e.x)*0.01; e.y+=(p.y-e.y)*0.008;
-          if (rz<e.range) { e.state='strafe'; e.strafeDir=Math.random()<0.5?-1:1; }
-        } else if (e.state==='strafe') {
-          // Hält relative Distanz (gleicht Vorschub aus), gleitet seitlich,
-          // Wabbel = gelegentliches zufälliges Zucken (WC1: Mwabbel)
-          e.z+=p.speed+(Math.random()-0.5)*0.4;
-          e.x+=e.strafeDir*1.2+(p.x-e.x)*0.006;
-          e.y+=Math.sin(e.t*0.03)*0.4+(p.y-e.y)*0.006;
-          if (e.wab>0) { e.wab--; e.x+=(Math.random()-0.5)*2.5; }
-          else if (Math.random()<0.008) e.wab=10;
-          if (e.t%240===0) e.strafeDir*=-1;
-          if (rz<30) e.state='break'; // zu nah → abreißen
-        } else { // break: wegfliegen, dann neu angreifen
-          e.z-=e.speed*1.5;
-          if (rz>240) { e.state='approach'; e.t=0; }
+        // Taktische Dogfight-Logik: Ausweichen, Verfolgen, Passieren und Re-Engagement
+        const isTargeted = SW.Enemies.getSelectedTarget && SW.Enemies.getSelectedTarget() === e;
+        const playerAimingAtMe = isTargeted && Math.hypot(rx, ry) < 28 && rz > 15 && rz < 160;
+
+        if (e.state === 'tailing') {
+          // Feind klebt am Heck des Spielers und attackiert den Heckschild!
+          e.z = p.z - 35 - Math.sin(e.t * 0.05) * 10;
+          e.x += (p.x - e.x) * 0.055;
+          e.y += (p.y - e.y) * 0.055;
+          // Spieler kann den Verfolger durch Nachbrenner [SHIFT] oder Rollen [Q/E] abschütteln
+          const shaken = p.burning || Math.abs(p.rollAngle) > 0.12 || e.t > 150;
+          if (shaken) {
+            e.state = 'break';
+            e.strafeDir = Math.random() < 0.5 ? -1 : 1;
+            e.t = 0;
+            if (SW.Comm) SW.Comm.add('SECHS: Schöner Ausweichhaken! Verfolger abgeschüttelt!');
+          }
+        } else if (playerAimingAtMe && e.state !== 'break') {
+          // Feind bemerkt Zielerfassung und fliegt aggressive Ausweichschlangen
+          e.state = 'evade';
+          e.z -= e.speed * 0.85;
+          e.x += Math.sin(e.t * 0.08) * 2.4;
+          e.y += Math.cos(e.t * 0.06) * 1.6;
+          if (rz < 35 || Math.random() < 0.01) e.state = 'strafe';
+        } else if (e.state === 'approach') {
+          e.z -= e.speed; e.x += (p.x - e.x) * 0.01; e.y += (p.y - e.y) * 0.008;
+          if (rz < e.range) { e.state = 'strafe'; e.strafeDir = Math.random() < 0.5 ? -1 : 1; }
+        } else if (e.state === 'strafe') {
+          e.z += p.speed + (Math.random() - 0.5) * 0.4;
+          e.x += e.strafeDir * 1.2 + (p.x - e.x) * 0.006;
+          e.y += Math.sin(e.t * 0.03) * 0.4 + (p.y - e.y) * 0.006;
+          if (e.wab > 0) { e.wab--; e.x += (Math.random() - 0.5) * 2.5; }
+          else if (Math.random() < 0.008) e.wab = 10;
+          if (e.t % 240 === 0) e.strafeDir *= -1;
+          if (rz < 30) e.state = 'break';
+        } else {
+          // Break: speed away forward to open distance, then bank around to re-engage
+          e.z += p.speed + e.speed * 1.5;
+          e.x += e.strafeDir * 1.8;
+          e.y += Math.sin(e.t * 0.05) * 0.5;
+          if (rz > 220) {
+            e.state = 'approach';
+            e.t = 0;
+            e.strafeDir = Math.random() < 0.5 ? -1 : 1;
+          }
         }
       }
-      e._vx = e.x - prevX; e._vy = e.y - prevY;
-      // Feuer: Vorhaltschuss (Interpunkt auf Spielerposition + Drift)
+      e._vx = e.x - prevX; e._vy = e.y - prevY; e._vz = e.z - prevZ;
+      // Compute true 3D flight heading & pitch angle so ships smoothly rotate through all 80 views!
+      if (e.state === 'tailing') {
+        e.heading = Math.sin(e.t * 0.04) * 0.25; // Blick direkt nach vorne auf das Heck des Spielers
+        e.pitchAngle = 0;
+      } else if (e.state === 'evade') {
+        e.heading = Math.sin(e.t * 0.08) * 0.65;
+        e.pitchAngle = Math.cos(e.t * 0.06) * 0.35;
+      } else if (e.state === 'strafe') {
+        e.heading = Math.atan2(e.strafeDir * 1.15, -0.45) + Math.sin(e.t * 0.05) * 0.48;
+        e.pitchAngle = Math.max(-0.65, Math.min(0.65, -e._vy * 0.45 + Math.cos(e.t * 0.04) * 0.18));
+      } else if (e.state === 'break') {
+        e.heading = Math.atan2(e.strafeDir * 0.75, 1.0) + Math.sin(e.t * 0.04) * 0.25;
+        e.pitchAngle = -0.38;
+      } else {
+        // Approach: aligned with true 3D flight vector + dogfight banking weave across all angles
+        const relVz = e._vz - (p ? p.speed : 1.5);
+        e.heading = Math.atan2(e._vx * 16, relVz) + Math.sin(e.t * 0.04 + (e.strafeDir || 1) * 1.3) * 0.45;
+        e.pitchAngle = Math.max(-0.6, Math.min(0.6, Math.atan2(-e._vy * 10, Math.max(8, Math.abs(relVz))) + Math.sin(e.t * 0.03) * 0.15));
+      }
+      // Feuer: Vorhaltschuss. Salven werden über mehrere Frames verteilt
+      // (e.burstLeft / e.burstGap), statt alle Schüsse im selben Frame fast
+      // parallel abzufeuern — das ergab früher "zusammenklebende" Projektil-
+      // klumpen, die immer komplett trafen. Zusätzlich gilt ein globales Limit
+      // feindlicher Projektile (SW.ENEMY_MAX_PROJECTILES).
       e.fireTimer--;
       const fireMax=e.range>0?e.range+150:300;
-      if (e.fireTimer<=0&&rz>15&&rz<fireMax) {
-        const lead=rz/SW.ENEMY_LASER_SPEED;
-        const tx=p.x+p.vx*lead*0.8, ty=p.y+p.vy*lead*0.8;
-        const dx=tx-e.x, dy=ty-e.y, dz=p.z-e.z, len=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
-        const burst=e.burst||1;
-        for (let b=0;b<burst;b++) {
-          const off=(b-(burst-1)/2)*0.05;
-          const ox=dx-dz*off, oy=dy;
-          const olen=Math.sqrt(ox*ox+oy*oy+dz*dz)||1;
-          SW.Projectiles.add({x:e.x,y:e.y,z:e.z,dx:ox/olen,dy:oy/olen,dz:dz/olen,speed:SW.ENEMY_LASER_SPEED,friendly:false,damage:e.damage,life:90});
-        }
+      const isTailingFire = (e.state === 'tailing' && rz < -10 && rz > -90);
+      if (e.fireTimer<=0&&((rz>15&&rz<fireMax) || isTailingFire)) {
+        e.burstLeft = e.burst||1;
+        e.burstGap = 0;
         e.fireTimer=e.fireMin+Math.random()*(e.fireMax-e.fireMin);
       }
-      // Hinter den Spieler durchgeflogen → weg (kein Nachjagen)
-      if (rz<5) e.alive=false;
+      if (e.burstLeft > 0 && ((rz > 15) || isTailingFire)) {
+        if (e.burstGap > 0) e.burstGap--;
+        else if (SW.Projectiles.countHostile() < SW.ENEMY_MAX_PROJECTILES) {
+          const lead=Math.abs(rz)/SW.ENEMY_LASER_SPEED;
+          // Leichte Streuung: Feinde sind 1990er Piloten, keine Zielcomputer.
+          const spread = (Math.random() - 0.5) * (isTailingFire ? 5 : 10);
+          const tx=p.x+p.vx*lead*0.8+spread, ty=p.y+p.vy*lead*0.8+spread*0.6;
+          const dx=tx-e.x, dy=ty-e.y, dz=p.z-e.z, len=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+          SW.Projectiles.add({x:e.x,y:e.y,z:e.z,dx:dx/len,dy:dy/len,dz:dz/len,speed:SW.ENEMY_LASER_SPEED,friendly:false,damage:e.damage,life:90});
+          e.burstLeft--;
+          e.burstGap = SW.ENEMY_BURST_GAP;
+        } else {
+          e.burstLeft = 0; // Limit erreicht: Salve verfällt
+        }
+      }
+      if (rz < 8 && e.state !== 'tailing') {
+        if (e.civilian) {
+          e.alive = false;
+          SW.Game.score += 50;
+          SW.Comm.add('SIEDLER: Sprungpunkt erreicht. Eskorte erfolgreich. Danke, Sternenkorps!');
+        } else if (e.hp > 0) {
+          const ai = SW.ShipRegistry[e.shipId] ? SW.ShipRegistry[e.shipId].ai : 'drone';
+          if (ai === 'interceptor' && Math.random() < 0.6) {
+            // Tailing-Manöver: Feind setzt sich auf die 6 des Spielers
+            e.state = 'tailing';
+            e.z = p.z - 30;
+            e.t = 0;
+            if (!this._lastTailingCall || frame - this._lastTailingCall > 300) {
+              this._lastTailingCall = frame;
+              if (SW.Comm) SW.Comm.add('SECHS: Feind im toten Winkel hinter dir! Schüttel ihn ab!');
+            }
+          } else {
+            // Fighter overshoots player: loop back around ahead for another pass instead of vanishing!
+            e.z = p.z + 200 + Math.random() * 80;
+            e.x = p.x + (Math.random() - 0.5) * 90;
+            e.y = p.y + (Math.random() - 0.5) * 50;
+            e.state = 'approach';
+            e.t = 0;
+            e.strafeDir = Math.random() < 0.5 ? -1 : 1;
+          }
+        } else {
+          e.alive = false;
+        }
+      }
     }
     if (this.waveActive) {
       const alive=this.list.filter(e=>e.alive).length;
@@ -314,20 +462,48 @@ SW.Enemies = {
         }
       }
     }
+    // Dynamische Musik im Cockpit je nach Kampflage
+    if (frame % 20 === 0 && SW.Audio && SW.Audio.syncContext && SW.Game && SW.Game.state === 'COCKPIT') {
+      const anyTailingMe = this.list.some(e => e.alive && e.state === 'tailing');
+      const sel = this.getSelectedTarget ? this.getSelectedTarget() : null;
+      const tailingEnemy = sel && sel.alive && Math.hypot(sel.x - p.x, sel.y - p.y) < 26 && sel.z > p.z + 15 && sel.z < p.z + 120;
+      const combatLive = this.list.some(e => e.alive && !e.civilian && Math.abs(e.z - p.z) < 320);
+      const isLowShield = (p.frontShield < 30 || p.rearShield < 30);
+      SW.Audio.syncContext('cockpit', {
+        beingTailed: anyTailingMe,
+        tailingEnemy: tailingEnemy,
+        inCombat: combatLive,
+        intense: isLowShield
+      });
+    }
   },
   render(ctx) {
     for (const e of this.list) e._screenPos = null;
     const sorted=SW.Engine.zSort(this.list.filter(e=>e.alive));
+    const P = SW.Player;
+    const vfx = (SW.Sprites && SW.Sprites.vfx) || {};
     for (const e of sorted) {
       const p=SW.Engine.screenPos(e.x,e.y,e.z); if(!p) continue;
-      if (p.sx<-20||p.sx>SW.W+20||p.sy<-20||p.sy>SW.H+20) continue;
+      if (p.sx<-40||p.sx>SW.W+40||p.sy<-40||p.sy>SW.H+40) continue;
       e._screenPos = p;
-      e._screenSize = Math.max(8, 12 * p.scale);
+      e._screenSize = Math.max(10, 26 * p.scale);
       const spr=SW.Sprites.shipVariants[e.shipId]||SW.Sprites.enemy;
-      SW.Sprites.draw(ctx,spr,p.sx,p.sy,p.scale);
+      const atlasKey = SW.Sprites.mapShipIdToAtlas(e.shipId, e.civilian);
+      const dx = P.x - e.x, dy = P.y - e.y, dz = P.z - e.z;
+      const lightInfo = (SW.Sprites && SW.Sprites.computeDynamicLight) ? SW.Sprites.computeDynamicLight(e.x, e.y, e.z) : null;
+      if (SW.Engine.view.mode === 'topdown') {
+        SW.Sprites.draw(ctx, spr, p.sx, p.sy, p.scale);
+      } else {
+        SW.Sprites.drawMultiAngle(ctx, atlasKey, p.sx, p.sy, p.scale, dx, dy, dz, e.heading, e.pitchAngle, spr, undefined, lightInfo);
+        // Engine flare glow when ship is flying away (break / civilian)
+        if ((e.state === 'break' || e.civilian) && vfx.engineFlare && vfx.engineFlare._ready && ctx.drawImage) {
+          const fSz = Math.max(4, Math.min(20, Math.round(12 * p.scale)));
+          ctx.drawImage(vfx.engineFlare, Math.round(p.sx - fSz / 2), Math.round(p.sy - fSz / 2), fSz, fSz);
+        }
+      }
       if (e.civilian) {
         ctx.fillStyle='#44ff88';
-        ctx.fillRect(Math.round(p.sx)-2, Math.round(p.sy)-Math.round(8*p.scale)-3, 4, 2);
+        ctx.fillRect(Math.round(p.sx)-2, Math.round(p.sy)-Math.round(12*p.scale)-3, 4, 2);
       }
     }
   }
@@ -337,8 +513,8 @@ SW.Projectiles = {
   list:[],
   add(p){this.list.push(p);},
   clear(){this.list=[];},
+  countHostile(){ let n=0; for (const q of this.list) if (!q.friendly) n++; return n; },
   update() {
-    // IM RAUM: Culling relativ zum Spieler (Welt-z wächst mit dem Vorschub)
     const p=SW.Player;
     for (let i=this.list.length-1;i>=0;i--) {
       const q=this.list[i];
@@ -348,17 +524,32 @@ SW.Projectiles = {
     }
   },
   render(ctx) {
+    const isHermes = SW.Player && SW.Player.shipClassId === 'hermes';
+    const vfx = (SW.Sprites && SW.Sprites.vfx) || {};
     for (const p of this.list) {
       const proj=SW.Engine.screenPos(p.x,p.y,p.z); if(!proj) continue;
       if (proj.sx<0||proj.sx>SW.W||proj.sy<0||proj.sy>SW.H) continue;
-      const proj2=SW.Engine.screenPos(p.x-p.dx*3,p.y-p.dy*3,p.z-p.dz*3);
+      const proj2=SW.Engine.screenPos(p.x-p.dx*4.8,p.y-p.dy*4.8,p.z-p.dz*4.8);
+      const outerCol = p.friendly ? (isHermes ? '#00e5ff' : '#ff3311') : '#22ff55';
+      const coreCol  = p.friendly ? (isHermes ? '#e0ffff' : '#ffeeaa') : '#ccffdd';
       if (proj2) {
-        ctx.strokeStyle=p.friendly?'#ff0000':'#00ff00';
-        ctx.lineWidth=Math.min(3,Math.max(1,proj.scale*0.5));
-        ctx.beginPath();ctx.moveTo(proj2.sx,proj2.sy);ctx.lineTo(proj.sx,proj.sy);ctx.stroke();
+        // Outer volumetric glow beam
+        ctx.strokeStyle = outerCol;
+        ctx.lineWidth = Math.min(4.5, Math.max(1.5, proj.scale * 1.1));
+        ctx.beginPath(); ctx.moveTo(proj2.sx, proj2.sy); ctx.lineTo(proj.sx, proj.sy); ctx.stroke();
+        // Bright white-hot core
+        ctx.strokeStyle = coreCol;
+        ctx.lineWidth = Math.min(2.0, Math.max(0.8, proj.scale * 0.45));
+        ctx.beginPath(); ctx.moveTo(proj2.sx, proj2.sy); ctx.lineTo(proj.sx, proj.sy); ctx.stroke();
       } else {
-        ctx.fillStyle=p.friendly?'#ff0000':'#00ff00';
-        ctx.fillRect(Math.round(proj.sx),Math.round(proj.sy),2,2);
+        ctx.fillStyle = outerCol;
+        ctx.fillRect(Math.round(proj.sx) - 1, Math.round(proj.sy) - 1, 3, 3);
+      }
+      // WCUnity bolt flare tip on close bolts
+      const boltImg = p.friendly ? vfx.photonBlast : vfx.mesonBolt;
+      if (boltImg && boltImg._ready && proj.scale > 0.35 && ctx.drawImage) {
+        const bSz = Math.max(3, Math.min(12, Math.round(8 * proj.scale)));
+        ctx.drawImage(boltImg, Math.round(proj.sx - bSz / 2), Math.round(proj.sy - bSz / 2), bSz, bSz);
       }
     }
     ctx.lineWidth=1;
@@ -371,20 +562,30 @@ SW.Explosions = {
   clear(){this.list=[];},
   update(){for(let i=this.list.length-1;i>=0;i--){this.list[i].frame++;if(this.list[i].frame>SW.EXPLOSION_FRAMES)this.list.splice(i,1);}},
   render(ctx) {
+    const strip = SW.Sprites && SW.Sprites.vfx && SW.Sprites.vfx.explodeStrip;
+    const useStrip = strip && strip._ready && SW.Sprites.graphicsMode !== 'classic_1990' && ctx.drawImage;
     for (const ex of this.list) {
       const p=SW.Engine.screenPos(ex.x,ex.y,ex.z); if(!p) continue;
-      const t=ex.frame/SW.EXPLOSION_FRAMES, radius=t*15*p.scale;
-      ctx.globalAlpha=1-t;
-      ctx.fillStyle=t<0.3?'#ffff00':t<0.6?'#ff6600':'#ff0000';
-      ctx.beginPath();ctx.arc(p.sx,p.sy,Math.max(1,radius),0,Math.PI*2);ctx.fill();
-      ctx.globalAlpha=1;
+      const t=ex.frame/SW.EXPLOSION_FRAMES;
+      if (useStrip) {
+        const frameIdx = Math.min(15, Math.floor(t * 16));
+        const sz = Math.max(12, Math.round(46 * p.scale));
+        ctx.drawImage(strip, frameIdx * 64, 0, 64, 64, Math.round(p.sx - sz / 2), Math.round(p.sy - sz / 2), sz, sz);
+      } else {
+        const radius=t*15*p.scale;
+        ctx.globalAlpha=1-t;
+        ctx.fillStyle=t<0.3?'#ffff00':t<0.6?'#ff6600':'#ff0000';
+        ctx.beginPath();ctx.arc(p.sx,p.sy,Math.max(1,radius),0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=1;
+      }
     }
   }
 };
 
 SW.Carrier = {
   x:SW.CARRIER_X,y:SW.CARRIER_Y,z:SW.CARRIER_Z,visible:false,friendlyHits:0,
-  init(){this.x=SW.CARRIER_X;this.y=SW.CARRIER_Y;this.z=SW.CARRIER_Z;this.visible=false;this.friendlyHits=0;},
+  heading: 0.35, pitchAngle: 0.08,
+  init(){this.x=SW.CARRIER_X;this.y=SW.CARRIER_Y;this.z=SW.CARRIER_Z;this.visible=false;this.friendlyHits=0;this.heading=0.35;},
   onFriendlyHit() {
     this.friendlyHits++;
     if (this.friendlyHits === 1) {
@@ -398,41 +599,97 @@ SW.Carrier = {
       SW.Projectiles.add({x:this.x,y:this.y,z:this.z,dx:dx/len,dy:dy/len,dz:dz/len,speed:SW.ENEMY_LASER_SPEED*1.3,friendly:false,damage:18,life:90});
     }
   },
-  // IM RAUM: z wird bei Mission/Flight-Wechseln als Weltkoordinate gesetzt
-  // (relative Projektion in SW.Engine.project rechnet den Rest)
+  canDock() {
+    if (!this.visible || !SW.Player) return false;
+    const dz = Math.abs(this.z - SW.Player.z);
+    return dz < 220;
+  },
   render(ctx) {
     if (!this.visible) return;
     const p=SW.Engine.project(this.x,this.y,this.z); if(!p) return;
-    SW.Sprites.draw(ctx,SW.Sprites.carrier,p.sx,p.sy,p.scale*2,32);
+    const P = SW.Player || { x: 0, y: 0, z: 0 };
+    const dx = P.x - this.x, dy = P.y - this.y, dz = P.z - this.z;
+    const h = this.heading + ((SW.Game && SW.Game.frame) || 0) * 0.0015;
+    const carrierAtlas = (SW.Sprites && SW.Sprites.getCarrierAtlasKey) ? SW.Sprites.getCarrierAtlasKey() : 'fax_traegodie';
+    const postingName = (SW.Transfers && SW.Transfers.getCurrentPosting) ? SW.Transfers.getCurrentPosting().name : 'TCS FAX-TRAGÖDIE';
+    const lightInfo = (SW.Sprites && SW.Sprites.computeDynamicLight) ? SW.Sprites.computeDynamicLight(this.x, this.y, this.z) : null;
+    SW.Sprites.drawMultiAngle(ctx, carrierAtlas, p.sx, p.sy, p.scale * 1.4, dx, dy, dz, h, this.pitchAngle, SW.Sprites.carrier, 110, lightInfo);
+    // Green Landing Approach Corridor indicator when in range
+    const distZ = Math.round(this.z - P.z);
+    if (distZ > 10 && distZ < 550 && ctx.strokeRect) {
+      ctx.save();
+      ctx.fillStyle = distZ < 220 ? '#00ff88' : '#57c8df';
+      ctx.font = '4px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(distZ < 220 ? (postingName + ' [L: LANDEN]') : (postingName + ' (' + distZ + 'm)'), p.sx, p.sy - Math.max(14, 34 * p.scale));
+      ctx.restore();
+    }
   }
 };
 
-// ===== WINGMAN "SECHS" (IM RAUM, v0.75-dev) =====
-// WC1-Prinzip (auto.c: position_relative_ijk, aShipFormationOffset):
-// Der Wingman fliegt in Formation VORN-links, deckt den Spieler und
-// funkt — über SW.Comm (gleicher Kanal wie Commander/Träger).
-// Keine eigenen Schadenswerte (Phase 1); Akademie-Sim bekommt keinen.
+// ===== WINGMAN "SECHS" / "WORKER-7" & IN-FLIGHT SQUADRON ORDERS =====
 SW.Wingman = {
   active:false, x:0,y:0,z:0,
-  offX:-60, offY:20, offZ:80,   // Formation: vorn-links (relativ zum Spieler)
-  fireTimer:120, chatterTimer:900, _hitCd:0,
+  offX:-60, offY:20, offZ:80,
+  orderMode:'form', // 'form' | 'attack' | 'defend'
+  heading:0, pitchAngle:0,
+  fireTimer:120, chatterTimer:3600, _hitCd:0,
   get alive() { return this.active; },
-  reset(){ this.active=false; },
+  set alive(v) { this.active = !!v; },
+  get mode() { return this.orderMode; },
+  set mode(v) { this.orderMode = v; },
+  reset(){ this.active=false; this.orderMode='form'; },
   init() {
     if (SW.Game._simMode) return;
     this.active=true;
+    this.orderMode='form';
     this.x=SW.Player.x+this.offX; this.y=SW.Player.y+this.offY; this.z=SW.Player.z+this.offZ;
-    this.fireTimer=120; this.chatterTimer=900; this._hitCd=0;
-    SW.Comm.add("SECHS: Flugdrei, ich bin bei dir. Vorn-links. Wenn es vorne laut wird, weißt du, was zu tun ist.");
+    this.fireTimer=120; this.chatterTimer=3600; this._hitCd=0;
+    const isHermes = SW.World && SW.World.postingId === 'tcs-hermes';
+    SW.Comm.add(isHermes
+      ? "SECHS: KIWI-Schwarm-Link steht. Worker-7 und ich halten deine linke Flanke."
+      : "SECHS: Flugdrei, ich bin bei dir. Vorn-links. Halte Funkdisziplin.");
+  },
+  order(cmd) {
+    if (!this.active) return;
+    if (cmd === 'attack') {
+      this.orderMode = 'attack';
+      SW.Comm.add('SECHS: Verstanden! Greife dein Ziel an.', 'squadron');
+    } else if (cmd === 'form') {
+      this.orderMode = 'form';
+      SW.Comm.add('SECHS: Schließe auf deine Flanke auf. Formation eng.', 'squadron');
+    } else if (cmd === 'defend') {
+      this.orderMode = 'defend';
+      SW.Comm.add('SECHS: Decke den Träger. Keiner kommt durch.', 'squadron');
+    } else if (cmd === 'taunt') {
+      const taunts = [
+        'FUNK AN FEIND: Ihr Fluggerät verstößt gegen Sektor-Abgasnorm 4-B. Stellen Sie den Betrieb ein!',
+        'FUNK AN FEIND: Hier spricht das Sternenkorps. Haben Sie einen gültigen Parkausweis für Sektor 7?',
+        'SECHS: Hey Pirat! Deine Mutter fliegt ohne Formular 83-B!',
+        'FUNK AN FEIND: Bitte halten Sie die Position, bis unsere Laser Ihre Beschwerde bearbeitet haben.'
+      ];
+      SW.Comm.add(taunts[Math.floor(Math.random() * taunts.length)], 'public');
+    }
   },
   update(frame) {
     if (!this.active) return;
     const p=SW.Player;
-    // Formation nachführen (verzögert, nicht teleportiert)
-    this.x += (p.x+this.offX-this.x)*0.08;
-    this.y += (p.y+this.offY-this.y)*0.08;
+    const prevX = this.x, prevY = this.y;
+    // Formation nachführen (verzögert, nicht teleportiert) — keeps z within Player.z + offZ ± 20 for smoke test!
+    let targetX = p.x + this.offX;
+    let targetY = p.y + this.offY;
+    const eTarget = SW.Enemies.getSelectedTarget ? SW.Enemies.getSelectedTarget() : null;
+    if (this.orderMode === 'attack' && eTarget) {
+      targetX = p.x + Math.max(-90, Math.min(90, (eTarget.x - p.x) * 0.5));
+      targetY = p.y + Math.max(-60, Math.min(60, (eTarget.y - p.y) * 0.5));
+    }
+    this.x += (targetX - this.x)*0.08;
+    this.y += (targetY - this.y)*0.08;
     this.z += (p.z+this.offZ-this.z)*0.15;
-    // Deckung: feuert auf den nächsten Gegner (freundlich, ignoriert Zivilisten)
+    this.heading = Math.atan2(this.x - prevX, 1.5);
+    this.pitchAngle = Math.max(-0.4, Math.min(0.4, -(this.y - prevY) * 0.25));
+
+    // Deckung: feuert auf den nächsten Gegner
     this.fireTimer--;
     if (this.fireTimer<=0) {
       let best=null, bd=Infinity;
@@ -442,16 +699,18 @@ SW.Wingman = {
         if (d<bd) { bd=d; best=e; }
       }
       if (best && best.z>this.z) {
-        const dx=best.x-this.x, dy=best.y-this.y, dz=best.z-this.z, len=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
-        SW.Projectiles.add({x:this.x,y:this.y,z:this.z,dx:dx/len,dy:dy/len,dz:dz/len,speed:SW.LASER_SPEED,friendly:true,life:100});
+        const spreadX = (Math.random() - 0.5) * 8;
+        const spreadY = (Math.random() - 0.5) * 6;
+        const dx=(best.x + spreadX)-this.x, dy=(best.y + spreadY)-this.y, dz=best.z-this.z, len=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+        SW.Projectiles.add({x:this.x,y:this.y,z:this.z,dx:dx/len,dy:dy/len,dz:dz/len,speed:SW.LASER_SPEED,friendly:true,damage:SW.LASER_DAMAGE*0.75,life:95});
         SW.Audio.playLaser();
-        this.fireTimer=80+Math.random()*60;
+        this.fireTimer=(this.orderMode==='attack'?45:80)+Math.random()*50;
       } else this.fireTimer=40;
     }
-    // Idle-Funk (selten, 1990-Deadpan)
     this.chatterTimer--;
+    // Deutlich weniger Idle-Gespräche im Flug (nur alle 60-90 Sekunden statt alle 15s)
     if (this.chatterTimer<=0) {
-      this.chatterTimer=1800+Math.random()*1200;
+      this.chatterTimer=3600+Math.random()*2400;
       const lines=SW.Dialogues.wingmanIdle;
       if (lines&&lines.length) SW.Comm.add("SECHS: "+lines[Math.floor(Math.random()*lines.length)]);
     }
@@ -459,12 +718,12 @@ SW.Wingman = {
   },
   onPlayerHit(frame) {
     if (!this.active||this._hitCd>0) return;
-    this._hitCd=240;
-    SW.Comm.add("SECHS: Treffer! Ich decke dich. Bleib am Leben, du hast noch Formulare auszufüllen.");
+    this._hitCd=600;
+    SW.Comm.add("SECHS: Treffer! Ich decke dich.");
   },
   onFirstKill() {
     if (!this.active) return;
-    SW.Comm.add("SECHS: Einer weniger. Guter Schuss. Das Formular sagt 'abgeschossen', nicht 'abgeknallt'.");
+    SW.Comm.add("SECHS: Einer weniger. Guter Schuss.");
   },
   onDeath() {
     if (!this.active) return;
@@ -475,9 +734,21 @@ SW.Wingman = {
     if (!this.active) return;
     const p=SW.Engine.screenPos(this.x,this.y,this.z); if(!p) return;
     if (p.sx<-20||p.sx>SW.W+20||p.sy<-20||p.sy>SW.H+20) return;
-    SW.Sprites.draw(ctx, SW.Sprites.playerShip, p.sx, p.sy, p.scale*0.9);
-    // IFF-Markierung (blau = befreundet, WC1-Scanner-Style)
+    const P = SW.Player || { x: 0, y: 0, z: 0 };
+    const dx = P.x - this.x, dy = P.y - this.y, dz = P.z - this.z;
+    const wingAtlas = (SW.World && SW.World.postingId === 'tcs-hermes') ? 'hermes_drone' : 'hornet_ace';
+    const lightInfo = (SW.Sprites && SW.Sprites.computeDynamicLight) ? SW.Sprites.computeDynamicLight(this.x, this.y, this.z) : null;
+    if (SW.Engine.view.mode === 'topdown') {
+      SW.Sprites.draw(ctx, SW.Sprites.playerShip, p.sx, p.sy, p.scale*0.9);
+    } else {
+      SW.Sprites.drawMultiAngle(ctx, wingAtlas, p.sx, p.sy, p.scale*0.95, dx, dy, dz, this.heading, this.pitchAngle, SW.Sprites.playerShip, undefined, lightInfo);
+      const vfx = (SW.Sprites && SW.Sprites.vfx) || {};
+      if (vfx.engineFlare && vfx.engineFlare._ready && ctx.drawImage) {
+        const fSz = Math.max(4, Math.min(18, Math.round(11 * p.scale)));
+        ctx.drawImage(vfx.engineFlare, Math.round(p.sx - fSz / 2), Math.round(p.sy - fSz / 2), fSz, fSz);
+      }
+    }
     ctx.fillStyle='#4488ff';
-    ctx.fillRect(Math.round(p.sx)-2, Math.round(p.sy)-10, 4, 2);
+    ctx.fillRect(Math.round(p.sx)-2, Math.round(p.sy)-Math.round(12*p.scale)-3, 4, 2);
   }
 };

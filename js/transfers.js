@@ -42,6 +42,12 @@ SW.Transfers = {
       timestamp: Date.now()
     });
     SW.World.postingId = next.id;
+    if (next.defaultShipClassId && SW.Player) {
+      SW.Player.shipClassId = next.defaultShipClassId;
+    }
+    if (SW.Squadron && SW.Squadron.syncWithPosting) {
+      SW.Squadron.syncWithPosting(next);
+    }
     if (!this.canVisit(SW.Ship.currentRoom)) SW.Ship.currentRoom = next.startRoom;
     SW.Ship.savePanelOpen = false;
     SW.Ship._saveTerminalRect = null;

@@ -13,15 +13,28 @@ SW.Collision = {
         for (const e of SW.Enemies.list) {
           if (!e.alive) continue;
           const dx=p.x-e.x,dy=p.y-e.y,dz=p.z-e.z;
-          if (dx*dx+dy*dy+dz*dz<SW.COLLISION_DIST*SW.COLLISION_DIST) {
+          const hitRadius = (e.shipId === 'Kreuzer' || e.shipId === 'piraten_kapitaen') ? 18 :
+                            (e.shipId === 'freighter' || e.shipId === 'frachter' || e.civilian) ? 15 : 10;
+          const distSq = dx*dx + dy*dy + dz*dz;
+          const stepDist = p.speed || SW.LASER_SPEED;
+          const isHit = distSq < hitRadius * hitRadius ||
+            (Math.hypot(dx, dy) < hitRadius && Math.abs(dz) <= stepDist * 1.1);
+          if (isHit) {
             e.hp-=p.damage||SW.LASER_DAMAGE; projs.splice(i,1); hitEnemy = true;
+            if (SW.Game) SW.Game.shotsHit = (SW.Game.shotsHit || 0) + 1;
             if (e.civilian) {
               SW.Comm.add("COMMANDER: FEUER EINSTELLEN! Das sind Siedler! Formular 00-S (Kriegsgericht)!");
               SW.Game.score = Math.max(0, SW.Game.score - 50);
             }
             if (e.hp<=0) {
               e.alive=false;
-              if (!e.civilian) SW.Game.score+=100;
+              if (!e.civilian) {
+                SW.Game.score+=100;
+                const kName = e.shipId || e.type || e.sprite || 'Gegner';
+                SW.Game.killsByType = SW.Game.killsByType || {};
+                SW.Game.killsByType[kName] = (SW.Game.killsByType[kName] || 0) + 1;
+                SW.Game.totalKills = (SW.Game.totalKills || 0) + 1;
+              }
               SW.Explosions.add(e.x,e.y,e.z);
               if (!e.civilian && SW.Quests && SW.Quests.flight) SW.Quests.flight({ typ: 'kill' });
               if (!this.firstKillDone && !e.civilian) {
@@ -43,7 +56,11 @@ SW.Collision = {
         }
       } else {
         const dx=p.x-SW.Player.x,dy=p.y-SW.Player.y,dz=p.z-SW.Player.z;
-        if (dx*dx+dy*dy+dz*dz<SW.COLLISION_DIST*SW.COLLISION_DIST) {
+        const pRadius = SW.PLAYER_HIT_RADIUS || 6;
+        const eStep = p.speed || SW.ENEMY_LASER_SPEED;
+        const isPlayerHit = (dx*dx + dy*dy + dz*dz < pRadius * pRadius) ||
+          (Math.hypot(dx, dy) < pRadius && Math.abs(dz) <= eStep * 1.1);
+        if (isPlayerHit) {
           projs.splice(i,1);
           SW.Player.takeHit(p.damage||SW.ENEMY_LASER_DAMAGE,p.z>0,frame);
           if (SW.Wingman) SW.Wingman.onPlayerHit(frame);
@@ -73,8 +90,18 @@ SW.Autopilot = {
   toggle() {
     if (this.navPoints.length===0) return;
     this.active=!this.active;
-    if (this.active) { this.nextWaypoint(); SW.Comm.add("[AUTOPILOT] Engagiert. Ziel: WP-"+(this.currentNavIndex)); }
-    else { SW.Player.autopilot=false;SW.Player.autopilotTarget=null;SW.Player.burnAuto=false;SW.Comm.add("[AUTOPILOT] Getrennt."); }
+    if (this.active) {
+      this.nextWaypoint();
+      const activeEnemies = (SW.Enemies && SW.Enemies.list) ?
+        SW.Enemies.list.filter(e => e.alive && !e.civilian && e.z > (SW.Player ? SW.Player.z - 20 : 0)) : [];
+      if (activeEnemies.length > 0) {
+        SW.Comm.add("[AUTOPILOT] Engagiert unter Feindfeuer! Kurs: WP-"+(this.currentNavIndex));
+      } else {
+        SW.Comm.add("[AUTOPILOT] Engagiert. Ziel: WP-"+(this.currentNavIndex));
+      }
+    } else {
+      SW.Player.autopilot=false;SW.Player.autopilotTarget=null;SW.Player.burnAuto=false;SW.Comm.add("[AUTOPILOT] Getrennt.");
+    }
   },
   nextWaypoint() {
     if (this.currentNavIndex<this.navPoints.length) {
@@ -95,7 +122,6 @@ SW.Autopilot = {
     const dx=P.x-t.x, dy=P.y-t.y;
     const lat=Math.sqrt(dx*dx+dy*dy);
     // Erreicht: xy-Seitenlage im Ziel ... oder z-Ebene deutlich passiert
-    // (Verhakt: man fliegt zu schnell durch den Punkt).
     const pastZ=(t.z!==undefined)&&(P.z>t.z+300);
     if (lat<SW.AUTOPILOT_TOLERANCE||pastZ) this.nextWaypoint();
   }
@@ -186,12 +212,22 @@ SW.Flight = {
   render(ctx) {
     if (!this.mode) return;
     if (this.mode==='takeoff') { this.renderTube(ctx); return; }
-    // LANDING: Sterne + Carrier + Schiff von hinten
+    // LANDING: Sterne + 3D Carrier (TCS Fax-Tragödie) + Grüner Landekorridor + Spielerschiff von hinten
     SW.Engine.renderStars(ctx, SW.Player.x, SW.Player.y);
     SW.Carrier.render(ctx);
+    // Grüne Landeleit-Ringe vor der Landebucht der TCS Fax-Tragödie
+    if (ctx.strokeRect) {
+      for (let k = 1; k <= 3; k++) {
+        const ringW = Math.round((1 - this.progress * 0.4) * k * 18);
+        const ringH = Math.round(ringW * 0.55);
+        ctx.strokeStyle = (k + Math.floor(this.progress * 20)) % 2 === 0 ? 'rgba(40,255,130,0.65)' : 'rgba(20,140,80,0.35)';
+        ctx.strokeRect(Math.round(SW.CX - ringW / 2), Math.round(SW.CY + 4 - ringH / 2), ringW, ringH);
+      }
+    }
     const p=SW.Engine.project(0, 18, 25);
     if (p) {
-      SW.Sprites.draw(ctx, SW.Sprites.playerShip, p.sx, p.sy, p.scale*1.8);
+      const cls = (SW.Player && SW.Player.getShipClass) ? SW.Player.getShipClass() : { atlasKey: 'hornet' };
+      SW.Sprites.drawMultiAngle(ctx, cls.atlasKey || 'hornet', p.sx, p.sy, p.scale*1.8, 0, -2, -25, 0, 0, SW.Sprites.playerShip);
     }
   },
 
@@ -264,7 +300,8 @@ SW.Flight = {
     ctx.beginPath(); ctx.arc(sx, sy+10, glow, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle='rgba(255,220,120,'+(0.4+Math.random()*0.3).toFixed(2)+')';
     ctx.beginPath(); ctx.arc(sx, sy+9, glow*0.5, 0, Math.PI*2); ctx.fill();
-    SW.Sprites.draw(ctx, SW.Sprites.playerShip, sx, sy, 1.7+exitT*0.2);
+    const cls = (SW.Player && SW.Player.getShipClass) ? SW.Player.getShipClass() : { atlasKey: 'hornet' };
+    SW.Sprites.drawMultiAngle(ctx, cls.atlasKey || 'hornet', sx, sy, 1.7+exitT*0.2, 0, -2, -25, 0, 0, SW.Sprites.playerShip);
     // Exit-Flash (letzte 7%: Bruch ins offene All)
     if (t>0.93) {
       ctx.fillStyle='rgba(255,255,255,'+Math.min(1, (t-0.93)/0.07).toFixed(2)+')';

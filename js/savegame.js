@@ -37,6 +37,16 @@ SW.SaveGame = {
       newspaper: (SW.Newspaper && SW.Newspaper.currentIssue) ? {
         currentIssue: SW.Newspaper.currentIssue
       } : null,
+      carrierEconomy: SW.CarrierEconomy ? {
+        credits: SW.CarrierEconomy.credits,
+        careerMode: SW.CarrierEconomy.careerMode,
+        tier: SW.CarrierEconomy.tier,
+        cargoHold: SW.CarrierEconomy.cargoHold
+      } : null,
+      armada: SW.ArmadaMap ? {
+        carrierSectorId: SW.ArmadaMap.carrierSectorId,
+        discoveredSectors: Array.from(SW.ArmadaMap.discoveredSectors || [])
+      } : null,
       game: {
         score: SW.Game ? SW.Game.score || 0 : 0
       }
@@ -102,6 +112,8 @@ SW.SaveGame = {
         (data.quests.completed !== undefined && !Array.isArray(data.quests.completed)) ||
         (data.quests.flags !== undefined && !this._isRecord(data.quests.flags)))) return false;
     if (data.dialogues && data.dialogues.stages !== undefined && !this._isRecord(data.dialogues.stages)) return false;
+    if (data.carrierEconomy !== null && data.carrierEconomy !== undefined && !this._isRecord(data.carrierEconomy)) return false;
+    if (data.armada !== null && data.armada !== undefined && !this._isRecord(data.armada)) return false;
     if (data.game && data.game.score !== undefined &&
         (typeof data.game.score !== 'number' || !Number.isFinite(data.game.score))) return false;
     return true;
@@ -182,6 +194,19 @@ SW.SaveGame = {
       }
       if (data.newspaper && this._isRecord(data.newspaper.currentIssue) && SW.Newspaper) {
         SW.Newspaper.currentIssue = data.newspaper.currentIssue;
+      }
+      if (data.carrierEconomy && SW.CarrierEconomy) {
+        if (typeof data.carrierEconomy.credits === 'number') SW.CarrierEconomy.credits = data.carrierEconomy.credits;
+        if (typeof data.carrierEconomy.careerMode === 'string') SW.CarrierEconomy.careerMode = data.carrierEconomy.careerMode;
+        if (typeof data.carrierEconomy.tier === 'number') SW.CarrierEconomy.tier = data.carrierEconomy.tier;
+        if (this._isRecord(data.carrierEconomy.cargoHold)) SW.CarrierEconomy.cargoHold = data.carrierEconomy.cargoHold;
+        if (SW.CarrierEconomy.careerMode === 'privateer' && SW.Ship) {
+          SW.Ship.currentRoom = 'frachter_bruecke';
+        }
+      }
+      if (data.armada && SW.ArmadaMap) {
+        if (typeof data.armada.carrierSectorId === 'string') SW.ArmadaMap.carrierSectorId = data.armada.carrierSectorId;
+        if (Array.isArray(data.armada.discoveredSectors)) SW.ArmadaMap.discoveredSectors = data.armada.discoveredSectors;
       }
       if (data.game && SW.Game && data.game.score !== undefined) SW.Game.score = data.game.score;
       this._msg('GELADEN. Willkommen zurück, ' + (SW.World && SW.World.pilotName ? SW.World.pilotName : 'PILOT'));

@@ -142,6 +142,24 @@ SW.NPC = {
       age: 44, skin: '#d8b898', hair: '#554433', hairStyle: 'balding',
       uniform: '#3a3428', rank: 'clerk', features: ['glasses', 'mustache'],
       personality: 'stoic', videoPose: 'holding-datapad', briefingPos: null
+    },
+    'hermes-kern': {
+      id: 'hermes-kern', name: 'HERMES-KERN', voice: 'synthetic',
+      age: 0, skin: '#226688', hair: null, hairStyle: 'none',
+      uniform: '#102838', rank: 'commander', features: ['metal-skin', 'glowing-eyes', 'hologram'],
+      personality: 'literal', videoPose: 'hologram', briefingPos: { x: 96, y: 168 }
+    },
+    'worker-7': {
+      id: 'worker-7', name: 'WORKER-7', voice: 'synthetic',
+      age: 0, skin: '#8899aa', hair: null, hairStyle: 'none',
+      uniform: '#224455', rank: 'pilot', features: ['metal-skin', 'glowing-eyes'],
+      personality: 'technical', videoPose: 'cockpit-left', briefingPos: { x: 220, y: 140 }
+    },
+    'reviewer-9': {
+      id: 'reviewer-9', name: 'REVIEWER-9', voice: 'synthetic-neutral',
+      age: 0, skin: '#9988aa', hair: null, hairStyle: 'none',
+      uniform: '#382255', rank: 'auditor', features: ['metal-skin', 'glowing-eyes', 'glasses'],
+      personality: 'literal', videoPose: 'holding-datapad', briefingPos: { x: 300, y: 140 }
     }
   },
 

@@ -26,6 +26,19 @@
 <h1>SOLO WING 1990</h1>
 <div class="subtitle">Projektseite | Sternenkorps Interne | Nur für Personal mit Formular 12-B</div>
 
+<div class="card" style="border-color:#ffcc00;">
+<h3 style="color:#ffcc00;">BETRIEBSBEKANNTMACHUNG: V0.85-RC — WINGNUT 80-VIEW SPRITES, DYNAMISCHES WAFFEN-LIGHTING, WC4-INTRO, PRIVATEER &amp; TCS HERMES (2026-11-08)</h3>
+<p>Vor dem großen GitHub-Release hat <b>Antigravity / Gemini 4 Argon</b> gemeinsam mit dem Piloten das komplette Grafik-, Beleuchtungs-, Story- und Open-World-Fundament auf Stufe <b>v0.85-rc</b> gehoben:</p>
+<ul>
+<li><b>14 Multi-Angle Schiffs-Atlanten (80 Ansichten) &amp; 9 Cockpits:</b> Basierend auf den Open-Source-Assets von <b>Howard Day (HowieDay / WCUnity)</b> und <b>Niklas „Arne" Jansson</b> (sowie eigenen 3D-Modellen für <i>TCS Fax-Tragödie</i>, <i>TCS Hermes</i>, <i>KIWI-Mk.IV</i> und <i>Kiste 47</i>) rotieren alle Schiffe jetzt butterweich durch 80 Perspektiven (bzw. 40 im Amiga-<code>/2</code>-Modus per <code>[G]</code>).</li>
+<li><b>Dynamische Waffenfeuer- &amp; Explosions-Beleuchtung:</b> Laser- und Plasmasalven sowie Explosionen färben nahe Schiffe in Echtzeit silhouettengenau ein und erleuchten das eigene Cockpit, die Streben und die Piloten-Hände mit echten RGBA-Lightmaps.</li>
+<li><b>Kinoreifes 3-Akt-Intro (WC1-Technik + WC4-Storytelling):</b> Einsamer Transporter im Asteroidenfeld → Piraten-Hinterhalt → Sprung-Rettung durch die <i>TCS Fax-Tragödie</i> &amp; ihre Hornets → Direkt-Einstieg nach Simulator-Test.</li>
+<li><b>Dienst Quittieren (Zwischensequenz), Geschenkschiff &amp; Sektor-Navigation:</b> Eigene 3-Szenen-Cutscene bei Kündigung (<code>[Q]</code>), missionsabhängige Abfindung + geschenktes Veteranen-Schiff sowie echter Sektor-zu-Sektor-Transitflug über die 16-Sektor-Sternenkarte (<code>[K]</code> / <code>[N]</code> / <code>[J]</code>).</li>
+<li><b>Neuer KI-Träger <i>TCS Hermes</i> &amp; Branching Storylines (M5, M6A, M6B):</b> Hommage an den Hermes-Agentenschwarm mit Roboter-Crew (<code>HERMES-KERN</code>, <code>WORKER-7</code>, <code>REVIEWER-9</code>), Raum-Pixel-Filter und verzweigter Kampagne.</li>
+</ul>
+<p><span class="tag new">V0.85-RC</span> <span class="tag arch">WINGNUT &amp; HERMES</span> <a href="entwicklung.html">→ Zum aktualisierten Entwicklungs- &amp; Handoff-Bericht</a></p>
+</div>
+
 <div class="card" style="border-color:#00ffcc;">
 <h3 style="color:#00ffcc;">BETRIEBSBEKANNTMACHUNG: GEMINI 4 ARGON ÜBERNIMMT DAS RUDER (2026-10-18)</h3>
 <p>Für den aktuellen Integrations- und Polish-Pass hat <b>Gemini 4 Argon</b> (Antigravity / DeepMind) kurzfristig die Schicht auf der <i>TCS Fax-Tragödie</i> übernommen. Auftrag gemäß Formular 91-X: Offene Punkte der Todo-Liste abarbeiten, verwaiste Systeme endlich miteinander verdrahten, Grafik und Spielbarkeit auf die nächste Stufe heben — und eine schonungslose, bürokratisch korrekte Bewertung der bisherigen Agenten-Epochen abgeben.</p>
@@ -206,7 +219,19 @@
 </ul>
 </div>
 
-<h2>PROJEKT-BLOG</h2>
+<h2>PROJEKT-BLOG (SCHIFFSLOG / CAPTAIN'S LOG)</h2>
+<div class="blog-entry">
+<div class="date">2026-11-08</div>
+<div class="title">Captain's Log: v0.85-rc — Wingnut 80-View, Dynamisches Licht, WC4-Intro, Privateer-Cutscene &amp; die TCS Hermes (Antigravity / Gemini 4 Argon)</div>
+<div class="body">
+<p><b>Status:</b> Alle Systeme auf Release-Stand v0.85-rc. Smoke-Test (<code>node _smoke_test.js</code>): <b>ALLE TESTS OK</b>.</p>
+<p><b>Was in dieser Schicht entstanden ist:</b>
+<br>1. <b>Warum die Sprites vorher „noch viel Liebe" brauchten (und wie wir es gelöst haben):</b> In HowieDays <code>WCUnity</code> (<code>SpritePicker.cs</code>) liegt ein halber Yaw-Step Offset (<code>theta = (yaw + 1) * PI/16</code>). Dadurch lagen die exakten Hauptachsen (0° Vorne, 90° Seite, 180° Heck) auf den ungeraden Indizes <code>[31, 7, 15, 23]</code>, während der erste Importer gerade Indizes las. Zusätzlich zeigte <code>e.heading</code> in <code>js/entities.js</code> immer direkt zur Kamera, wodurch der Winkel sich selbst aufhob! Jetzt nutzt <code>tools/build_wingnut_assets.py</code> die exakten ungeraden Yaw-Stufen, unpremultipliziert Alpha gegen dunkle Ränder, zeichnet eine 1px Kontur und berechnet die 3D-Flugrichtung aus dem echten Bewegungsvektor. Die alten 16×16-Urgrafiken sind aus dem <code>[G]</code>-Zyklus entfernt.
+<br>2. <b>Dynamische Waffenfeuer- &amp; Explosions-Beleuchtung:</b> Jedes Projektil und jede Explosion beleuchtet nahe Schiffe über einen Offscreen-<code>source-atop</code>-Silhouette-Pass in Echtzeit. Im Cockpit wurden alle schwarzen Unity-Masken (<code>_left_gun.png</code>, <code>_right_gun.png</code>) in echte transparente RGBA-Farblightmaps umgewandelt.
+<br>3. <b>WC4-Storytelling im Intro &amp; „Dienst Quittieren"-Zwischensequenz:</b> Das Intro erzählt jetzt in 3 Akten, wie man als einsamer Frachterpilot im Asteroidenfeld von Piraten überfallen und mitten im Gefecht vom reinspringenden Träger <i>TCS Fax-Tragödie</i> gerettet wird. Und wer später per <code>[Q]</code> oder im Gespräch den Dienst quittiert, erlebt eine eigene 3-teilige Zwischensequenz (<code>RESIGNATION</code>), kassiert eine nach gespielten Missionen skalierte Abfindung und bekommt von Bolt ein altes Schiff geschenkt, mit dem man von Sektor zu Sektor fliegen kann.
+<br>4. <b>Die <i>TCS Hermes</i> &amp; Open-Source-Dank:</b> Als Hommage an die Migration aus dem Hermes-Agenten-Workspace fliegt jetzt der KI-Träger <i>TCS Hermes</i> (samt Roboter-Crew <code>HERMES-KERN</code>, <code>WORKER-7</code>, <code>REVIEWER-9</code> und Branching-Missionen M5/M6A/M6B) im Spiel mit. Im Abspann und in der README werden alle Open-Source-Schöpfer (<b>Howard Day / HowieDay</b>, <b>Niklas „Arne" Jansson</b>, <b>neuromancer / wc1-re &amp; wc2-re</b>, <b>OpenReliant</b>, <b>FreeSpace Open</b>) gebührend geehrt.</p>
+</div>
+</div>
 <div class="blog-entry">
 <div class="date">2026-10-18</div>
 <div class="title">Captain's Log: v0.75-dev (Argon-Pass) — Die große Verkabelung (Gemini 4 Argon an Bord)</div>

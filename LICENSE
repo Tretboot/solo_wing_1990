@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 SOLO WING 1990 — Sternenkorps (ehemaliger Agentenverbund / Qwen-Team)
+Copyright (c) 2026 SOLO WING 1990 — Tretboot & Sternenkorps (Qwen-Agentenverbund, Hermes Agent, VS Code + Cline, GitHub Copilot, Antigravity / Gemini 4 Argon)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+THIRD-PARTY OPEN SOURCE CREDITS & ATTRIBUTIONS:
+
+1. Multi-Angle Ship Sprites, Cockpit Artwork & VFX Assets (`sprites/ships/`, `sprites/cockpits/`, `sprites/vfx/`):
+   - Adapted and downscaled via `tools/build_wingnut_assets.py` from `Wingnut` / `WCUnity` (`Wing-Commander-Unity-Clone`) by **Howard Day (HowieDay)**, featuring pixel/3D artwork by **Niklas "Arne" Jansson** and **Howard Day**.
+   - Custom 80-view 3D-rendered pixel-art models (`fax_traegodie.png`, `hermes_carrier.png`, `hermes_drone.png`, `freighter.png`) and custom cockpits (`freighter_front.png`, `hermes_front.png`) generated procedurally by the Solo Wing 1990 asset pipeline (`tools/build_wingnut_assets.py`).
+
+2. Open-Source Engine & Reverse-Engineering References:
+   - **`neuromancer/wc1-re` & `neuromancer/wc2-re`**: Wing Commander I & II C/SDL2 source reconstruction (reference for 3D flight physics, AI maneuver states, wingman formation math, and PCI communication).
+   - **`OpenReliant/openreliant` & FreeSpace Open**: Reference for space combat HUD, lead indicator math, and flight feel.
+
+3. Historical Homage:
+   - Inspired by *Wing Commander I–IV*, *Wing Commander: Privateer*, and *Wing Commander: Armada* by **Origin Systems / Chris Roberts & Team (1990–1996)**.
 
 ---
 Gedruckt auf Faxpapier. Formular 12-B liegt in der Spinde.

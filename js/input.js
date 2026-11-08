@@ -6,7 +6,49 @@ SW.Input = {
   _aHeld: false, _mHeld: false,
 
   init(canvas) {
-    document.addEventListener('keydown', e => {
+    window.addEventListener('keydown', (e) => {
+      // Overlays abfangen (Holo-Chat & Armada-Staffelverwaltung)
+      if (SW.HoloChat && SW.HoloChat.active) {
+        if (SW.HoloChat.handleKeyDown(e)) {
+          e.preventDefault();
+          return;
+        }
+      }
+      if (SW.SquadronUI && SW.SquadronUI.active) {
+        if (SW.SquadronUI.handleKeyDown(e)) {
+          e.preventDefault();
+          return;
+        }
+      }
+      if (SW.ArmadaMap && SW.ArmadaMap.active) {
+        if (SW.ArmadaMap.handleKeyDown(e)) {
+          e.preventDefault();
+          return;
+        }
+      }
+      if (SW.Game && SW.Game.state === 'SHIP' && (!SW.Ship || !SW.Ship.dialogueActive)) {
+        if (e.key === 'c' || e.key === 'C') {
+          if (SW.HoloChat) {
+            if (SW.HoloChat.active) SW.HoloChat.close(); else SW.HoloChat.open();
+            e.preventDefault();
+            return;
+          }
+        }
+        if (e.key === 's' || e.key === 'S') {
+          if (SW.SquadronUI) {
+            if (SW.SquadronUI.active) SW.SquadronUI.close(); else SW.SquadronUI.open();
+            e.preventDefault();
+            return;
+          }
+        }
+        if (e.key === 'k' || e.key === 'K') {
+          if (SW.ArmadaMap) {
+            if (SW.ArmadaMap.active) SW.ArmadaMap.close(); else SW.ArmadaMap.open();
+            e.preventDefault();
+            return;
+          }
+        }
+      }
       this.keys[e.code] = true;
       this.devices.keyboard = true;
       if (e.code === 'Space') e.preventDefault();

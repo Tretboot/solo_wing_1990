@@ -59,6 +59,12 @@ SW.Akademie = {
     };
     // Bestehende Engine-Initialisierung nutzen
     SW.Player.init();
+    // Simulator = Wegwerf-Systeme: Treffer im Sim dürfen das echte Schiff
+    // (SW.World.shipSystems) nicht beschädigen. Früher war der Jäger nach
+    // der Akademie-Prüfung "kaputt", weil beide dasselbe Objekt teilten.
+    SW.Player.systems = SW.Player.defaultSystems();
+    SW.Player.frontShield = SW.Player.shieldCapacity();
+    SW.Player.rearShield = SW.Player.shieldCapacity();
     SW.Engine.initStars();
     SW.Projectiles.clear();
     SW.Explosions.clear();
@@ -78,6 +84,8 @@ SW.Akademie = {
     SW.Game.state = 'AKADEMIE';  // FIX: direkt setzen (setState wuerde init() + Phase-Reset ausloesen).
                                   // after() zahlt nur in SW.Akademie.update() runter — frueher blieb der
                                   // State COCKPIT und der Spieler flog ewig weiter.
+    if (SW.Player) SW.Player.repairSystems();
+    if (SW.World) SW.World.shipSystems = SW.Player.defaultSystems();
     if (SW.TTS) SW.TTS.speak('Bestanden. Sie werden der Flotte zugeteilt. ', 'AUSBILDER');
     this.after(210, () => { SW.Game.startArrival(); });
   },
@@ -88,6 +96,8 @@ SW.Akademie = {
     this._wait = 0; this._fn = null;
     SW.Game._simMode = false;
     SW.Game.state = 'AKADEMIE';  // FIX: wie bei bestanden() — direkt, ohne init()
+    if (SW.Player) SW.Player.repairSystems();
+    if (SW.World) SW.World.shipSystems = SW.Player.defaultSystems();
     if (SW.TTS) SW.TTS.speak('Nicht bestanden. Sie werden trotzdem der Flotte zugeteilt. Formular 83-B liegt bereit. Teil C: Nicht bestanden.', 'AUSBILDER');
     this.after(270, () => { SW.Game.startArrival(); });
   }

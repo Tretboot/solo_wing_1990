@@ -78,7 +78,18 @@
 <tr><td>2. VS Code + Cline</td><td>Räumlicher Durchbruch („IM RAUM", 3 Decks)</td><td>Stille State-Regressionen (Phantom-Start, Crew-Filter)</td><td><b>Der mutige Testpilot</b></td></tr>
 <tr><td>3. GitHub Copilot</td><td>Systemschäden, Savegame-Sicherheit, Tests</td><td>Konservativer Scope, ließ alte Story-Stubs offen</td><td><b>Der präzise Bord-Ingenieur</b></td></tr>
 <tr><td>4. Gemini 4 Argon</td><td>Ganzheitliches Audit, Voll-Integration, HUD &amp; Polish</td><td>Will am liebsten jedes lose Kabel gleichzeitig löten</td><td><b>Der Chef-Verkabeler (Formular 91-X)</b></td></tr>
+<tr><td>5. Hermes Agent &amp; Antigravity (v0.85-rc)</td><td>80-View Multi-Angle-Pipeline, Dynamisches Waffen-Lighting, WC4-Intro, Armada/Privateer &amp; TCS Hermes</td><td>Baut aus einer Nebenfrage gleich einen ganzen KI-Träger samt Sektor-Flug</td><td><b>Der Welten- &amp; Grafik-Architekt</b></td></tr>
 </table>
+</div>
+
+<h2>KAPITEL 5: V0.85-RC — VON 16×16-URGRAFIREN ZU 80-VIEW MULTI-ANGLE, DYNAMISCHEM LICHT &amp; DER TCS HERMES (11/2026)</h2>
+<div class="card" style="border-color:#ffcc00;">
+<p>Für zukünftige Agenten sind hier die technischen Schlüsselerkenntnisse des <b>v0.85-rc Passes</b> protokolliert, damit niemand jemals wieder in dieselben Grafik- oder Koordinaten-Fallen tappt:</p>
+<ul>
+<li><b>Erkenntnis 1 — Das <code>SpritePicker.cs</code> Yaw-Paradoxon:</b> In HowieDays Open-Source-Projekt <code>WCUnity</code> (<code>Wingnut</code>, mit Artwork von Niklas „Arne" Jansson) werden 32 Yaw-Spalten pro Pitch-Sheet gespeichert. Doch <code>SpritePicker.cs</code> addiert vor der Spaltenwahl einen halben Schritt: <code>theta = (yaw + 1) * (PI / 16)</code>. Wer beim Downscaling auf 16 Spalten die geraden Indizes <code>[0, 2, 4, ...]</code> wählt, überspringt sämtliche exakten Frontal-, Heck- und Seitenansichten! Erst mit <code>YAW_STEPS = [31, 1, 3, ..., 29]</code> in <code>tools/build_wingnut_assets.py</code> zeigt Spalte 0 exakt 0° nach vorne.</li>
+<li><b>Erkenntnis 2 — Warum Feinde vorher nicht rotierten:</b> In <code>js/entities.js</code> stand <code>e.heading = Math.atan2(-rx, -rz)</code> — jeder Gegner blickte also rechnerisch immer exakt in Richtung Kamera. In <code>getAngleCoords</code> hob sich dieser Winkel gegen den Sichtvektor auf, sodass man im Flug immer nur 1–2 Spalten des Atlas sah. Durch die Berechnung von <code>e.heading</code> aus dem tatsächlichen 3D-Geschwindigkeitsvektor drehen sich Jäger im Kurvenkampf nun durch alle 80 Ansichten.</li>
+<li><b>Erkenntnis 3 — Schwarze Boxen im Cockpit vs. echtes RGBA-Lighting:</b> Die originalen <code>*_LeftGun.png</code> und <code>*_RightGun.png</code> waren für einen additiven Unity-Shader gebaut und besaßen einen opaken schwarzen Hintergrund <code>(0,0,0,255)</code>. Auf einem HTML5-2D-Canvas zeichneten sie schwarze Rechtecke über die Kanzel. <code>create_gun_flash_overlay</code> in <code>tools/build_wingnut_assets.py</code> wandelt ihre Luminanz in echte transparente RGBA-Farblightmaps um — ergänzt um dynamisches <code>source-atop</code>-Silhouette-Lighting für alle Schiffe im Raum.</li>
+</ul>
 </div>
 
 <h2>WAS SICH NICHT GEÄNDERT HAT</h2>

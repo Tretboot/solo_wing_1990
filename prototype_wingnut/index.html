@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOLO WING 1990 // Wingnut Carrier & Combat Engine</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #030407; color: #9cb5cb;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    #top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; max-width: 960px; padding: 6px 12px;
+      font-size: 12px; letter-spacing: 1px; color: #6a8296;
+      user-select: none;
+    }
+    #top-bar span.title { color: #00ddff; font-weight: bold; }
+    #top-bar .controls-group { display: flex; gap: 8px; }
+
+    .btn-retro {
+      background: #0d1520; color: #00ffcc; border: 1px solid #1a3648;
+      padding: 4px 10px; font-family: inherit; font-size: 11px;
+      cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+      transition: all 0.15s ease;
+    }
+    .btn-retro:hover {
+      background: #00ffcc; color: #050b12; border-color: #00ffcc;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+    }
+    .btn-retro.active {
+      background: #0088aa; color: #fff; border-color: #00ddff;
+    }
+
+    #stage-container {
+      position: relative;
+      width: 680px; height: 440px;
+      background: #000;
+      box-shadow: 0 0 35px rgba(0, 150, 255, 0.22), 0 0 10px #000;
+      border: 1px solid #142230;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    body.fullscreen #stage-container {
+      width: 100vw; height: 100vh;
+      border: none; box-shadow: none;
+    }
+    body.fullscreen #top-bar, body.fullscreen #bottom-bar { display: none; }
+
+    canvas#gameCanvas {
+      display: block; width: 100%; height: 100%;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+    }
+
+    #crt-overlay {
+      pointer-events: none;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 6px 100%;
+      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.7);
+      opacity: 0.9;
+      transition: opacity 0.2s;
+      z-index: 50;
+    }
+    #crt-overlay.disabled { display: none; }
+
+    #loading-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: #070a0e; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100; font-size: 13px; color: #00ffaa; letter-spacing: 1px;
+    }
+    #progress-bar-bg {
+      width: 320px; height: 12px; border: 1px solid #00ffaa;
+      background: #001a14; margin-top: 15px; padding: 2px;
+    }
+    #progress-bar { width: 0%; height: 100%; background: #00ffaa; transition: width 0.1s; }
+
+    #bottom-bar {
+      margin-top: 8px; font-size: 11px; color: #556c80;
+      text-align: center; user-select: none;
+    }
+    #bottom-bar kbd {
+      background: #0e1722; padding: 2px 6px; border-radius: 3px;
+      border: 1px solid #203345; color: #8daec9;
+    }
+  </style>
+</head>
+<body>
+  <div id="top-bar">
+    <div>SOLO WING 1990 <span class="title">// WINGNUT CARRIER & COMBAT ENGINE</span></div>
+    <div class="controls-group">
+      <button class="btn-retro active" id="btn-crt" title="CRT Scanline Effekt (Taste C)">CRT: AN</button>
+      <button class="btn-retro" id="btn-launch" title="Katapult-Start (Taste L)">🚀 START (L)</button>
+      <button class="btn-retro" id="btn-land" title="Träger-Anflug & Landung (Taste K)">🛬 LANDUNG (K)</button>
+      <button class="btn-retro" id="btn-fs" title="Vollbildmodus (Taste F)">⛶ VOLLBILD (F)</button>
+    </div>
+  </div>
+
+  <div id="stage-container">
+    <canvas id="gameCanvas" width="680" height="440"></canvas>
+    <div id="crt-overlay"></div>
+    <div id="loading-overlay">
+      <div id="loading-text">INITIALISIERE FLUGLEITUNG & HD-ATLANTE...</div>
+      <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+      <div id="loading-sub" style="margin-top:8px; font-size:11px; color:#4a7185;">0 / 0 Assets</div>
+    </div>
+  </div>
+
+  <div id="bottom-bar">
+    <kbd>MAUS</kbd>/<kbd>WASD</kbd> Steuern &bull; <kbd>LEERTASTE</kbd> Laser &bull; <kbd>SHIFT</kbd> Nachbrenner &bull; <kbd>TAB</kbd> Ziel &bull; <kbd>L</kbd> Katapult-Start &bull; <kbd>K</kbd> Träger-Landung &bull; <kbd>F</kbd> Vollbild &bull; <kbd>C</kbd> CRT-Scanlines
+  </div>
+
+  <script src="prototype.js"></script>
+</body>
+</html>

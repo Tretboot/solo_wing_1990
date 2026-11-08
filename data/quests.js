@@ -48,6 +48,22 @@ SW.QuestData = {
         { typ: 'besuche', raum: 'buerro' }
       ],
       belohnung: { text: 'Der Kaffee ist warm. Das ist alles.', flag: 'kaffee_gebracht' }
+    },
+    {
+      id: 'protokoll_argon_flash',
+      titel: 'Protokoll Argon-Flash (Modellwechsel)',
+      npc: 'LÖFFEL',
+      fax: 'AUFTRAG: Bordrechner-Upgrade von Argon zu Flash.\nBELEGLAGE: Token-Vorrat erschöpft.\nORT: Reparaturdeck, Löffel.\nNUTZEN: Reaktionszeit halbiert, Formular 104-F gestempelt.',
+      bedingung: { typ: 'flag', name: 'flash_eingebaut' },
+      belohnung: { text: 'Gemini 3.8 Flash aktiv. Avionik reagiert augenblicklich.', flag: 'flash_system_online' }
+    },
+    {
+      id: 'taktik_speer_schatten',
+      titel: 'Taktische Weichenstellung: Speer oder Schatten',
+      npc: 'COMMANDER',
+      fax: 'LAGE: Feindübermacht bei Nav 2.\nOPTION A: Stellung halten (Speer der Konföderation).\nOPTION B: Rückzug ins Asteroidenfeld (Schattenpfad).',
+      bedingung: { typ: 'flag', name: 'taktik_entscheidung_halten' },
+      belohnung: { text: 'Frontlinie verteidigt. Sternenkreuz am Bande verliehen.', flag: 'sternenkreuz_verliehen' }
     }
   ]
 };

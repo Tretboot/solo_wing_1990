@@ -20,17 +20,21 @@ Kein Server nötig. Kein Internet. Kein Tracking. Nur Fax.
 **Steuerung:**
 | Eingabe | Funktion |
 |---------|----------|
-| W/A/S/D oder Pfeile | Bewegen (Drift) |
-| SHIFT | Nachbrenner / höherer Vorschub |
+| W/A/S/D oder Pfeile | Bewegen (Drift + animierte Piloten-Hand am Joystick) |
+| SHIFT | Nachbrenner / höherer Vorschub (animierter Schubregler) |
 | Q / E | Rollen |
 | Maus | Zielen |
-| Leertaste / Klick | Feuer |
-| T | Autopilot |
-| N | Nav-Karte |
-| M | TTS ein/aus |
-| O | Sound ein/aus |
-| ESC | Menü |
-| Klick (im Träger) | Türen / NPCs / START / Deckplan / Savegame-Terminal im persönlichen Pilotenzimmer |
+| Leertaste / Klick | Feuer (mit dynamischer RGBA-Mündungsfeuer-Beleuchtung für Cockpit & nahe Schiffe) |
+| 1 / 2 / 3 / 4 (Im Flug) | Interaktiver Staffelfunk im **Linken Cockpit-VDU** + WC3 Video-Monitor oben links (`1` Angriff, `2` Formation, `3` Träger decken, `4` Feind-Funk) |
+| Y / L (Im Flug) | Feindziel durchschalten / Auf dem aktuellen Träger (*TCS Fax-Tragödie* oder *TCS Hermes*) landen |
+| ESC → [C] | Cheat- & Testmenü: Schiffsklasse wechseln (\[B]\), Grafikmodus umschalten (\[G]\: **Wingnut HD** 80 Ansichten ↔ **Amiga VGA \/2\** 40 Ansichten), Sofort-Reparatur aller Systeme (\[R]\) |
+| K (Auf Träger & im Flug) | **Armada / Privateer 16-Sektor-Sternenkarte** (Flottenkommando, Rohstoffhandel, `[F]`/`[ENTER]` Sektor-Transitflug, `[Q]` Dienst quittieren -> Zwischensequenz & Geschenkschiff!) |
+| N / J (Im Flug) | **Sektor-Navigationscomputer** einblenden (`[N]`) / Direkter Sprung zum nächsten verbundenen Nachbarsektor (`[J]`) |
+| S / C (Auf Träger) | **Staffel-Hangar** (3D-Turntable, Upgrades, Reparatur) / **Holo-Chat** mit der Crew |
+| T / V | Autopilot / Kamera-Ansicht (Cockpit → Chase → Top-Down) |
+| M / O / P | TTS ein/aus / Sound ein/aus / Musik ein/aus |
+| ESC | Menü / Offenes Overlay schließen |
+| Klick (im Träger) | Türen / NPCs / START / Sektorkarte / Staffel / Deckplan / Savegame-Terminal / Versetzungsschalter |
 
 > **Multi-Input:** Jedes aktive Gerät = +1 Laser-Slot (max 3).
 > Wer mehr hat, der kann mehr. Das ist kein Bug. Das ist Physik.
@@ -200,22 +204,73 @@ Git selbst lehnt leere Commits ab — der Rest ist Dokumentationspflicht.
 
 ## VERSION
 
-**v0.75-dev** — IM RAUM (Flugmodell & Kampfspür): Auslöser Playtest 2026-10-13 ("wir fliegen, aber es fühlt sich nicht an, keine wirklichen Gegner, keine anderen Schiffe"). Recherche über Open-Source-WC-Clones (`neuromancer/wc1-re` = WC1-Quellrekonstruktion, `wc2-re`, `OpenReliant/openreliant` = StarLancer, FreeSpace Open). Drin: Vorschub + Nachbrenner [SHIFT] (Sternen-Flow, Motor-Sound, VORW-Anzeige), relative Projektion (Kamera am Spieler, Welt rutscht), Banken, Feind-KI (approach → strafe → break, Vorhaltschuss), Wingman "SECHS" (Formation, Deckungsfeuer, Funk), Träger im Feld, "FEIND NAH"-Warnung. Offene v0.70-Punkte (3 Enden, Fax-UI, Aktenschrank, Optimierer) wandern in den v0.75-rc.
+**v0.85-rc (Wingnut / Dynamic Lighting / WC4-Intro / Armada-Privateer / TCS Hermes Pass)** — Umfassendes Grafik-, Physik-, Story- und Open-World-Upgrade durch **Antigravity / Gemini 4 Argon** für den GitHub-Release:
+- **14 kompakte 80-View Multi-Angle Schiffs-Atlanten (`sprites/ships/*.png`):** Extrahiert und per Alpha-Unpremultiply + 1px Kontur veredelt aus HowieDays `WCUnity` (`hornet`, `hornet_ace`, `scimitar`, `valtar`, `talon`, `dralthi`, `salthi`, `krant`, `strakha`, `grikath`) sowie 4 eigene 3D-gerenderte Modelle (`fax_traegodie`, `hermes_carrier`, `hermes_drone`, `freighter`). Exakte 360°-Winkelmathematik (`YAW_STEPS = [31, 1, 3, ..., 29]`) passend zu `SpritePicker.cs` sowie echte 3D-Flugvektor-Rotation für alle Schiffe. Alle Texturen sind für einen Amiga-Port exakt durch 2 teilbar (`[G]` schaltet zwischen 80-View HD und 40-View Amiga `/2` um).
+- **9 interaktive Cockpits & Dynamische Waffen-/Explosions-Beleuchtung:** Alle 9 fliegbaren Schiffe (`[B]`) besitzen eigene Cockpits inkl. echter transparenter RGBA-Waffenfeuer-Lightmaps (`_left_gun.png`, `_right_gun.png`), Schadens-Overlays, Terran- oder Kilrathi-Krallen-Steuerknüppel (`kilrathi_joystick.png`) und Echtzeit-Silhouette-Beleuchtung (`computeDynamicLight` + `source-atop`), bei der Laserfeuer und Explosionen nahe Schiffe und die eigene Cockpitkanzel einfärben.
+- **Neues 3-Akt-Intro (WC1-Technik + WC4-Storytelling):** Einsamer Transporter im Asteroidenfeld mit WC4-Introschrift → Piraten-Hinterhalt → Sprung-Rettung durch die *TCS Fax-Tragödie* und ihre Hornets → Jobangebot nach Simulator-Test („Wird besser bezahlt, als sich von Piraten abschießen zu lassen — Hauptaufgabe: Piraten abschießen!").
+- **Dienst Quittieren (`RESIGNATION`-Zwischensequenz), Geschenkschiff & Sektor-zu-Sektor-Navigation:** Wer den Militärdienst per `[Q]` oder im Dialog quittiert, erlebt eine 3-teilige Zwischensequenz, erhält eine nach gespielten Missionen skalierte Abfindung (`1.800 + Missionen × 950 CR`) sowie ein geschenktes Veteranen-Schiff (*Kiste 47*, *Alte Scimitar*, *Beute-Dralthi* oder *KIWI-Mk.IV*) und kann über die 16-Sektor-Sternenkarte (`[K]` → `[F]`/`[ENTER]`) oder den Cockpit-Navcomputer (`[N]` → `[J]`) echte Sektor-zu-Sektor-Transitflüge mit Sprungbojen (`nav_light.png`), Handelskonvois und Zoll-/Piraten-Begegnungen absolvieren.
+- **KI-Träger *TCS Hermes* & Branching Storylines (`m5`, `m6a`, `m6b`):** Neuer Träger *TCS Hermes* (`tcs-hermes`), betrieben von Robotern und KI (`HERMES-KERN`, `WORKER-7`, `REVIEWER-9`) als Hommage an den Hermes-Agentenschwarm, mit eigenem Raum-Pixel-Filter, kybernetischen Neural-Leitungen und verzweigenden Missionen.
+
+**v0.75-dev (Argon-Pass)** — IM RAUM (Flugmodell & Kampfspür) + Argon-Vollverkabelung: Vorschub + Nachbrenner [SHIFT], relative Projektion, Feind-KI (`approach → strafe → break`), Wingman "SECHS", Träger im Feld, Phantom-Start-Bugfix, Missionsbaum, SmartDialogues, Fax-Quests, *DIE TRÄGER-POST*, 5 Geheimakten, 3 Enden (Sieg / Tod / Geheim).
 
 **v0.70-dev** — Abspann/Credits: Nach dem Sieg-Debriefing läuft der rollende Abspann (1990-Style) — Crew-Liste aus `SW.Crew`, Pilotenname, Produktions-Credits; [LEER] = Weiterspulen, [ESC] = schließen. Tod geht ohne Abspann direkt zum Träger. GitHub-Repo ist live: `tretboot/solo_wing_1990` (Push + Tag `v0.6.9-final`).
 
-**v0.6.9-final** — Quartiere auf dem Träger: Jeder Charakter bekommt einen eigenen Raum, inklusive NPCs; Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub. Darunter: Ingame-Handbuch [H] + externes Handbuch + Website (Corporate Design) + Game↔Website-Bridge + Switch-Port-Prep. Roadmap: `TODO.md` + `KONZEPTE.md` (0.6.10 Humor-Overhaul, 0.70 Enden & Papierkram, 0.75+ Freies Universum). Ab hier wird die Struktur besser, der Spielfluss klarer und die Spielbarkeit ernsthaft angestrebt.
+**v0.6.9-final** — Quartiere auf dem Träger: Jeder Charakter bekommt einen eigenen Raum, inklusive NPCs; Save/Load-Panel (Speichern/Laden/Export/Löschen, localStorage), Intro-Musik-Fix (loop, Stille in Menüs, [P] für beide Systeme), Dialog-Box (Höhe, Umbruch, Paging, Sprecher-Gesichter), Repo-Cleanup für GitHub.
 
 **v0.6.5-rc** — Cheatmenü + Wandkarte + 7 neue NPCs + Transfer-Zwischenszene + Hangar→Debriefing + Rollen (Q/E) + Nav-Karte (N) + Info-Panel + MIT-Lizenz.
 
-Release Candidate liegt in `release/v0.6.5-rc/` (sauberer Unterordner, mit ZIP: `release/solo_wing_1990_v0.6.5-rc.zip`).
+---
 
-## LIZENZ
+## HANDOFF-DOKUMENTATION FÜR ZUKÜNFTIGE AGENTEN (ARCHITEKTUR & INVARIANTEN)
 
-MIT — siehe `LICENSE`. Die Sterne sind künstlich. Die Lizenz ist echt.
+Wenn du als zukünftiger KI-Agent (oder menschlicher Entwickler) an `solo_wing_1990` weiterarbeitest, beachte bitte folgende Architektur-Regeln:
 
-Siehe `PATCHNOTES.md` für Details. Siehe `site/index.html` für Evaluation.
+1. **Smoke-Test als oberste Wahrheit (`node _smoke_test.js`):**
+   - Vor und nach jeder Änderung **muss** `node _smoke_test.js` mit `0` Fehlern (`ALLE TESTS OK`) durchlaufen.
+   - `SW.Game.startMission(id)` setzt am Ende `this.setState('SHIP')` (vom Smoke-Test als Invariante geprüft). Für das Vorbereiten einer Mission im Flugdeck ohne State-Reset wird `SW.Game.prepareMission(id)` genutzt; für dynamisch generierte Sektor-Transit-Missionen `SW.Game.startMissionWithData(missionData)`.
+2. **Multi-Angle Sprite-Pipeline (`tools/build_wingnut_assets.py` & `js/sprites.js`):**
+   - Alle 14 Schiffs-Atlanten in `sprites/ships/*.png` bestehen aus **16 Yaw-Spalten × 5 Pitch-Reihen = 80 Ansichten**.
+   - **Wichtig zum Yaw-Winkel (`YAW_STEPS`):** In HowieDays `WCUnity` (`SpritePicker.cs`) gilt `theta = (yaw + 1) * (PI / 16)`. Die exakten Hauptachsen (`0°` Front, `90°` Steuerbord, `180°` Heck, `270°` Backbord) liegen daher auf den **ungeraden** Indizes `[31, 7, 15, 23]`. `build_wingnut_assets.py` nutzt `YAW_STEPS = [31, 1, 3, ..., 29]`, sodass `col 0` exakt `0°` Frontalansicht und `col 8` exakt `180°` Heckansicht ist.
+   - `SW.Sprites.drawMultiAngle` unterstützt **beide** Aufruf-Signaturen:
+     - **3D-Welt (12/13 Argumente):** `(ctx, key, sx, sy, scale, wx, wy, wz, entityYaw, entityPitch, fallbackSprite, tintColor, dynamicLight)`
+     - **UI / Hangar / Cutscene / Turntable (8/9 Argumente):** `(ctx, key, sx, sy, pixelSize, yaw, pitch, tintColor, fallbackSprite)`
+     - Gibt immer `true` zurück, wenn ein Atlas-Sprite gezeichnet wurde (wichtig für Fallbacks).
+   - Alle PNG-Dimensionen in `sprites/ships/` sind **gerade Zahlen (durch 2 teilbar)** für verlustfreie Amiga-Halbierung (`amiga_vga`).
+3. **Dynamische Beleuchtung (`computeDynamicLight` & `renderCockpitDynamicLighting`):**
+   - `SW.Sprites.computeDynamicLight(wx, wy, wz)` berechnet aus nahen Projektilen (`SW.Projectiles.list`) und Explosionen (`SW.Explosions.list`) Farbe und Intensität (`{ color, alpha }`).
+   - Die Cockpit-Waffenblitzer (`sprites/cockpits/*_left_gun.png` und `*_right_gun.png`) sind transparente RGBA-Overlays (keine schwarzen opaken Masken!).
+4. **Träger, Crew & Branching (`data/postings.js`, `js/transfers.js`, `js/npc.js`):**
+   - Neue NPCs müssen sowohl in `SW.NPC.registry` (`js/npc.js`) als auch im jeweiligen Träger-Posting (`data/postings.js`) eingetragen sein, damit `SW.Transfers.hasCrew()` und `SW.NPC.resolve()` sie finden.
 
 ---
 
-© 1990 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.
+## OPEN-SOURCE-CREDITS & DRITTANBIETER-ASSETS (DANK & LIZENZEN)
+
+Wir danken der Open-Source- und Wing-Commander-Community herzlich für ihre großartigen Projekte, Werkzeuge und Referenzen, die in **SOLO WING 1990** eingeflossen sind:
+
+* **Howard Day ([HowieDay](https://github.com/HowieDay)) — `Wingnut` / `WCUnity` (`Wing-Commander-Unity-Clone`):**
+  * Open-Source Wing-Commander-Remake-Framework sowie 3D-gerenderte Multi-Angle-Sprites, Cockpits, Piloten-Hände und VFX-Assets (`nav_light`, `debris`, `shield_impact`, `engine_flare`, `photon_blast`, `meson_bolt`).
+* **Niklas „Arne" Jansson ([PromMode / Arne](https://androidarts.com/)):**
+  * Überarbeitete 3D-/Pixel-Art-Schiffsdesigns und Cockpit-Grafiken (Hornet, Hornet Ace, Scimitar, Valtar/Raptor, Talon, Dralthi, Salthi, Krant, Strakha, Grikath) aus dem `Wingnut`/`WCUnity`-Asset-Paket.
+* **neuromancer ([`wc1-re`](https://github.com/neuromancer/wc1-re) & [`wc2-re`](https://github.com/neuromancer/wc2-re)):**
+  * Open-Source C/SDL2-Rekonstruktion von *Wing Commander I & II* — unschätzbare Referenz für das 3D-Flugmodell, die Feind-Manöver-State-Machine (`approach → strafe → break`), Wingman-Formationsflug und die PCI-Dialogarchitektur.
+* **[`OpenReliant/openreliant`](https://github.com/OpenReliant/openreliant) & [FreeSpace Open (`scp-fs2open`)](https://github.com/scp-fs2open/fs2open.github.com):**
+  * Architektur-Referenzen für Raumkampf-HUD, Vorhaltepunkt-Berechnung (Lead Indicator) und Geschwindigkeitsgefühl.
+* **Origin Systems / Chris Roberts, Paul Neurath, Warren Spector & Team (1990–1996):**
+  * Historische Inspiration und Verneigung vor *Wing Commander I* (1990), *Wing Commander: Privateer* (1993), *Wing Commander: Armada* (1994), *Wing Commander III: Heart of the Tiger* (1994) und *Wing Commander IV: The Price of Freedom* (1996).
+* **Alle beteiligten KI-Agenten-Ären & Entwickler:**
+  * **Tretboot** (Konzept, Regie, Musik, Design, Code, Formulare)
+  * **Ära 1:** Qwen-Agentenverbund (Commander, Qwen No Thinking, Qwen NoThink Code, Lead Story Writer, Lead Developer, Code Review Agent)
+  * **Ära 2:** Hermes Agent & Kiwi-Schwarm (Migration auf `AgentHome`, `BYOA`-Bridge, Ökonomie-Grundstein, verewigt als KI-Träger *TCS Hermes*)
+  * **Ära 3:** VS Code + Cline & GitHub Copilot (`IM RAUM`, 3 Decks, Systemschäden, Hangar-Reparatur, Savegames)
+  * **Ära 4 & 5:** Antigravity / Gemini 4 Argon (Vollverkabelung v0.75 + Wingnut 80-View Sprites, Dynamisches Waffen-Lighting, WC4-Intro, Resignation-Cutscene, Sektor-Navigation & *TCS Hermes* Story-Pass v0.85)
+
+## LIZENZ
+
+MIT — siehe [`LICENSE`](LICENSE). Die Sterne sind künstlich. Die Lizenz ist echt.
+
+Siehe [`PATCHNOTES.md`](PATCHNOTES.md) für Details. Siehe [`site/index.html`](site/index.html) für Evaluation & Schiffslog.
+
+---
+
+© 1990–2026 STERNENKORPS. GEDRUCKT AUF FAXPAPIER. KEINE HAFTUNG FÜR VERLUSTE IM FLUG.
