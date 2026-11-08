@@ -17,6 +17,7 @@ saves/*.json
 scan_braces.js
 release/
 releases/
+prototype_wingnut/
 *.zip
 *.sha256
 
