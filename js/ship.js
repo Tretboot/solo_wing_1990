@@ -398,12 +398,24 @@ SW.Ship = {
     if (this.savePanelOpen) { this.handleSavePanelClick(mx, my); return; }
     if (this.newspaperOpen) { this.newspaperOpen = false; SW.Audio.playCommBeep(); return; }
 
-    // WC3-Stil Turbolift / Deck-Aufzug Klicks
+    // WC3-Stil Turbolift / Deck-Aufzug Klicks (Deckplan als Aufzug)
     if (this.elevatorOpen) {
       if (this._elevatorCloseRect && this._contains(this._elevatorCloseRect, mx, my)) {
         this.elevatorOpen = false;
         if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
         return;
+      }
+      if (this._cheatMapRects) {
+        for (const r of this._cheatMapRects) {
+          if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+            this.currentRoom = r.room;
+            this.elevatorOpen = false;
+            this.dialogueActive = false;
+            this.talkingNPC = null;
+            if (SW.Audio && SW.Audio.playCommBeep) SW.Audio.playCommBeep();
+            return;
+          }
+        }
       }
       if (this._elevatorButtons) {
         for (const btn of this._elevatorButtons) {
@@ -713,11 +725,8 @@ SW.Ship = {
     // NPCs
     this.renderNPCs(ctx, room);
 
-    // Türen
+    // Türen & Aufzug
     this.renderDoors(ctx, room);
-
-    // Minimap
-    this.renderMap(ctx, room);
 
     // Dialog-Box
     if (this.dialogueActive) this.renderDialogue(ctx, room);
@@ -1626,95 +1635,9 @@ SW.Ship = {
     }
   },
 
-  // ===== WC3-STIL TURBOLIFT / DECK-TRANSIT SCREEN =====
+  // ===== WC3-STIL TURBOLIFT / DECK-TRANSIT SCREEN (DECKPLAN IM AUFZUG) =====
   renderElevatorTransit(ctx, room) {
-    this._elevatorButtons = [];
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-    ctx.fillRect(0, 0, SW.W, SW.H);
-
-    const ex = 22, ey = 12, ew = SW.W - 44, eh = SW.H - 24;
-    ctx.fillStyle = 'rgba(10, 16, 26, 0.98)';
-    ctx.fillRect(ex, ey, ew, eh);
-    ctx.strokeStyle = '#5a7896';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(ex, ey, ew, eh);
-
-    // Titelleiste
-    ctx.fillStyle = 'rgba(20, 35, 52, 0.9)';
-    ctx.fillRect(ex, ey, ew, 18);
-    ctx.fillStyle = '#ffcc00';
-    ctx.font = 'bold 8px monospace';
-    ctx.textAlign = 'left';
-    const posting = SW.Transfers.getCurrentPosting();
-    ctx.fillText('TURBOLIFT // DECK-TRANSIT // ' + (posting.name || 'TCS FAX-TRAGÖDIE'), ex + 8, ey + 12);
-
-    // Schließen-Button [X]
-    ctx.fillStyle = '#ff3333';
-    ctx.fillRect(ex + ew - 16, ey + 3, 13, 12);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 8px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('X', ex + ew - 10, ey + 12);
-    ctx.textAlign = 'left';
-    this._elevatorCloseRect = { x: ex + ew - 16, y: ey + 3, w: 13, h: 12 };
-
-    // Subtitel
-    ctx.fillStyle = '#88aacc';
-    ctx.font = '5px monospace';
-    ctx.fillText('FAHRKABINE BEREIT • ZIELDECK & RAUM WÄHLEN [ESC zum Abbrechen]', ex + 8, ey + 25);
-
-    // 3 Deckebenen:
-    for (let deck = 1; deck <= 3; deck++) {
-      const dy = ey + 30 + (deck - 1) * 44;
-      const isCurDeck = room.deck === deck;
-      ctx.fillStyle = isCurDeck ? 'rgba(30, 50, 70, 0.6)' : 'rgba(15, 25, 36, 0.4)';
-      ctx.fillRect(ex + 4, dy, ew - 8, 40);
-      ctx.strokeStyle = isCurDeck ? '#ffcc00' : '#2a3e52';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(ex + 4, dy, ew - 8, 40);
-
-      // Deck-Label
-      ctx.fillStyle = isCurDeck ? '#ffcc00' : '#88aacc';
-      ctx.font = 'bold 6px monospace';
-      ctx.fillText('DECK ' + deck + ' — ' + this.DECK_NAMES[deck], ex + 8, dy + 10);
-
-      // Räume auf diesem Deck
-      const dRooms = SW.Rooms.filter(r => r.deck === deck && SW.Transfers.canVisit(r.id));
-      const btnW = Math.floor((ew - 20) / Math.max(dRooms.length, 1)) - 4;
-      for (let i = 0; i < dRooms.length; i++) {
-        const r = dRooms[i];
-        const bx = ex + 8 + i * (btnW + 4);
-        const by = dy + 14;
-        const bh = 22;
-        const isCurrent = r.id === room.id;
-
-        ctx.fillStyle = isCurrent ? 'rgba(0, 180, 255, 0.25)' : 'rgba(12, 20, 32, 0.85)';
-        ctx.fillRect(bx, by, btnW, bh);
-        ctx.strokeStyle = isCurrent ? '#00ffff' : (r.akzent || '#4a6078');
-        ctx.lineWidth = isCurrent ? 1.5 : 1;
-        ctx.strokeRect(bx, by, btnW, bh);
-
-        ctx.fillStyle = isCurrent ? '#00ffff' : '#ffffff';
-        ctx.font = 'bold 5px monospace';
-        ctx.textAlign = 'center';
-        const lbl = this.roomLabel(r, true);
-        ctx.fillText(lbl, bx + btnW / 2, by + 9);
-
-        // Status / Crew / "HIER"
-        ctx.font = '4px monospace';
-        if (isCurrent) {
-          ctx.fillStyle = '#00ff88';
-          ctx.fillText('★ HIER ★', bx + btnW / 2, by + 18);
-        } else {
-          const npcs = SW.World.npcInRoom(r.id);
-          ctx.fillStyle = '#88aacc';
-          ctx.fillText(npcs.length > 0 ? (npcs.length + ' Crew') : 'Frei', bx + btnW / 2, by + 18);
-        }
-        ctx.textAlign = 'left';
-
-        this._elevatorButtons.push({ x: bx, y: by, w: btnW, h: bh, roomId: r.id });
-      }
-    }
+    this.renderCheatMap(ctx);
   },
 
   // ===== MINIMAP (WANDKARTE: KLEIN & SCHEMATISCH) =====

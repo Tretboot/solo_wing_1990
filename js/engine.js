@@ -133,17 +133,6 @@ SW.Engine = {
     const vx = (player && player.vx) || 0;
     const vy = (player && player.vy) || 0;
 
-    // Dezenter Sektor-Nebel & Horizont-Drift im tiefen Raum
-    if (ctx.save && ctx.arc && ctx.restore) {
-      const sysCol = (SW.World && SW.World.systemInfo) ? (SW.World.systemInfo().farbe || '#3366ff') : '#3366ff';
-      ctx.save();
-      ctx.fillStyle = sysCol;
-      ctx.globalAlpha = 0.05;
-      ctx.beginPath();
-      ctx.arc(SW.CX - playerX * 0.28 - vx * 6, SW.CY - 18 - playerY * 0.28 - vy * 6, 56, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
 
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = 'rgba(180,220,255,0.65)';

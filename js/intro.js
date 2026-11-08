@@ -100,6 +100,14 @@ SW.Intro = {
     if (K['Escape'] && !prev['Escape']) { this.escToAkademie(); return; }
 
     if (this.phase === 0) {
+      const cKey = K['KeyC'];
+      if (cKey && !this._cHeld) {
+        this._cHeld = true;
+        SW.Audio.init();
+        SW.Game.startCredits();
+        return;
+      }
+      if (!cKey) this._cHeld = false;
       const space = K['Space'] || K['Enter'];
       if (space && !this._spaceHeld) { this._spaceHeld = true; this.toPhase1(); return; }
       if (!space) this._spaceHeld = false;
@@ -323,7 +331,7 @@ SW.Intro = {
     ctx.fillStyle = blink ? '#ffffff' : '#6688aa'; ctx.font = 'bold 8px monospace';
     ctx.fillText('[ LEERTASTE: INTRO & KAMPAGNE STARTEN ]', SW.CX, 148);
     ctx.fillStyle = '#667788'; ctx.font = '5.5px monospace';
-    ctx.fillText('[ ESC: DIREKT ZUM SIMULATOR ]', SW.CX, 164);
+    ctx.fillText('[ ESC: DIREKT ZUM SIMULATOR ]   [ C: ROLLENDER ABSPANN ]', SW.CX, 164);
     ctx.textAlign = 'left';
   },
 

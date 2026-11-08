@@ -127,12 +127,42 @@ SW.Player = {
       }
       return;
     }
-    const slots=SW.Input.getLaserSlots(), dir=SW.Input.getAimDirection();
-    for (let i=0;i<slots;i++) {
-      const spread=(i-(slots-1)/2)*0.05, dx=dir.x+spread, dy=dir.y;
-      const len=Math.sqrt(dx*dx+dy*dy+dir.z*dir.z);
-      const damage=SW.LASER_DAMAGE*(0.5+0.5*this.systems.weapons/100);
-      SW.Projectiles.add({x:this.x,y:this.y,z:this.z+1,dx:dx/len,dy:dy/len,dz:dir.z/len,speed:SW.LASER_SPEED,friendly:true,damage,life:100});
+    const slots = SW.Input.getLaserSlots(), dir = SW.Input.getAimDirection();
+    const convDist = 140; // Konvergenzpunkt vor dem Cockpit
+    const targetX = this.x + dir.x * convDist;
+    const targetY = this.y + dir.y * convDist;
+    const targetZ = this.z + dir.z * convDist;
+
+    // Physikalisch getrennte Tragflächen-Geschütze (kein Stapeln der Laser aufeinander)
+    let offsets;
+    if (slots === 1) {
+      offsets = [{ x: 0, y: -0.8 }];
+    } else if (slots === 2) {
+      offsets = [{ x: -3.6, y: -0.7 }, { x: 3.6, y: -0.7 }];
+    } else if (slots === 3) {
+      offsets = [{ x: -3.8, y: -0.7 }, { x: 0, y: -1.0 }, { x: 3.8, y: -0.7 }];
+    } else {
+      offsets = [{ x: -4.2, y: -0.7 }, { x: -1.8, y: -0.9 }, { x: 1.8, y: -0.9 }, { x: 4.2, y: -0.7 }];
+    }
+
+    for (let i = 0; i < slots; i++) {
+      const off = offsets[i] || { x: (i - (slots - 1) / 2) * 2.0, y: -0.8 };
+      const gunX = this.x + off.x;
+      const gunY = this.y + off.y;
+      const gunZ = this.z + 1.2;
+      const dx = targetX - gunX;
+      const dy = targetY - gunY;
+      const dz = targetZ - gunZ;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+      const damage = SW.LASER_DAMAGE * (0.5 + 0.5 * this.systems.weapons / 100);
+      SW.Projectiles.add({
+        x: gunX, y: gunY, z: gunZ,
+        dx: dx / len, dy: dy / len, dz: dz / len,
+        speed: SW.LASER_SPEED,
+        friendly: true,
+        damage,
+        life: 100
+      });
       if (SW.Game) SW.Game.shotsFired = (SW.Game.shotsFired || 0) + 1;
     }
     this.gunFlashTimer = 5;
@@ -463,17 +493,10 @@ SW.Enemies = {
       }
     }
     // Dynamische Musik im Cockpit je nach Kampflage
-    if (frame % 20 === 0 && SW.Audio && SW.Audio.syncContext && SW.Game && SW.Game.state === 'COCKPIT') {
-      const anyTailingMe = this.list.some(e => e.alive && e.state === 'tailing');
-      const sel = this.getSelectedTarget ? this.getSelectedTarget() : null;
-      const tailingEnemy = sel && sel.alive && Math.hypot(sel.x - p.x, sel.y - p.y) < 26 && sel.z > p.z + 15 && sel.z < p.z + 120;
+    if (frame % 30 === 0 && SW.Audio && SW.Audio.syncContext && SW.Game && SW.Game.state === 'COCKPIT') {
       const combatLive = this.list.some(e => e.alive && !e.civilian && Math.abs(e.z - p.z) < 320);
-      const isLowShield = (p.frontShield < 30 || p.rearShield < 30);
       SW.Audio.syncContext('cockpit', {
-        beingTailed: anyTailingMe,
-        tailingEnemy: tailingEnemy,
-        inCombat: combatLive,
-        intense: isLowShield
+        inCombat: combatLive
       });
     }
   },
@@ -525,34 +548,45 @@ SW.Projectiles = {
   },
   render(ctx) {
     const isHermes = SW.Player && SW.Player.shipClassId === 'hermes';
-    const vfx = (SW.Sprites && SW.Sprites.vfx) || {};
     for (const p of this.list) {
-      const proj=SW.Engine.screenPos(p.x,p.y,p.z); if(!proj) continue;
-      if (proj.sx<0||proj.sx>SW.W||proj.sy<0||proj.sy>SW.H) continue;
-      const proj2=SW.Engine.screenPos(p.x-p.dx*4.8,p.y-p.dy*4.8,p.z-p.dz*4.8);
+      const proj = SW.Engine.screenPos(p.x, p.y, p.z);
+      if (!proj) continue;
+      if (proj.sx < -20 || proj.sx > SW.W + 20 || proj.sy < -20 || proj.sy > SW.H + 20) continue;
+      const tailLen = 5.2;
+      const proj2 = SW.Engine.screenPos(p.x - p.dx * tailLen, p.y - p.dy * tailLen, p.z - p.dz * tailLen);
       const outerCol = p.friendly ? (isHermes ? '#00e5ff' : '#ff3311') : '#22ff55';
       const coreCol  = p.friendly ? (isHermes ? '#e0ffff' : '#ffeeaa') : '#ccffdd';
       if (proj2) {
-        // Outer volumetric glow beam
+        // Äußerer volumetrischer Laserstrahl
         ctx.strokeStyle = outerCol;
-        ctx.lineWidth = Math.min(4.5, Math.max(1.5, proj.scale * 1.1));
-        ctx.beginPath(); ctx.moveTo(proj2.sx, proj2.sy); ctx.lineTo(proj.sx, proj.sy); ctx.stroke();
-        // Bright white-hot core
+        ctx.lineWidth = Math.min(4.5, Math.max(1.5, proj.scale * 1.2));
+        ctx.beginPath();
+        ctx.moveTo(proj2.sx, proj2.sy);
+        ctx.lineTo(proj.sx, proj.sy);
+        ctx.stroke();
+
+        // Weißglühender Kernstrahl
         ctx.strokeStyle = coreCol;
         ctx.lineWidth = Math.min(2.0, Math.max(0.8, proj.scale * 0.45));
-        ctx.beginPath(); ctx.moveTo(proj2.sx, proj2.sy); ctx.lineTo(proj.sx, proj.sy); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(proj2.sx, proj2.sy);
+        ctx.lineTo(proj.sx, proj.sy);
+        ctx.stroke();
+
+        // Prozeduraler Mündungs-/Spitzenblitz bei nahen Projektilen (ohne quadratische PNG-Artefakte)
+        if (proj.scale > 0.35) {
+          const r = Math.min(3.5, Math.max(1.2, proj.scale * 1.4));
+          ctx.fillStyle = coreCol;
+          ctx.beginPath();
+          ctx.arc(proj.sx, proj.sy, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
       } else {
         ctx.fillStyle = outerCol;
         ctx.fillRect(Math.round(proj.sx) - 1, Math.round(proj.sy) - 1, 3, 3);
       }
-      // WCUnity bolt flare tip on close bolts
-      const boltImg = p.friendly ? vfx.photonBlast : vfx.mesonBolt;
-      if (boltImg && boltImg._ready && proj.scale > 0.35 && ctx.drawImage) {
-        const bSz = Math.max(3, Math.min(12, Math.round(8 * proj.scale)));
-        ctx.drawImage(boltImg, Math.round(proj.sx - bSz / 2), Math.round(proj.sy - bSz / 2), bSz, bSz);
-      }
     }
-    ctx.lineWidth=1;
+    ctx.lineWidth = 1;
   }
 };
 

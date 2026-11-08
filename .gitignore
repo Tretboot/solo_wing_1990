@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 *.bak
 *.backup
 *.tmp
@@ -15,3 +15,8 @@ temp/
 saves/*.json
 !saves/.gitkeep
 scan_braces.js
+release/
+releases/
+*.zip
+*.sha256
+
