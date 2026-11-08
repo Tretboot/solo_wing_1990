@@ -494,7 +494,7 @@ SW.Enemies = {
     }
     // Dynamische Musik im Cockpit je nach Kampflage
     if (frame % 30 === 0 && SW.Audio && SW.Audio.syncContext && SW.Game && SW.Game.state === 'COCKPIT') {
-      const combatLive = this.list.some(e => e.alive && !e.civilian && Math.abs(e.z - p.z) < 320);
+      const combatLive = this.list.some(e => e.alive && !e.civilian && Math.abs(e.z - p.z) < 450);
       SW.Audio.syncContext('cockpit', {
         inCombat: combatLive
       });

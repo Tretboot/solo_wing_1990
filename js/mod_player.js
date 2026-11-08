@@ -65,23 +65,54 @@
 
     init(audioCtx, masterGainNode) {
       if (typeof window === 'undefined') return;
-      if (this.ctx) return;
+      if (this.ctx && this.node) return;
       try {
         this.ctx = audioCtx || (SW.Audio && SW.Audio.ctx);
         if (!this.ctx) return;
         this.masterGain = masterGainNode || (SW.Audio && SW.Audio.masterGain) || this.ctx.destination;
 
         // Amiga Paula Hardware Low-Pass Filter (der berühmte LED-Filter der A500)
-        this.filterNode = this.ctx.createBiquadFilter();
-        this.filterNode.type = 'lowpass';
-        this.filterNode.frequency.value = 5200;
-        this.filterNode.Q.value = 0.7;
+        if (!this.filterNode) {
+          this.filterNode = this.ctx.createBiquadFilter();
+          this.filterNode.type = 'lowpass';
+          this.filterNode.frequency.value = 5200;
+          this.filterNode.Q.value = 0.7;
+        }
 
-        this.gainNode = this.ctx.createGain();
-        this.gainNode.gain.value = this.volume;
+        if (!this.gainNode) {
+          this.gainNode = this.ctx.createGain();
+          this.gainNode.gain.value = this.volume;
+          this.filterNode.connect(this.gainNode);
+          this.gainNode.connect(this.masterGain);
+        }
 
-        this.filterNode.connect(this.gainNode);
-        this.gainNode.connect(this.masterGain);
+        this._ensureNode();
+      } catch (err) {
+        // Safe fail
+      }
+    },
+
+    // Einzelner persistenter Audio-Verarbeitungsknoten (verhindert Mehrfach-Instanzen & Tempo-Verdopplungen)
+    _ensureNode() {
+      if (typeof window === 'undefined' || !this.ctx || !this.filterNode) return;
+      if (this.node) return;
+      if (window._swModNode && window._swModNode !== this.node) {
+        try {
+          window._swModNode.disconnect();
+          window._swModNode.onaudioprocess = null;
+        } catch (e) {}
+        window._swModNode = null;
+      }
+      try {
+        const bufSize = 4096;
+        try {
+          this.node = this.ctx.createScriptProcessor(bufSize, 0, 2);
+        } catch (e) {
+          this.node = this.ctx.createScriptProcessor(bufSize, 2, 2);
+        }
+        this.node.onaudioprocess = (e) => this._onAudioProcess(e);
+        this.node.connect(this.filterNode);
+        window._swModNode = this.node;
       } catch (err) {
         // Safe fail
       }
@@ -245,33 +276,9 @@
       if (this.ctx.state === 'suspended') {
         try { this.ctx.resume(); } catch(e) {}
       }
-      if (this.node) {
-        const oldNode = this.node;
-        this.node = null;
-        this.state.playing = false;
-        if (this.gainNode) {
-          const t = this.ctx.currentTime;
-          this.gainNode.gain.cancelScheduledValues(t);
-          this.gainNode.gain.linearRampToValueAtTime(0.001, t + fadeSec);
-        }
-        setTimeout(() => {
-          try {
-            oldNode.disconnect();
-            oldNode.onaudioprocess = null;
-          } catch (e) {}
-          if (this._targetKey === key) {
-            this._initNode(mod, key, loop, fadeSec);
-          }
-        }, Math.round(fadeSec * 1000));
-      } else {
-        this._initNode(mod, key, loop, fadeSec);
-      }
-    },
+      this.init();
+      this._ensureNode();
 
-    _initNode(mod, key, loop, fadeSec) {
-      if (this.ctx && this.ctx.state === 'suspended') {
-        try { this.ctx.resume(); } catch(e) {}
-      }
       this.currentMod = mod;
       this.currentTrackKey = key;
       this._targetKey = key;
@@ -286,7 +293,8 @@
       s.bpm = 125;
       s.jumpOrder = null;
       s.breakRow = 0;
-      s.samplesPerTick = Math.round(this.ctx.sampleRate * 2.5 / 125);
+      const sampleRate = (this.ctx && this.ctx.sampleRate) ? this.ctx.sampleRate : 44100;
+      s.samplesPerTick = Math.round(sampleRate * 2.5 / 125);
       s.tickSampleCounter = 0;
 
       for (let i = 0; i < 4; i++) {
@@ -296,27 +304,12 @@
         ch.vibDepth = 0; ch.retrigCount = 0;
       }
 
-      // 4096 Samples Puffergröße für unterbrechungsfreie Audio-Verarbeitung
-      try {
-        const bufSize = 4096;
-        try {
-          this.node = this.ctx.createScriptProcessor(bufSize, 0, 2);
-        } catch (e) {
-          this.node = this.ctx.createScriptProcessor(bufSize, 2, 2);
-        }
-        this.node.onaudioprocess = (e) => this._onAudioProcess(e);
-        this.node.connect(this.filterNode);
-        if (typeof window !== 'undefined') window._swModNode = this.node;
-
-        // Sanfter Einblend-Fade
-        if (this.gainNode) {
-          const t = this.ctx.currentTime;
-          this.gainNode.gain.cancelScheduledValues(t);
-          this.gainNode.gain.setValueAtTime(0.001, t);
-          this.gainNode.gain.linearRampToValueAtTime(this.volume, t + Math.max(0.05, fadeSec));
-        }
-      } catch (err) {
-        // Safe fail
+      // Sanfter Einblend-Fade
+      if (this.gainNode && this.ctx) {
+        const t = this.ctx.currentTime;
+        this.gainNode.gain.cancelScheduledValues(t);
+        this.gainNode.gain.setValueAtTime(0.001, t);
+        this.gainNode.gain.linearRampToValueAtTime(this.volume, t + Math.max(0.05, fadeSec));
       }
     },
 
@@ -336,24 +329,20 @@
     },
 
     stop(fadeSec = 0.2) {
-      this.state.playing = false;
       this._targetKey = null;
       this._isLoading = false;
       this.currentTrackKey = null;
-      if (!this.node || !this.ctx) return;
-      const oldNode = this.node;
-      this.node = null;
 
-      if (this.gainNode) {
+      if (this.gainNode && this.ctx) {
         const t = this.ctx.currentTime;
         this.gainNode.gain.cancelScheduledValues(t);
         this.gainNode.gain.linearRampToValueAtTime(0.001, t + fadeSec);
       }
       setTimeout(() => {
-        try {
-          oldNode.disconnect();
-          oldNode.onaudioprocess = null;
-        } catch (e) {}
+        if (!this._targetKey) {
+          this.state.playing = false;
+          this.currentMod = null;
+        }
       }, Math.round((fadeSec + 0.05) * 1000));
     },
 
@@ -483,7 +472,7 @@
         return;
       }
 
-      const sampleRate = this.ctx.sampleRate;
+      const sampleRate = (this.ctx && this.ctx.sampleRate) ? this.ctx.sampleRate : 44100;
       for (let i = 0; i < len; i++) {
         if (s.tickSampleCounter <= 0) {
           if (s.curTick === 0) {
@@ -492,7 +481,8 @@
             this._processTick();
           }
           s.curTick++;
-          if (s.curTick >= s.speed) {
+          const curSpeed = (s.speed > 0) ? s.speed : 6;
+          if (s.curTick >= curSpeed) {
             s.curTick = 0;
             if (s.jumpOrder !== null) {
               s.curOrder = s.jumpOrder;
@@ -530,7 +520,8 @@
               }
             }
           }
-          s.tickSampleCounter += s.samplesPerTick;
+          const spt = (s.samplesPerTick > 0) ? s.samplesPerTick : Math.round(sampleRate * 2.5 / 125);
+          s.tickSampleCounter += spt;
         }
         s.tickSampleCounter--;
 

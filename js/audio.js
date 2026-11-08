@@ -647,7 +647,7 @@ SW.Audio = {
     } else if (ctx === 'cockpit' || ctx === 'flight') {
       const now = Date.now();
       if (extra.inCombat) {
-        this._combatHoldUntil = now + 4000;
+        this._combatHoldUntil = now + 12000;
         this.playMod('regularcombat');
       } else if (now < this._combatHoldUntil) {
         if (!SW.ModPlayer || !SW.ModPlayer.state.playing) {
